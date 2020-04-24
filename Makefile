@@ -28,7 +28,7 @@ buildroot_initramfs_sysroot := $(wrkdir)/buildroot_initramfs_sysroot
 
 linux_srcdir := $(srcdir)/linux
 linux_wrkdir := $(wrkdir)/linux
-inux_defconfig := $(confdir)/linux_defconfig
+linux_defconfig := $(confdir)/linux_defconfig
 linux_gen_initramfs=$(linux_srcdir)/usr/gen_initramfs.sh
 
 vmlinux := $(linux_wrkdir)/vmlinux
@@ -39,7 +39,7 @@ initramfs := $(wrkdir)/initramfs.cpio.gz
 
 opensbi_srcdir := $(srcdir)/opensbi
 opensbi_wrkdir := $(wrkdir)/opensbi
-opensbi_payload := $(opensbi_wrkdir)/build/platform/nuclei/ux600/firmware/fw_payload.elf
+opensbi_payload := $(opensbi_wrkdir)/platform/nuclei/ux600/firmware/fw_payload.elf
 
 # xlspike is prebuilt and installed to PATH
 xlspike := xl_spike
@@ -137,7 +137,7 @@ clean:
 
 .PHONY: sim
 sim: $(opensbi_payload)
-	$(xlspike) --isa=$(ISA) $(bbl_payload)
+	$(xlspike) --isa=$(ISA) $(opensbi_payload)
 
 
 -include $(initramfs).d
