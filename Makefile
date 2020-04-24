@@ -98,7 +98,7 @@ $(vmlinux): $(linux_srcdir) $(linux_wrkdir)/.config $(target_gcc)
 initrd: $(initramfs)
 
 $(initramfs).d: $(buildroot_initramfs_sysroot)
-	$(linux_gen_initramfs) -l $(confdir)/initramfs.txt $(buildroot_initramfs_sysroot) > $@
+	$(linux_gen_initramfs) -l $@ $(buildroot_initramfs_sysroot)
 
 $(initramfs): $(buildroot_initramfs_sysroot) $(vmlinux)
 	cd $(linux_wrkdir) && \
