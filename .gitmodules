@@ -1,0 +1,11 @@
+[submodule "linux"]
+	path = linux
+    url = http://xl01:8634/os-dev/linux.git
+
+[submodule "buildroot"]
+	path = buildroot
+    url = http://xl01:8634/os-dev/buildroot.git
+
+[submodule "opensbi"]
+	path = opensbi
+    url = http://xl01:8634/os-dev/opensbi.git
