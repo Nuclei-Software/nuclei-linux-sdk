@@ -1,5 +1,6 @@
 ISA ?= rv64imafdc
 ABI ?= lp64d
+USE_HTIF ?= 0
 
 srcdir := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 srcdir := $(srcdir:/=)
