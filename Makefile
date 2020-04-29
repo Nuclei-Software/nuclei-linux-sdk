@@ -1,6 +1,7 @@
-ISA ?= rv64imafdc
+ISA ?= rv64gc
 ABI ?= lp64d
 USE_HTIF ?= 0
+EXTERNAL_TOOLCHAIN ?= 0
 
 srcdir := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 srcdir := $(srcdir:/=)
@@ -15,15 +16,24 @@ RISCV ?= $(buildroot_initramfs_wrkdir)/host
 RVPATH := $(RISCV)/bin:$(PATH)
 GITID := $(shell git describe --dirty --always)
 
+platform_dts := $(confdir)/nuclei_ux600.dts
+platform_dtb := $(wrkdir)/nuclei_ux600.dts
+
 # The second option is the more standard version, however in
 # the interest of reproducibility, use the buildroot version that
 # we compile so as to minimize unepected surprises. 
-target := riscv64-nuclei-linux-gnu
 
+ifeq (1,$(EXTERNAL_TOOLCHAIN))
+target := riscv-nuclei-linux-gnu
 CROSS_COMPILE := $(RISCV)/bin/$(target)-
+buildroot_initramfs_config := $(confdir)/buildroot_ext_tool_initramfs_config
+else
+target := riscv64-nuclei-linux-gnu
+CROSS_COMPILE := $(RISCV)/bin/$(target)-
+buildroot_initramfs_config := $(confdir)/buildroot_initramfs_config
+endif
 
 buildroot_initramfs_tar := $(buildroot_initramfs_wrkdir)/images/rootfs.tar
-buildroot_initramfs_config := $(confdir)/buildroot_initramfs_config
 buildroot_initramfs_sysroot_stamp := $(wrkdir)/.buildroot_initramfs_sysroot
 buildroot_initramfs_sysroot := $(wrkdir)/buildroot_initramfs_sysroot
 
@@ -64,7 +74,7 @@ $(buildroot_initramfs_tar): $(buildroot_srcdir) $(buildroot_initramfs_wrkdir)/.c
 buildroot_initramfs-menuconfig: $(buildroot_initramfs_wrkdir)/.config $(buildroot_srcdir)
 	$(MAKE) -C $(dir $<) O=$(buildroot_initramfs_wrkdir) menuconfig
 	$(MAKE) -C $(dir $<) O=$(buildroot_initramfs_wrkdir) savedefconfig
-	cp $(dir $<)/defconfig conf/buildroot_initramfs_config
+	cp $(dir $<)/defconfig $(buildroot_initramfs_config)
 
 $(buildroot_initramfs_sysroot_stamp): $(buildroot_initramfs_tar)
 	mkdir -p $(buildroot_initramfs_sysroot)
@@ -120,11 +130,15 @@ linux-menuconfig: $(linux_wrkdir)/.config
 	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv savedefconfig
 	cp $(dir $<)/defconfig $(linux_defconfig)
 
-$(opensbi_payload): $(opensbi_srcdir) $(vmlinux_bin)
+$(platform_dtb) : $(platform_dts)
+	dtc -O dtb -o $(platform_dtb) $(platform_dts)
+
+$(opensbi_payload): $(opensbi_srcdir) $(vmlinux_bin) $(platform_dtb)
 	rm -rf $(opensbi_wrkdir)
 	mkdir -p $(opensbi_wrkdir)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
-		PLATFORM=nuclei/ux600 FW_PAYLOAD_PATH=$(vmlinux_bin)
+		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) \
+		PLATFORM=nuclei/ux600 FW_PAYLOAD_PATH=$(vmlinux_bin) FW_PAYLOAD_FDT_PATH=$(platform_dtb)
 
 $(buildroot_initramfs_sysroot): $(buildroot_initramfs_sysroot_stamp)
 
