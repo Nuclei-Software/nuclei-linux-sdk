@@ -35,4 +35,18 @@ space.
 
 **Note**: `xl_spike` tool should be installed and added into **PATH** in advance.
 
-You can boot linux on spike by running `make sim`. 
+### Toolchain Setup
+#### Build using external toolchain
+
+If you want to build using prebuilt external toolchain provided by Nuclei,
+you can run `export EXTERNAL_TOOLCHAIN=1` before do any make steps.
+
+#### Build with internal buildroot toolchain
+
+If you want to build using internal toolchain built by buildroot,
+you can run `export EXTERNAL_TOOLCHAIN=0` before do any make steps.
+
+### Run on xl_spike 
+
+When toolchain steps are finished, then, you can build buildroot, linux and opensbi,
+and run opensbi with linux payload on xlspike by running `make sim`.
