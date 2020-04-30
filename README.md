@@ -50,3 +50,7 @@ you can run `export EXTERNAL_TOOLCHAIN=0` before do any make steps.
 
 When toolchain steps are finished, then, you can build buildroot, linux and opensbi,
 and run opensbi with linux payload on xlspike by running `make sim`.
+
+## Notice
+
+This repo is based on opensource repo https://github.com/sifive/freedom-u-sdk/tree/archive/buildroot
