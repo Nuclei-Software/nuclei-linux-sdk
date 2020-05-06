@@ -1,5 +1,5 @@
-ISA ?= rv64gc
-ABI ?= lp64d
+ISA ?= rv64imac
+ABI ?= lp64
 EXTERNAL_TOOLCHAIN ?= 0
 
 srcdir := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))

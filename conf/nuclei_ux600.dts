@@ -19,7 +19,7 @@
       reg = <0>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc";
+      riscv,isa = "rv64imac";
       mmu-type = "riscv,sv39";
       clock-frequency = <0x3b9aca00>;
       cpu0_intc: interrupt-controller {
