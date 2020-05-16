@@ -16,7 +16,7 @@ RVPATH := $(RISCV)/bin:$(PATH)
 GITID := $(shell git describe --dirty --always)
 
 platform_dts := $(confdir)/nuclei_ux600.dts
-platform_dtb := $(wrkdir)/nuclei_ux600.dts
+platform_dtb := $(wrkdir)/nuclei_ux600.dtb
 
 # The second option is the more standard version, however in
 # the interest of reproducibility, use the buildroot version that
