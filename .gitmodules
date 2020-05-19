@@ -9,3 +9,11 @@
 [submodule "opensbi"]
     path = opensbi
     url = ../opensbi.git
+
+[submodule "freeloader"]
+	path = freeloader
+	url = ../freeloader.git
+
+[submodule "u-boot"]
+	path = u-boot
+	url = ../u-boot.git
