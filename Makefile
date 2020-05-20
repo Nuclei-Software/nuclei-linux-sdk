@@ -69,9 +69,9 @@ uboot_cmd := $(confdir)/uboot.cmd
 boot_wrkdir := $(wrkdir)/boot
 boot_ubootscr := $(boot_wrkdir)/boot.scr
 boot_uimage := $(boot_wrkdir)/uImage
-boot_uinitrd := $(boot_wrkdir)/uinitrd.img
+boot_initrd := $(boot_wrkdir)/initrd.img
 boot_uimage_lz4 := $(boot_wrkdir)/uImage.lz4
-boot_uinitrd_lz4 := $(boot_wrkdir)/uinitrd.lz4
+boot_initrd_lz4 := $(boot_wrkdir)/initrd.lz4
 
 # xlspike is prebuilt and installed to PATH
 xlspike := xl_spike
@@ -179,7 +179,7 @@ buildroot_initramfs_sysroot: $(buildroot_initramfs_sysroot)
 vmlinux: $(vmlinux)
 
 .PHONY: bootimages
-bootimages: $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_lz4)
+bootimages: $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_initrd_lz4)
 
 $(boot_wrkdir):
 	mkdir -p $@
@@ -191,10 +191,10 @@ $(boot_uimage_lz4): $(linux_image)
 	$(uboot_mkimage) -A riscv -O linux -T kernel -C none -a 0xa0200000 -e 0xa0200000 -n Linux -d $< $(boot_uimage)
 	lz4 $(boot_uimage) $@ -f -2
 
-$(boot_uinitrd_lz4): $(buildroot_initramfs_sysroot)
+$(boot_initrd_lz4): $(buildroot_initramfs_sysroot)
 	cd $(buildroot_initramfs_sysroot) && find . | fakeroot cpio -H newc -o > $(boot_wrkdir)/initrd.cpio
-	$(uboot_mkimage) -A riscv -T ramdisk -C none -n Initrd -d $(boot_wrkdir)/initrd.cpio $(boot_uinitrd)
-	lz4 $(boot_uinitrd) $@ -f -3
+	$(uboot_mkimage) -A riscv -T ramdisk -C none -n Initrd -d $(boot_wrkdir)/initrd.cpio $(boot_initrd)
+	lz4 $(boot_initrd) $@ -f -3
 
 .PHONY: uboot
 uboot: $(uboot_bin)
