@@ -73,7 +73,7 @@ boot_zip := $(wrkdir)/boot.zip
 boot_ubootscr := $(boot_wrkdir)/boot.scr
 boot_image := $(boot_wrkdir)/Image.lz4
 boot_uimage_lz4 := $(boot_wrkdir)/uImage.lz4
-boot_uinitrd_lz4 := $(boot_wrkdir)/uinitrd.lz4
+boot_uinitrd_lz4 := $(boot_wrkdir)/uInitrd.lz4
 
 # xlspike is prebuilt and installed to PATH
 xlspike := xl_spike
@@ -203,7 +203,8 @@ $(boot_uimage_lz4): $(linux_image)
 	rm -f $(boot_image)
 
 $(boot_uinitrd_lz4): $(initramfs)
-	$(uboot_mkimage) -A riscv -T ramdisk -C lz4 -n Initrd -d $(initramfs) $(boot_uinitrd_lz4)
+	lz4 $(initramfs) $(initramfs).lz4 -f -2 -l
+	$(uboot_mkimage) -A riscv -T ramdisk -C lz4 -n Initrd -d $(initramfs).lz4 $(boot_uinitrd_lz4)
 
 $(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_lz4)
 	rm -f $(boot_zip)
