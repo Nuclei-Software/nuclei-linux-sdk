@@ -22,6 +22,8 @@ platform_dtb := $(wrkdir)/nuclei_ux600.dtb
 # the interest of reproducibility, use the buildroot version that
 # we compile so as to minimize unepected surprises. 
 
+platform_openocd_cfg := $(confdir)/openocd_hbird.cfg
+
 ifeq (1,$(EXTERNAL_TOOLCHAIN))
 target := riscv-nuclei-linux-gnu
 CROSS_COMPILE := $(RISCV)/bin/$(target)-
@@ -67,6 +69,7 @@ uboot_cmd := $(confdir)/uboot.cmd
 
 # Directory for boot images stored in sdcard
 boot_wrkdir := $(wrkdir)/boot
+boot_zip := $(wrkdir)/boot.zip
 boot_ubootscr := $(boot_wrkdir)/boot.scr
 boot_uimage := $(boot_wrkdir)/uImage
 boot_initrd := $(boot_wrkdir)/initrd.img
@@ -76,7 +79,11 @@ boot_initrd_lz4 := $(boot_wrkdir)/initrd.lz4
 # xlspike is prebuilt and installed to PATH
 xlspike := xl_spike
 
+# openocd is prebuilt and installed to PATH
+openocd := openocd
+
 target_gcc := $(CROSS_COMPILE)gcc
+target_gdb := $(CROSS_COMPILE)gdb
 
 .PHONY: all
 all: sim
@@ -134,7 +141,6 @@ $(linux_image): $(linux_srcdir) $(linux_wrkdir)/.config $(target_gcc)
 		CROSS_COMPILE=$(CROSS_COMPILE) \
 		PATH=$(RVPATH) \
 		Image
-	rm $(vmlinux)
 
 .PHONY: initrd
 initrd: $(initramfs)
@@ -164,7 +170,12 @@ linux-menuconfig: $(linux_wrkdir)/.config
 $(platform_dtb) : $(platform_dts)
 	dtc -O dtb -o $(platform_dtb) $(platform_dts)
 
-$(opensbi_jumpbin): $(opensbi_payload)
+$(opensbi_jumpbin):
+	rm -rf $(opensbi_wrkdir)
+	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
+		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) \
+		PLATFORM=nuclei/ux600
+
 $(opensbi_payload): $(opensbi_srcdir) $(vmlinux_bin) $(platform_dtb)
 	rm -rf $(opensbi_wrkdir)
 	mkdir -p $(opensbi_wrkdir)
@@ -179,7 +190,7 @@ buildroot_initramfs_sysroot: $(buildroot_initramfs_sysroot)
 vmlinux: $(vmlinux)
 
 .PHONY: bootimages
-bootimages: $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_initrd_lz4)
+bootimages: $(boot_zip)
 
 $(boot_wrkdir):
 	mkdir -p $@
@@ -195,6 +206,9 @@ $(boot_initrd_lz4): $(buildroot_initramfs_sysroot)
 	cd $(buildroot_initramfs_sysroot) && find . | fakeroot cpio -H newc -o > $(boot_wrkdir)/initrd.cpio
 	$(uboot_mkimage) -A riscv -T ramdisk -C none -n Initrd -d $(boot_wrkdir)/initrd.cpio $(boot_initrd)
 	lz4 $(boot_initrd) $@ -f -3
+
+$(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_initrd_lz4)
+	cd $(boot_wrkdir) && zip -q -r $(boot_zip) .
 
 .PHONY: uboot
 uboot: $(uboot_bin)
@@ -215,10 +229,28 @@ $(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin)
 	make -C $(freeloader_srcdir) ARCH=$(ISA) ABI=$(ABI) CROSS_COMPILE=$(CROSS_COMPILE) \
 		FW_JUMP_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(uboot_dtb)
 
+upload_freeloader: $(freeloader_elf)
+	$(target_gdb) $< -ex "set remotetimeout 240" \
+        -ex "target remote | $(openocd) --pipe -f $(platform_openocd_cfg)" \
+        --batch -ex "monitor reset halt" -ex "monitor halt" \
+	-ex "monitor flash protect 0 0 last off" -ex "load" \
+	-ex "monitor resume" -ex "monitor shutdown" -ex "quit"
 
-.PHONY: clean
-clean:
+.PHONY: clean clean_boot cleanlinux cleanfreeloader cleanopensbi
+clean: cleanfreeloader
 	rm -rf -- $(wrkdir)
+
+cleanboot:
+	rm -rf -- $(boot_wrkdir) $(boot_zip)
+
+cleanlinux:
+	rm -rf -- $(linux_wrkdir) $(vmlinux_bin)
+
+cleanfreeloader:
+	make -C $(freeloader_srcdir) clean
+
+cleanopensbi:
+	rm -rf -- $(opensbi_wrkdir)
 
 .PHONY: sim
 sim: $(opensbi_payload)
