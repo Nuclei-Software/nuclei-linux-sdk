@@ -42,6 +42,7 @@ linux_defconfig := $(confdir)/linux_defconfig
 linux_gen_initramfs=$(linux_srcdir)/usr/gen_initramfs.sh
 
 vmlinux := $(linux_wrkdir)/vmlinux
+linux_image := $(linux_wrkdir)/arch/riscv/boot/Image
 vmlinux_stripped := $(linux_wrkdir)/vmlinux-stripped
 vmlinux_bin := $(wrkdir)/vmlinux.bin
 
@@ -50,6 +51,27 @@ initramfs := $(wrkdir)/initramfs.cpio.gz
 opensbi_srcdir := $(srcdir)/opensbi
 opensbi_wrkdir := $(wrkdir)/opensbi
 opensbi_payload := $(opensbi_wrkdir)/platform/nuclei/ux600/firmware/fw_payload.elf
+opensbi_jumpbin := $(opensbi_wrkdir)/platform/nuclei/ux600/firmware/fw_jump.bin
+
+freeloader_srcdir := $(srcdir)/freeloader
+freeloader_wrkdir := $(srcdir)/freeloader
+freeloader_elf := $(freeloader_wrkdir)/freeloader.elf
+
+uboot_srcdir := $(srcdir)/u-boot
+uboot_wrkdir := $(wrkdir)/u-boot
+uboot_bin := $(uboot_wrkdir)/u-boot.bin
+uboot_dtb := $(uboot_wrkdir)/u-boot.dtb
+uboot_mkimage := $(uboot_wrkdir)/tools/mkimage
+
+uboot_cmd := $(confdir)/uboot.cmd
+
+# Directory for boot images stored in sdcard
+boot_wrkdir := $(wrkdir)/boot
+boot_ubootscr := $(boot_wrkdir)/boot.scr
+boot_uimage := $(boot_wrkdir)/uImage
+boot_uinitrd := $(boot_wrkdir)/uinitrd.img
+boot_uimage_lz4 := $(boot_wrkdir)/uImage.lz4
+boot_uinitrd_lz4 := $(boot_wrkdir)/uinitrd.lz4
 
 # xlspike is prebuilt and installed to PATH
 xlspike := xl_spike
@@ -104,6 +126,16 @@ $(vmlinux): $(linux_srcdir) $(linux_wrkdir)/.config $(target_gcc)
 		PATH=$(RVPATH) \
 		vmlinux
 
+$(linux_image): $(linux_srcdir) $(linux_wrkdir)/.config $(target_gcc)
+	$(MAKE) -C $< O=$(linux_wrkdir) \
+		CONFIG_INITRAMFS_ROOT_UID=$(shell id -u) \
+		CONFIG_INITRAMFS_ROOT_GID=$(shell id -g) \
+		ARCH=riscv \
+		CROSS_COMPILE=$(CROSS_COMPILE) \
+		PATH=$(RVPATH) \
+		Image
+	rm $(vmlinux)
+
 .PHONY: initrd
 initrd: $(initramfs)
 
@@ -132,6 +164,7 @@ linux-menuconfig: $(linux_wrkdir)/.config
 $(platform_dtb) : $(platform_dts)
 	dtc -O dtb -o $(platform_dtb) $(platform_dts)
 
+$(opensbi_jumpbin): $(opensbi_payload)
 $(opensbi_payload): $(opensbi_srcdir) $(vmlinux_bin) $(platform_dtb)
 	rm -rf $(opensbi_wrkdir)
 	mkdir -p $(opensbi_wrkdir)
@@ -144,6 +177,44 @@ $(buildroot_initramfs_sysroot): $(buildroot_initramfs_sysroot_stamp)
 .PHONY: buildroot_initramfs_sysroot vmlinux
 buildroot_initramfs_sysroot: $(buildroot_initramfs_sysroot)
 vmlinux: $(vmlinux)
+
+.PHONY: bootimages
+bootimages: $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_lz4)
+
+$(boot_wrkdir):
+	mkdir -p $@
+
+$(boot_ubootscr): $(uboot_cmd) $(uboot_mkimage)
+	$(uboot_mkimage) -A riscv -T script -O linux -C none -a 0 -e 0 -n "bootscript" -d $(uboot_cmd) $@
+
+$(boot_uimage_lz4): $(linux_image)
+	$(uboot_mkimage) -A riscv -O linux -T kernel -C none -a 0xa0200000 -e 0xa0200000 -n Linux -d $< $(boot_uimage)
+	lz4 $(boot_uimage) $@ -f -2
+
+$(boot_uinitrd_lz4): $(buildroot_initramfs_sysroot)
+	cd $(buildroot_initramfs_sysroot) && find . | fakeroot cpio -H newc -o > $(boot_wrkdir)/initrd.cpio
+	$(uboot_mkimage) -A riscv -T ramdisk -C none -n Initrd -d $(boot_wrkdir)/initrd.cpio $(boot_uinitrd)
+	lz4 $(boot_uinitrd) $@ -f -3
+
+.PHONY: uboot
+uboot: $(uboot_bin)
+
+$(uboot_wrkdir)/.config: $(uboot_srcdir)
+	mkdir -p $(uboot_wrkdir)
+	make -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) nuclei_hbird_defconfig
+
+$(uboot_dtb): $(uboot_bin)
+$(uboot_mkimage) $(uboot_bin): $(uboot_srcdir) $(uboot_wrkdir)/.config
+	make -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) all
+
+.PHONY: freeloader
+
+freeloader: $(freeloader_elf)
+
+$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin)
+	make -C $(freeloader_srcdir) ARCH=$(ISA) ABI=$(ABI) CROSS_COMPILE=$(CROSS_COMPILE) \
+		FW_JUMP_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(uboot_dtb)
+
 
 .PHONY: clean
 clean:
