@@ -208,6 +208,7 @@ $(boot_initrd_lz4): $(buildroot_initramfs_sysroot)
 	lz4 $(boot_initrd) $@ -f -3
 
 $(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_initrd_lz4)
+	rm -f $(boot_zip)
 	cd $(boot_wrkdir) && zip -q -r $(boot_zip) .
 
 .PHONY: uboot
