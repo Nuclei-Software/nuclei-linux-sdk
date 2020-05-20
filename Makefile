@@ -73,7 +73,7 @@ boot_zip := $(wrkdir)/boot.zip
 boot_ubootscr := $(boot_wrkdir)/boot.scr
 boot_image := $(boot_wrkdir)/Image.lz4
 boot_uimage_lz4 := $(boot_wrkdir)/uImage.lz4
-boot_uinitrd_gz := $(boot_wrkdir)/uinitrd.gz
+boot_uinitrd_lz4 := $(boot_wrkdir)/uinitrd.lz4
 
 # xlspike is prebuilt and installed to PATH
 xlspike := xl_spike
@@ -147,7 +147,7 @@ initrd: $(initramfs)
 $(initramfs).d: $(buildroot_initramfs_sysroot)
 	$(linux_gen_initramfs) -l $@ $(buildroot_initramfs_sysroot)
 
-$(initramfs): $(buildroot_initramfs_sysroot) $(vmlinux)
+$(initramfs): $(buildroot_initramfs_sysroot) $(linux_image)
 	cd $(linux_wrkdir) && \
 		$(linux_gen_initramfs) \
 		-o $@ -u $(shell id -u) -g $(shell id -g) \
@@ -202,13 +202,10 @@ $(boot_uimage_lz4): $(linux_image)
 	$(uboot_mkimage) -A riscv -O linux -T kernel -C lz4 -a 0xa0200000 -e 0xa0200000 -n Linux -d $(boot_image) $@
 	rm -f $(boot_image)
 
-$(boot_uinitrd_gz): $(buildroot_initramfs_sysroot)
-	cd $(buildroot_initramfs_sysroot) && find . | fakeroot cpio -H newc -o > $(boot_wrkdir)/initrd.cpio
-	gzip -k $(boot_wrkdir)/initrd.cpio -f -2
-	$(uboot_mkimage) -A riscv -T ramdisk -C gzip -n Initrd -d $(boot_wrkdir)/initrd.cpio.gz $(boot_uinitrd_gz)
-	rm -f $(boot_wrkdir)/initrd.cpio $(boot_wrkdir)/initrd.cpio.gz
+$(boot_uinitrd_lz4): $(initramfs)
+	$(uboot_mkimage) -A riscv -T ramdisk -C lz4 -n Initrd -d $(initramfs) $(boot_uinitrd_lz4)
 
-$(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_gz)
+$(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_lz4)
 	rm -f $(boot_zip)
 	cd $(boot_wrkdir) && zip -q -r $(boot_zip) .
 

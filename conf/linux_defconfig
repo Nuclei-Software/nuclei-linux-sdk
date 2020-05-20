@@ -6,7 +6,6 @@ CONFIG_BLK_DEV_INITRD=y
 # CONFIG_RD_LZMA is not set
 # CONFIG_RD_XZ is not set
 # CONFIG_RD_LZO is not set
-# CONFIG_RD_LZ4 is not set
 CONFIG_EMBEDDED=y
 # CONFIG_FPU is not set
 CONFIG_HZ_100=y
