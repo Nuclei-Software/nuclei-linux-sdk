@@ -145,7 +145,8 @@ $(linux_image): $(linux_srcdir) $(linux_wrkdir)/.config $(target_gcc)
 initrd: $(initramfs)
 
 $(initramfs).d: $(buildroot_initramfs_sysroot)
-	$(linux_gen_initramfs) -l $@ $(buildroot_initramfs_sysroot)
+	cd $(linux_wrkdir) && \
+		$(linux_gen_initramfs) -l $@ $(buildroot_initramfs_sysroot)
 
 $(initramfs): $(buildroot_initramfs_sysroot) $(linux_image)
 	cd $(linux_wrkdir) && \
@@ -241,7 +242,7 @@ clean: cleanfreeloader
 	rm -rf -- $(wrkdir)
 
 cleanboot:
-	rm -rf -- $(boot_wrkdir) $(boot_zip)
+	rm -rf -- $(boot_wrkdir) $(boot_zip) $(initramfs) $(initramfs).lz4
 
 cleanlinux:
 	rm -rf -- $(linux_wrkdir) $(vmlinux_bin)
