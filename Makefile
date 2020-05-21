@@ -84,8 +84,36 @@ openocd := openocd
 target_gcc := $(CROSS_COMPILE)gcc
 target_gdb := $(CROSS_COMPILE)gdb
 
-.PHONY: all
-all: sim
+.PHONY: all help
+all: help
+
+help:
+	@echo "Here is a list of make targets supported"
+	@echo ""
+	@echo "- buildroot_initramfs-menuconfig : run menuconfig for buildroot, configuration will be saved into conf/"
+	@echo "- buildroot_initramfs_sysroot : generate rootfs directory using buildroot"
+	@echo "- linux-menuconfig : run menuconfig for linux kernel, configuration will be saved into conf/"
+	@echo "- initrd : generate initramfs cpio file"
+	@echo "- bootimages : generate boot images for SDCard"
+	@echo "- freeloader : generate freeloader(first stage loader) run in norflash"
+	@echo "- upload_freeloader : upload freeloader into development board using openocd and gdb"
+	@echo "- uboot : build uboot and generate uboot binary"
+	@echo "- sim : run opensbi + linux payload in simulation using xl_spike"
+	@echo "- clean : clean this full workspace"
+	@echo "- cleanboot : clean generated boot images"
+	@echo "- cleanlinux : clean linux workspace"
+	@echo "- cleanbuildroot : clean buildroot workspace"
+	@echo "- cleanfreeloader : clean freeloader generated objects"
+	@echo "- cleanopensbi : clean opensbi workspace"
+	@echo "- preboot : If you run sim target before, and want to change to bootimages target, run this to prepare environment"
+	@echo "- presim : If you run bootimages target before, and want to change to sim target, run this to prepare environment"
+	@echo ""
+	@echo "Main targets used frequently depending on your user case"
+	@echo "If you want to run linux on development board, please run preboot, freeloader, bootimages targets"
+	@echo "If you want to run linux in simulation, please run presim, sim targets"
+
+
+$(target_gcc): buildroot_initramfs_sysroot
 
 $(buildroot_initramfs_wrkdir)/.config: $(buildroot_srcdir)
 	rm -rf $(dir $@)
@@ -143,10 +171,7 @@ $(linux_image): $(linux_srcdir) $(linux_wrkdir)/.config $(target_gcc)
 
 .PHONY: initrd
 initrd: $(initramfs)
-
-$(initramfs).d: $(buildroot_initramfs_sysroot)
-	cd $(linux_wrkdir) && \
-		$(linux_gen_initramfs) -l $@ $(buildroot_initramfs_sysroot)
+	@echo "initramfs cpio file is generated into $<"
 
 $(initramfs): $(buildroot_initramfs_sysroot) $(linux_image)
 	cd $(linux_wrkdir) && \
@@ -191,6 +216,10 @@ vmlinux: $(vmlinux)
 
 .PHONY: bootimages
 bootimages: $(boot_zip)
+	@echo "SDCard boot images are generated into $(boot_zip) and $(boot_wrkdir)"
+	@echo "You can extract the $(boot_zip) to SDCard and insert the SDCard back to board"
+	@echo "If freeloader is already flashed to board's norflash, then you can reset power of the board"
+	@echo "Then you can open UART terminal with baudrate 57600, you will be able to see kernel boot message"
 
 $(boot_wrkdir):
 	mkdir -p $@
@@ -213,8 +242,9 @@ $(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_l
 
 .PHONY: uboot
 uboot: $(uboot_bin)
+	@echo "Uboot binary is generated into $<"
 
-$(uboot_wrkdir)/.config: $(uboot_srcdir)
+$(uboot_wrkdir)/.config: $(uboot_srcdir) $(target_gcc)
 	mkdir -p $(uboot_wrkdir)
 	make -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) nuclei_hbird_defconfig
 
@@ -225,6 +255,9 @@ $(uboot_mkimage) $(uboot_bin): $(uboot_srcdir) $(uboot_wrkdir)/.config
 .PHONY: freeloader
 
 freeloader: $(freeloader_elf)
+	@echo "freeloader is generated in $(freeloader_elf)"
+	@echo "You can download this elf into development board using make upload_freeloader"
+	@echo "or using openocd and gdb to achieve it"
 
 $(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin)
 	make -C $(freeloader_srcdir) ARCH=$(ISA) ABI=$(ABI) CROSS_COMPILE=$(CROSS_COMPILE) \
@@ -232,12 +265,12 @@ $(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin)
 
 upload_freeloader: $(freeloader_elf)
 	$(target_gdb) $< -ex "set remotetimeout 240" \
-        -ex "target remote | $(openocd) --pipe -f $(platform_openocd_cfg)" \
-        --batch -ex "monitor reset halt" -ex "monitor halt" \
+	-ex "target remote | $(openocd) --pipe -f $(platform_openocd_cfg)" \
+	--batch -ex "monitor reset halt" -ex "monitor halt" \
 	-ex "monitor flash protect 0 0 last off" -ex "load" \
 	-ex "monitor resume" -ex "monitor shutdown" -ex "quit"
 
-.PHONY: clean clean_boot cleanlinux cleanfreeloader cleanopensbi
+.PHONY: clean cleanboot cleanlinux cleanbuildroot cleanfreeloader cleanopensbi prepare presim preboot
 clean: cleanfreeloader
 	rm -rf -- $(wrkdir)
 
@@ -247,15 +280,24 @@ cleanboot:
 cleanlinux:
 	rm -rf -- $(linux_wrkdir) $(vmlinux_bin)
 
+cleanbuildroot:
+	rm -rf -- $(buildroot_initramfs_wrkdir)
+
 cleanfreeloader:
 	make -C $(freeloader_srcdir) clean
 
 cleanopensbi:
 	rm -rf -- $(opensbi_wrkdir)
 
+# If you change your make target from bootimages to sim, you need to run presim first
+presim: prepare
+# If you change your make target from sim to bootimages, you need to run preboot first
+preboot: prepare
+
+prepare:
+	rm -rf $(vmlinux_bin) $(vmlinux) $(linux_image)
+
 .PHONY: sim
 sim: $(opensbi_payload)
 	$(xlspike) --isa=$(ISA) $(opensbi_payload)
 
-
--include $(initramfs).d

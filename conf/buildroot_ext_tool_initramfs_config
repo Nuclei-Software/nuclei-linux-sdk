@@ -1,3 +1,6 @@
+BR2_KERNEL_MIRROR="http://mirrors.163.com/kernel"
+BR2_GNU_MIRROR="https://mirrors.tuna.tsinghua.edu.cn/gnu"
+BR2_CPAN_MIRROR="https://mirrors.163.com/cpan"
 BR2_riscv=y
 BR2_riscv_custom=y
 BR2_RISCV_ISA_CUSTOM_RVM=y
