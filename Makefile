@@ -136,7 +136,7 @@ $(buildroot_initramfs_sysroot_stamp): $(buildroot_initramfs_tar)
 	tar -xpf $< -C $(buildroot_initramfs_sysroot) --exclude ./dev --exclude ./usr/share/locale
 	touch $@
 
-$(linux_wrkdir)/.config: $(linux_defconfig) $(linux_srcdir)
+$(linux_wrkdir)/.config: $(linux_defconfig) $(linux_srcdir) $(target_gcc)
 	mkdir -p $(dir $@)
 	cp -p $< $@
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) ARCH=riscv olddefconfig
@@ -150,7 +150,7 @@ ifeq ($(ISA),$(filter rv32%,$(ISA)))
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) ARCH=riscv olddefconfig
 endif
 
-$(vmlinux): $(linux_srcdir) $(linux_wrkdir)/.config $(target_gcc)
+$(vmlinux): $(linux_srcdir) $(linux_wrkdir)/.config
 	$(MAKE) -C $< O=$(linux_wrkdir) \
 		CONFIG_INITRAMFS_SOURCE="$(confdir)/initramfs.txt $(buildroot_initramfs_sysroot)" \
 		CONFIG_INITRAMFS_ROOT_UID=$(shell id -u) \
@@ -160,7 +160,7 @@ $(vmlinux): $(linux_srcdir) $(linux_wrkdir)/.config $(target_gcc)
 		PATH=$(RVPATH) \
 		vmlinux
 
-$(linux_image): $(linux_srcdir) $(linux_wrkdir)/.config $(target_gcc)
+$(linux_image): $(linux_srcdir) $(linux_wrkdir)/.config
 	$(MAKE) -C $< O=$(linux_wrkdir) \
 		CONFIG_INITRAMFS_ROOT_UID=$(shell id -u) \
 		CONFIG_INITRAMFS_ROOT_GID=$(shell id -g) \
