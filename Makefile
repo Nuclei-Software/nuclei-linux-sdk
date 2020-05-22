@@ -103,6 +103,7 @@ help:
 	@echo "- cleanboot : clean generated boot images"
 	@echo "- cleanlinux : clean linux workspace"
 	@echo "- cleanbuildroot : clean buildroot workspace"
+	@echo "- cleanuboot : clean u-boot workspace"
 	@echo "- cleanfreeloader : clean freeloader generated objects"
 	@echo "- cleanopensbi : clean opensbi workspace"
 	@echo "- preboot : If you run sim target before, and want to change to bootimages target, run this to prepare environment"
@@ -282,6 +283,9 @@ cleanlinux:
 
 cleanbuildroot:
 	rm -rf -- $(buildroot_initramfs_wrkdir)
+
+cleanuboot:
+	rm -rf -- $(uboot_wrkdir)
 
 cleanfreeloader:
 	make -C $(freeloader_srcdir) clean
