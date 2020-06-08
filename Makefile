@@ -1,5 +1,13 @@
+CORE ?= ux600fd
+
+ifeq ($(CORE),ux600fd)
+ISA ?= rv64gc
+ABI ?= lp64d
+else
 ISA ?= rv64imac
 ABI ?= lp64
+endif
+
 EXTERNAL_TOOLCHAIN ?= 1
 
 srcdir := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
@@ -15,8 +23,8 @@ RISCV ?= $(buildroot_initramfs_wrkdir)/host
 RVPATH := $(RISCV)/bin:$(PATH)
 GITID := $(shell git describe --dirty --always)
 
-platform_dts := $(confdir)/nuclei_ux600.dts
-platform_dtb := $(wrkdir)/nuclei_ux600.dtb
+platform_dts := $(confdir)/nuclei_$(CORE).dts
+platform_dtb := $(wrkdir)/nuclei_$(CORE).dtb
 
 # The second option is the more standard version, however in
 # the interest of reproducibility, use the buildroot version that
@@ -27,7 +35,7 @@ platform_openocd_cfg := $(confdir)/openocd_hbird.cfg
 ifeq (1,$(EXTERNAL_TOOLCHAIN))
 target := riscv-nuclei-linux-gnu
 CROSS_COMPILE := $(RISCV)/bin/$(target)-
-buildroot_initramfs_config := $(confdir)/buildroot_ext_tool_initramfs_config
+buildroot_initramfs_config := $(confdir)/buildroot_initramfs_$(CORE)_config
 else
 target := riscv64-nuclei-linux-gnu
 CROSS_COMPILE := $(RISCV)/bin/$(target)-
@@ -74,6 +82,7 @@ boot_ubootscr := $(boot_wrkdir)/boot.scr
 boot_image := $(boot_wrkdir)/Image.lz4
 boot_uimage_lz4 := $(boot_wrkdir)/uImage.lz4
 boot_uinitrd_lz4 := $(boot_wrkdir)/uInitrd.lz4
+boot_kernel_dtb := $(boot_wrkdir)/kernel.dtb
 
 # xlspike is prebuilt and installed to PATH
 xlspike := xl_spike
@@ -237,7 +246,10 @@ $(boot_uinitrd_lz4): $(initramfs)
 	lz4 $(initramfs) $(initramfs).lz4 -f -2 -l
 	$(uboot_mkimage) -A riscv -T ramdisk -C lz4 -n Initrd -d $(initramfs).lz4 $(boot_uinitrd_lz4)
 
-$(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_lz4)
+$(boot_kernel_dtb): $(platform_dts)
+	dtc -O dtb -o $(boot_kernel_dtb) $(platform_dts)
+
+$(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_lz4) $(boot_kernel_dtb)
 	rm -f $(boot_zip)
 	cd $(boot_wrkdir) && zip -q -r $(boot_zip) .
 

@@ -3,8 +3,8 @@
 / {
   #address-cells = <2>;
   #size-cells = <2>;
-  compatible = "nuclei,ux600";
-  model = "nuclei,ux600";
+  compatible = "nuclei,ux600fd";
+  model = "nuclei,ux600fd";
   
   chosen {
      bootargs = "earlycon=sbi";
@@ -19,7 +19,7 @@
       reg = <0>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imac";
+      riscv,isa = "rv64imafdc";
       mmu-type = "riscv,sv39";
       clock-frequency = <8000000>;
       cpu0_intc: interrupt-controller {
@@ -38,7 +38,7 @@
   soc {
     #address-cells = <2>;
     #size-cells = <2>;
-    compatible = "nuclei,ux600", "simple-bus";
+    compatible = "nuclei,ux600fd", "simple-bus";
     ranges;
   };
 
