@@ -1,5 +1,5 @@
 variables:
-    GIT_SUBMODULE_STRATEGY: recursive
+    GIT_SUBMODULE_STRATEGY: none
 
 before_script:
     - module load nucleisys/openocd
@@ -20,7 +20,8 @@ stages:
     tags:
         - software-server
     script:
-        - echo ">>show help message for $CORE" && make help
+        - echo ">>Load submodules for linux sdk" && git submodule sync --recursive && git submodule update --init --recursive
+        - echo ">>Show help message for $CORE" && make help
         - echo ">>Build freeloader for $CORE" && make freeloader
         - echo ">>Build and generate boot images for $CORE" && make preboot && make bootimages
         - echo ">>Build and run using xlspike for $CORE" && make presim && timeout --foreground -s SIGKILL 40min make sim
