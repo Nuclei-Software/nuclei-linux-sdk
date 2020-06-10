@@ -1,3 +1,6 @@
+variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+
 before_script:
     - module load nucleisys/openocd
 
@@ -32,7 +35,7 @@ build_ux600:
 
 ## Job for build document
 # Build For UX600FD Core, with FPU
-build_ux600:
+build_ux600fd:
     variables:
         CORE: "ux600fd"
     <<: *build_linux_sdk_job_def
