@@ -22,6 +22,8 @@ GITID := $(shell git describe --dirty --always)
 
 platform_dts := $(confdir)/nuclei_$(CORE).dts
 platform_dtb := $(wrkdir)/nuclei_$(CORE).dtb
+platform_sim_dts := $(confdir)/nuclei_$(CORE)_sim.dts
+platform_sim_dtb := $(wrkdir)/nuclei_$(CORE)_sim.dtb
 
 platform_openocd_cfg := $(confdir)/openocd_hbird.cfg
 
@@ -192,18 +194,21 @@ linux-menuconfig: $(linux_wrkdir)/.config
 $(platform_dtb) : $(platform_dts)
 	dtc -O dtb -o $(platform_dtb) $(platform_dts)
 
+$(platform_sim_dtb) : $(platform_sim_dts)
+	dtc -O dtb -o $(platform_sim_dtb) $(platform_sim_dts)
+
 $(opensbi_jumpbin):
 	rm -rf $(opensbi_wrkdir)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
 		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) \
 		PLATFORM=nuclei/ux600
 
-$(opensbi_payload): $(opensbi_srcdir) $(vmlinux_bin) $(platform_dtb)
+$(opensbi_payload): $(opensbi_srcdir) $(vmlinux_bin) $(platform_sim_dtb)
 	rm -rf $(opensbi_wrkdir)
 	mkdir -p $(opensbi_wrkdir)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
 		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) \
-		PLATFORM=nuclei/ux600 FW_PAYLOAD_PATH=$(vmlinux_bin) FW_PAYLOAD_FDT_PATH=$(platform_dtb)
+		PLATFORM=nuclei/ux600 FW_PAYLOAD_PATH=$(vmlinux_bin) FW_PAYLOAD_FDT_PATH=$(platform_sim_dtb)
 
 $(buildroot_initramfs_sysroot): $(buildroot_initramfs_sysroot_stamp)
 

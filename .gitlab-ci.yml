@@ -8,12 +8,12 @@ before_script:
     - module load common
 
 stages:
-    - build
+    - build_ux600
+    - build_ux600fd
     - deploy
 
 ## Job template for build linux sdk
 .build_linux_sdk_template: &build_linux_sdk_job_def
-    stage: build
     only:
         changes:
           - conf/*
@@ -52,6 +52,7 @@ stages:
 ## Job for build document
 # Build For UX600 Core, without FPU
 build_ux600:
+    stage: build_ux600
     variables:
         CORE: "ux600"
     <<: *build_linux_sdk_job_def
@@ -60,6 +61,7 @@ build_ux600:
 ## Job for build document
 # Build For UX600FD Core, with FPU
 build_ux600fd:
+    stage: build_ux600fd
     variables:
         CORE: "ux600fd"
     <<: *build_linux_sdk_job_def
