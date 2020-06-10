@@ -1,6 +1,6 @@
 variables:
     GIT_SUBMODULE_STRATEGY: recursive
-    GET_SOURCES_ATTEMPTS: 3
+    GET_SOURCES_ATTEMPTS: 5
     GIT_STRATEGY: fetch
 
 before_script:
@@ -46,7 +46,7 @@ stages:
             make preboot && make bootimages
         - |
             echo ">>Build and run using xlspike for $CORE" &&
-            make presim && timeout --foreground -s SIGKILL 40min make sim
+            make presim && timeout --foreground -s SIGKILL 40m make sim
 
 ## Job for build document
 # Build For UX600 Core, without FPU
