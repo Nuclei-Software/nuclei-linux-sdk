@@ -9,7 +9,9 @@ before_script:
 
 stages:
     - build_ux600
+    - run_ux600
     - build_ux600fd
+    - run_ux600fd
     - deploy
 
 ## Job template for build linux sdk
@@ -27,6 +29,7 @@ stages:
         name: "bootimages-${CI_COMMIT_SHA::8}"
         paths:
             - work/boot.zip
+            - work/opensbi/platform/nuclei/ux600/firmware/*.elf
             - freeloader/freeloader.elf
         expire_in: 2 day
     tags:
@@ -46,10 +49,19 @@ stages:
             echo ">>Build and generate boot images for $CORE" && 
             make preboot && make bootimages
         - |
-            echo ">>Build and run using xlspike for $CORE" &&
-            make presim && timeout --foreground -s SIGKILL 40m make sim
+            echo ">>Build simulation target for $CORE" &&
+            make presim && make opensbi_sim
 
-## Job for build document
+## Job template for run linux in xlspike
+.run_linux_sdk_template: &run_linux_sdk_job_def
+    tags:
+        - software-server
+    script:
+        - |
+            echo ">>Run using xlspike for $CORE" &&
+            timeout --foreground -s SIGKILL 40m make sim
+
+## Job for build sdk
 # Build For UX600 Core, without FPU
 build_ux600:
     stage: build_ux600
@@ -58,10 +70,31 @@ build_ux600:
     <<: *build_linux_sdk_job_def
 
 
-## Job for build document
+## Job for run sim
+# Run For UX600 Core, without FPU
+run_ux600:
+    stage: run_ux600
+    dependencies:
+        - build_ux600
+    variables:
+        CORE: "ux600"
+    <<: *run_linux_sdk_job_def
+
+
+## Job for build sdk
 # Build For UX600FD Core, with FPU
 build_ux600fd:
     stage: build_ux600fd
     variables:
         CORE: "ux600fd"
     <<: *build_linux_sdk_job_def
+
+## Job for run sim
+# Run For UX600FD Core, with FPU
+run_ux600fd:
+    stage: run_ux600fd
+    dependencies:
+        - build_ux600fd
+    variables:
+        CORE: "ux600fd"
+    <<: *run_linux_sdk_job_def

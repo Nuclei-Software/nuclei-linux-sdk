@@ -305,7 +305,10 @@ preboot: prepare
 prepare:
 	rm -rf $(vmlinux_bin) $(vmlinux) $(linux_image)
 
-.PHONY: sim
+.PHONY: sim opensbi_sim
+
+opensbi_sim: $(opensbi_payload)
+
 sim: $(opensbi_payload)
 	$(xlspike) --isa=$(ISA) $(opensbi_payload)
 
