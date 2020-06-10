@@ -32,9 +32,21 @@ stages:
         - software-server
     script:
         - echo ">>Show help message for $CORE" && make help
-        - echo ">>Build freeloader for $CORE" && make freeloader
-        - echo ">>Build and generate boot images for $CORE" && make preboot && make bootimages
-        - echo ">>Build and run using xlspike for $CORE" && make presim && timeout --foreground -s SIGKILL 40min make sim
+        - |
+            echo ">>Build buildroot_initramfs_sysroot for $CORE" && 
+            make buildroot_initramfs_sysroot > >(tee build_sysroot.log |grep '>>>') || {
+                echo 'Show last 200 lines of build log'
+                tail -n 200 build_sysroot.log
+                xz -z build_sysroot.log
+                exit 1
+            }
+        - echo ">>Build freeloader for $CORE" &&  make freeloader
+        - |
+            echo ">>Build and generate boot images for $CORE" && 
+            make preboot && make bootimages
+        - |
+            echo ">>Build and run using xlspike for $CORE" &&
+            make presim && timeout --foreground -s SIGKILL 40min make sim
 
 ## Job for build document
 # Build For UX600 Core, without FPU
