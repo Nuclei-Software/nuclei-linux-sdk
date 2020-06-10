@@ -9,8 +9,8 @@ before_script:
 
 stages:
     - build_ux600
-    - run_ux600
     - build_ux600fd
+    - run_ux600
     - run_ux600fd
     - deploy
 
@@ -59,7 +59,7 @@ stages:
     script:
         - |
             echo ">>Run using xlspike for $CORE" &&
-            timeout --foreground -s SIGKILL 40m make sim
+            timeout --foreground -s SIGKILL 40m xl_spike work/opensbi/platform/nuclei/ux600/firmware/fw_payload.elf
 
 ## Job for build sdk
 # Build For UX600 Core, without FPU
