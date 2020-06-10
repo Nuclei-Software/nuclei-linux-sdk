@@ -77,44 +77,4 @@
     status = "disabled";
 	};
 
-  qspi0: spi@10014000 {
-    compatible = "sifive,spi0";
-    reg = <0x0 0x10014000 0x0 0x1000>;
-    interrupt-parent = <&plic0>;
-    interrupts = <34>;
-    num-cs = <1>;
-    #address-cells = <1>;
-    #size-cells = <0>;
-    clocks = <&hfclk>;
-    status = "okay";
-
-    flash@0 {
-      compatible = "gd25q32", "jedec,spi-nor";
-      reg = <0>;
-      spi-max-frequency = <1000000>;
-  //    m25p,fast-read;
-      #spi-tx-bus-width = <1>;
-      #spi-rx-bus-width = <1>;
-    };
-  };
-
-  qspi2: spi@10034000 {
-    compatible = "sifive,spi0";
-    reg = <0x0 0x10034000 0x0 0x1000>;
-    interrupt-parent = <&plic0>;
-    interrupts = <36>;
-    num-cs = <1>;
-    #address-cells = <1>;
-    #size-cells = <0>;
-    clocks = <&hfclk>;
-    status = "okay";
-
-    mmc@0 {
-      compatible = "mmc-spi-slot";
-      reg = <0>;
-      spi-max-frequency = <20000000>;
-      voltage-ranges = <3300 3300>;
-      disable-wp;
-    };
-  };
 };
