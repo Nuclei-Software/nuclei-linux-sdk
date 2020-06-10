@@ -5,6 +5,7 @@ variables:
 
 before_script:
     - module load nucleisys/openocd
+    - module load common
 
 stages:
     - build
