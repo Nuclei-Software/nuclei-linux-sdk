@@ -7,7 +7,6 @@ BR2_GNU_MIRROR="https://mirrors.tuna.tsinghua.edu.cn/gnu"
 BR2_CPAN_MIRROR="https://mirrors.163.com/cpan"
 BR2_TOOLCHAIN_EXTERNAL=y
 BR2_TOOLCHAIN_EXTERNAL_DOWNLOAD=y
-#BR2_TOOLCHAIN_EXTERNAL_URL="file:///home/share/toolchain/build/rv_linux_gnu_20-05-04-10-05.tar.bz2"
 BR2_TOOLCHAIN_EXTERNAL_URL="file:///home/opt/riscv_linux_toolchain_2020.06.tar.bz2"
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX="riscv-nuclei-linux-gnu"
 BR2_TOOLCHAIN_EXTERNAL_HEADERS_5_0=y

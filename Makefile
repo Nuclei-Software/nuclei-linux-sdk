@@ -1,4 +1,4 @@
-CORE ?= ux600fd
+CORE ?= ux600
 
 ifeq ($(CORE),ux600fd)
 ISA ?= rv64gc
@@ -8,8 +8,6 @@ ISA ?= rv64imac
 ABI ?= lp64
 endif
 
-EXTERNAL_TOOLCHAIN ?= 1
-
 srcdir := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 srcdir := $(srcdir:/=)
 confdir := $(srcdir)/conf
@@ -18,7 +16,6 @@ wrkdir := $(CURDIR)/work
 buildroot_srcdir := $(srcdir)/buildroot
 buildroot_initramfs_wrkdir := $(wrkdir)/buildroot_initramfs
 
-# TODO: make RISCV be able to be set to alternate toolchain path
 RISCV ?= $(buildroot_initramfs_wrkdir)/host
 RVPATH := $(RISCV)/bin:$(PATH)
 GITID := $(shell git describe --dirty --always)
@@ -26,21 +23,11 @@ GITID := $(shell git describe --dirty --always)
 platform_dts := $(confdir)/nuclei_$(CORE).dts
 platform_dtb := $(wrkdir)/nuclei_$(CORE).dtb
 
-# The second option is the more standard version, however in
-# the interest of reproducibility, use the buildroot version that
-# we compile so as to minimize unepected surprises. 
-
 platform_openocd_cfg := $(confdir)/openocd_hbird.cfg
 
-ifeq (1,$(EXTERNAL_TOOLCHAIN))
 target := riscv-nuclei-linux-gnu
 CROSS_COMPILE := $(RISCV)/bin/$(target)-
 buildroot_initramfs_config := $(confdir)/buildroot_initramfs_$(CORE)_config
-else
-target := riscv64-nuclei-linux-gnu
-CROSS_COMPILE := $(RISCV)/bin/$(target)-
-buildroot_initramfs_config := $(confdir)/buildroot_initramfs_config
-endif
 
 buildroot_initramfs_tar := $(buildroot_initramfs_wrkdir)/images/rootfs.tar
 buildroot_initramfs_sysroot_stamp := $(wrkdir)/.buildroot_initramfs_sysroot

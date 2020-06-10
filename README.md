@@ -1,10 +1,7 @@
 # Nuclei Linux SDK
 
-This builds a complete RISC-V cross-compile toolchain for the Nuclei UX600
-RISC-V 64Bit Core.
-
-It also builds linux kernel, device tree, ramdisk, and opensbi with linux kernel
-payload for Nuclei xl-spike which can emulate Nuclei UX600 SoC.
+This will download external prebuilt toolchain, and build linux kernel, device tree, ramdisk,
+and opensbi with linux kernel payload for Nuclei xl-spike which can emulate Nuclei UX600 SoC.
 
 It can also build linux kernel, ramdisk, opensbi and freeloader for Nuclei UX600
 SoC FPGA bitstream running in Nuclei HummingBird FPGA Board.
@@ -16,7 +13,7 @@ SoC FPGA bitstream running in Nuclei HummingBird FPGA Board.
 - Status: Working
 - Build dependencies: `build-essential git autotools texinfo bison flex lz4
   libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler`
-- Get prebuilt toolchain and openocd from [Nuclei Development Tools](https://nucleisys.com/download.php)
+- Get prebuilt openocd from [Nuclei Development Tools](https://nucleisys.com/download.php)
 - Setup openocd and add it into **PATH**
 
 ## Build Instructions
@@ -35,27 +32,16 @@ Once the submodules are initialized, run `make` and the complete toolchain
 and images will be built. The completed build tree will consume about 14G of disk
 space.
 
-## Toolchain Setup
+## Select UX600 Core Configuration
 
-Choose the external or internal toolchain you would like to use, and better not
-to change it in future, otherwise, you need to run `make clean` before you switch
-toolchain.
+You can choose different core configuration by modify the `CORE ?= ux600` line in Makefile.
 
-### Build using external toolchain
+We support two configurations for **CORE**:
 
-If you want to build using prebuilt external toolchain provided by Nuclei,
-you can run `export EXTERNAL_TOOLCHAIN=1` before do any make steps.
+* `ux600`: rv64imac core configuration without FPU.
+* `ux600fd`: rv64imafdc core configuration with FPU.
 
-When `EXTERNAL_TOOLCHAIN=1` then buildroot configuration file in
-*conf/buildroot_ext_tool_initramfs_config* will be used.
-
-### Build with internal buildroot toolchain
-
-If you want to build using internal toolchain built by buildroot,
-you can run `export EXTERNAL_TOOLCHAIN=0` before do any make steps.
-
-When `EXTERNAL_TOOLCHAIN=0` then buildroot configuration file in
-*conf/buildroot_initramfs_config* will be used.
+Please modify to your correct core configuration before build any source code.
 
 ## Booting Linux on Nuclei xl-spike
 
@@ -209,7 +195,7 @@ uboot will automatically load linux image and initramfs from SDCard and boot lin
 
 The linux login user name and password is *root* and *nuclei*.
 
-Sample output in UART @ 57600bps.
+Sample output in **UART @ 57600bps**.
 
 ~~~console
 OpenSBI v0.7
