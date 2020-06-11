@@ -42,30 +42,30 @@ stages:
             make buildroot_initramfs_sysroot > >(tee build_sysroot.log |grep '>>>') || {
                 echo 'Show last 200 lines of build log'
                 tail -n 200 build_sysroot.log
-                xz -z build_sysroot.log
+                xz -f -z build_sysroot.log
                 exit 1
             }
-        - xz -z build_sysroot.log
+        - xz -f -z build_sysroot.log
         - |
             echo ">>Build freeloader for $CORE" && make freeloader > >(tee build_freeloader.log) || {
-                xz -z build_sysroot.log
+                xz -f -z build_sysroot.log
                 exit 1
             }
-        - xz -z build_freeloader.log
+        - xz -f -z build_freeloader.log
         - |
             echo ">>Build and generate boot images for $CORE" && 
             make preboot && make bootimages > >(tee build_bootimages.log) || {
-                xz -z build_bootimages.log
+                xz -f -z build_bootimages.log
                 exit 1
             }
-        - xz -z build_bootimages.log
+        - xz -f -z build_bootimages.log
         - |
             echo ">>Build simulation target for $CORE" &&
             make presim && make opensbi_sim > >(tee build_opensbi_payload.log) || {
-                xz -z build_opensbi_payload.log
+                xz -f -z build_opensbi_payload.log
                 exit 1
             }
-        - xz -z build_opensbi_payload.log
+        - xz -f -z build_opensbi_payload.log
 
 ## Job template for run linux in xlspike
 .run_linux_sdk_template: &run_linux_sdk_job_def
@@ -83,6 +83,7 @@ stages:
 # Build For UX600 Core, without FPU
 build_ux600:
     stage: build_ux600
+    dependencies:
     variables:
         CORE: "ux600"
     <<: *build_linux_sdk_job_def
@@ -103,6 +104,7 @@ run_ux600:
 # Build For UX600FD Core, with FPU
 build_ux600fd:
     stage: build_ux600fd
+    dependencies:
     variables:
         CORE: "ux600fd"
     <<: *build_linux_sdk_job_def
