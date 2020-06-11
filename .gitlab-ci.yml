@@ -83,7 +83,7 @@ stages:
 # Build For UX600 Core, without FPU
 build_ux600:
     stage: build_ux600
-    dependencies:
+    dependencies: []
     variables:
         CORE: "ux600"
     <<: *build_linux_sdk_job_def
@@ -104,7 +104,7 @@ run_ux600:
 # Build For UX600FD Core, with FPU
 build_ux600fd:
     stage: build_ux600fd
-    dependencies:
+    dependencies: []
     variables:
         CORE: "ux600fd"
     <<: *build_linux_sdk_job_def
