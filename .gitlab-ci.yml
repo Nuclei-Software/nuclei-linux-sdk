@@ -69,6 +69,15 @@ stages:
 
 ## Job template for run linux in xlspike
 .run_linux_sdk_template: &run_linux_sdk_job_def
+    only:
+        changes:
+          - conf/*
+          - Makefile
+          - .gitlab-ci.yml
+          - buildroot
+          - freeloader
+          - linux
+          - u-boot
     tags:
         - software-server
     script:
