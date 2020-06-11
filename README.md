@@ -77,7 +77,7 @@ UART: Platform Name          : Nuclei UX600
 UART: Platform HART Count    : 1
 UART: Platform Features      : timer,mfdeleg
 UART: Boot HART ID           : 0
-UART: Boot HART ISA          : rv64imacsu
+UART: Boot HART ISA          : rv64imafdcpsu
 UART: BOOT HART Features     : pmp,scountern,mcounteren,time
 UART: Firmware Base          : 0xa0000000
 UART: Firmware Size          : 76 KB
@@ -88,7 +88,7 @@ UART: MEDELEG : 0x000000000000b109
 UART: PMP0    : 0x00000000a0000000-0x00000000a001ffff (A)
 UART: PMP1    : 0x0000000000000000-0x01ffffffffffffff (A,R,W,X)
 UART: [    0.000000] OF: fdt: Ignoring memory range 0xa0000000 - 0xa0200000
-UART: [    0.000000] Linux version 5.7.0-rc6-00001-g9e40580a2b69 (hqfang@softserver) (gcc version 9.2.0 (GCC), GNU ld (GNU Binutils) 2.32) #4 Thu May 21 16:12:06 CST 2020
+UART: [    0.000000] Linux version 5.7.0 (hqfang@softserver) (gcc version 9.2.0 (GCC), GNU ld (GNU Binutils) 2.32) #1 Wed Jun 10 21:10:15 CST 2020
 UART: [    0.000000] initrd not found or empty - disabling initrd
 UART: [    0.000000] Zone ranges:
 UART: [    0.000000]   DMA32    [mem 0x00000000a0200000-0x00000000afffffff]
@@ -97,7 +97,7 @@ UART: [    0.000000] Movable zone start for each node
 UART: [    0.000000] Early memory node ranges
 UART: [    0.000000]   node   0: [mem 0x00000000a0200000-0x00000000afffffff]
 UART: [    0.000000] Initmem setup node 0 [mem 0x00000000a0200000-0x00000000afffffff]
-UART: [    0.000000] software IO TLB: mapped [mem 0xabc7d000-0xafc7d000] (64MB)
+UART: [    0.000000] software IO TLB: mapped [mem 0xabc7c000-0xafc7c000] (64MB)
 UART: [    0.000000] SBI specification v0.2 detected
 UART: [    0.000000] SBI implementation ID=0x1 Version=0x7
 UART: [    0.000000] SBI v0.2 TIME extension detected
@@ -111,49 +111,46 @@ UART: [    0.000000] Dentry cache hash table entries: 32768 (order: 6, 262144 by
 UART: [    0.000000] Inode-cache hash table entries: 16384 (order: 5, 131072 bytes, linear)
 UART: [    0.000000] Sorting __ex_table...
 UART: [    0.000000] mem auto-init: stack:off, heap alloc:off, heap free:off
-UART: [    0.000000] Memory: 144648K/260096K available (2676K kernel code, 3654K rwdata, 2048K rodata, 35856K init, 261K bss, 115448K reserved, 0K cma-reserved)
+UART: [    0.000000] Memory: 146772K/260096K available (1838K kernel code, 2408K rwdata, 2048K rodata, 35496K init, 221K bss, 113324K reserved, 0K cma-reserved)
 UART: [    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
 UART: [    0.000000] NR_IRQS: 0, nr_irqs: 0, preallocated irqs: 0
+UART: [    0.000000] plic: mapped 53 interrupts with 1 handlers for 2 contexts.
 UART: [    0.000000] riscv_timer_init_dt: Registering clocksource cpuid [0] hartid [0]
 UART: [    0.000000] clocksource: riscv_clocksource: mask: 0xffffffffffffffff max_cycles: 0x1ef4687b1, max_idle_ns: 112843571739654 ns
 UART: [    0.004852] sched_clock: 64 bits at 32kHz, resolution 30517ns, wraps every 70368744171142ns
-UART: [    2.120269] printk: console [hvc0] enabled
-UART: [    2.186859] Calibrating delay loop (skipped), value calculated using timer frequency.. 0.06 BogoMIPS (lpj=327)
-UART: [    2.306457] pid_max: default: 32768 minimum: 301
-UART: [    2.482086] Mount-cache hash table entries: 512 (order: 0, 4096 bytes, linear)
-UART: [    2.574737] Mountpoint-cache hash table entries: 512 (order: 0, 4096 bytes, linear)
-UART: [    3.349182] devtmpfs: initialized
-UART: [    3.919036] random: get_random_bytes called from setup_net+0x38/0x180 with crng_init=0
-UART: [    4.087646] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
-UART: [    4.204467] futex hash table entries: 256 (order: 0, 6144 bytes, linear)
-UART: [    4.453796] NET: Registered protocol family 16
-UART: [    7.855560] clocksource: Switched to clocksource riscv_clocksource
-UART: [    8.604278] NET: Registered protocol family 2
-UART: [    9.261505] tcp_listen_portaddr_hash hash table entries: 256 (order: 0, 4096 bytes, linear)
-UART: [    9.386444] TCP established hash table entries: 2048 (order: 2, 16384 bytes, linear)
-UART: [    9.551971] TCP bind hash table entries: 2048 (order: 2, 16384 bytes, linear)
-UART: [    9.692352] TCP: Hash tables configured (established 2048 bind 2048)
-UART: [    9.831176] UDP hash table entries: 256 (order: 1, 8192 bytes, linear)
-UART: [    9.936676] UDP-Lite hash table entries: 256 (order: 1, 8192 bytes, linear)
-UART: [   10.151519] NET: Registered protocol family 1
-UART: [   10.429138] RPC: Registered named UNIX socket transport module.
-UART: [   10.512054] RPC: Registered udp transport module.
-UART: [   10.579681] RPC: Registered tcp transport module.
-UART: [   10.646270] RPC: Registered tcp NFSv4.1 backchannel transport module.
-UART: [  192.773651] workingset: timestamp_bits=62 max_order=16 bucket_order=0
-UART: [  202.740844] io scheduler mq-deadline registered
-UART: [  202.805267] io scheduler kyber registered
-UART: [  235.080230] brd: module loaded
-UART: [  239.100372] loop: module loaded
-UART: [  239.354187] sdhci: Secure Digital Host Controller Interface driver
-UART: [  239.440673] sdhci: Copyright(c) Pierre Ossman
-UART: [  239.809204] NET: Registered protocol family 17
-UART: [  258.251251] Freeing unused kernel memory: 35856K
-UART: [  258.353332] Run /init as init process
+UART: [    2.173156] printk: console [hvc0] enabled
+UART: [    2.239654] Calibrating delay loop (skipped), value calculated using timer frequency.. 0.06 BogoMIPS (lpj=327)
+UART: [    2.359252] pid_max: default: 32768 minimum: 301
+UART: [    2.534332] Mount-cache hash table entries: 512 (order: 0, 4096 bytes, linear)
+UART: [    2.626983] Mountpoint-cache hash table entries: 512 (order: 0, 4096 bytes, linear)
+UART: [    3.395141] devtmpfs: initialized
+UART: [    4.013824] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+UART: [    4.130493] futex hash table entries: 256 (order: 0, 6144 bytes, linear)
+UART: [    5.965118] clocksource: Switched to clocksource riscv_clocksource
+UART: [  188.634948] workingset: timestamp_bits=62 max_order=16 bucket_order=0
+UART: [  196.970764] io scheduler mq-deadline registered
+UART: [  197.035217] io scheduler kyber registered
+UART: [  229.307861] brd: module loaded
+UART: [  234.758789] loop: module loaded
+UART: [  235.074951] random: get_random_bytes called from init_oops_id+0x26/0x30 with crng_init=0
+UART: [  253.481536] Freeing unused kernel memory: 35496K
+UART: [  253.571990] Run /init as init process
 UART: Starting syslogd: OK
 UART: Starting klogd: OK
 UART: Running sysctl: OK
 UART: Starting mdev... OK
+UART: modprobe: can't change directory to '/lib/modules': No such file or directory
+UART: 
+UART: Welcome to Nuclei System Techology
+nucleisys login: root
+root
+UART: Password: nuclei
+
+UART: 
+UART: Login timed out after 60 seconds
+UART: 
+UART: Welcome to Nuclei System Techology
+nucleisys login: 
 ~~~
 
 ## Booting Linux on [Nuclei HummingBird Board](https://nucleisys.com/developboard.php)
@@ -208,15 +205,16 @@ OpenSBI v0.7
         | |
         |_|
 
-Platform Name          : Nuclei UX600
-Platform HART Count    : 1
-Platform Features      : timer,mfdeleg
-Boot HART ID           : 0
-Boot HART ISA          : rv64imacsu
-BOOT HART Features     : pmp,scountern,mcounteren,time
-Firmware Base          : 0xa0000000
-Firmware Size          : 76 KB
-Runtime SBI Version    : 0.2
+Platform Name       : Nuclei UX600
+Platform Features   : timer,mfdeleg
+Platform HART Count : 1
+Boot HART ID        : 0
+Boot HART ISA       : rv64imafdcpsu
+BOOT HART Features  : pmp,scounteren,mcounteren,time
+BOOT HART PMP Count : 16
+Firmware Base       : 0xa0000000
+Firmware Size       : 76 KB
+Runtime SBI Version : 0.2
 
 MIDELEG : 0x0000000000000222
 MEDELEG : 0x000000000000b109
@@ -224,7 +222,7 @@ PMP0    : 0x00000000a0000000-0x00000000a001ffff (A)
 PMP1    : 0x0000000000000000-0x0000007fffffffff (A,R,W,X)
 
 
-U-Boot 2020.07-rc2-ga7de5fe980 (May 20 2020 - 14:46:19 +0800)
+U-Boot 2020.07-rc2-g89856aea41 (Jun 10 2020 - 22:35:06 +0800)
 
 CPU:   rv64imac
 Model: nuclei,ux600
@@ -240,37 +238,39 @@ switch to partitions #0, OK
 mmc0 is current device
 Scanning mmc 0:1...
 Found U-Boot script /boot.scr
-290 bytes read in 26 ms (10.7 KiB/s)
+345 bytes read in 190 ms (1000 Bytes/s)
 ## Executing script at a8100000
 Loading kernel
-2945733 bytes read in 7405 ms (387.7 KiB/s)
+2095520 bytes read in 40835 ms (49.8 KiB/s)
 Loading ramdisk
-19325270 bytes read in 48492 ms (388.7 KiB/s)
+19155731 bytes read in 358790 ms (51.8 KiB/s)
+Loading dtb
+2256 bytes read in 214 ms (9.8 KiB/s)
 Starts booting from SD
 ## Booting kernel from Legacy Image at a1000000 ...
    Image Name:   Linux
    Image Type:   RISC-V Linux Kernel Image (lz4 compressed)
-   Data Size:    2945669 Bytes = 2.8 MiB
+   Data Size:    2095456 Bytes = 2 MiB
    Load Address: a0200000
    Entry Point:  a0200000
    Verifying Checksum ... OK
 ## Loading init Ramdisk from Legacy Image at a8300000 ...
    Image Name:   Initrd
    Image Type:   RISC-V Linux RAMDisk Image (lz4 compressed)
-   Data Size:    19325206 Bytes = 18.4 MiB
+   Data Size:    19155667 Bytes = 18.3 MiB
    Load Address: 00000000
    Entry Point:  00000000
    Verifying Checksum ... OK
 ## Flattened Device Tree blob at a8000000
    Booting using the fdt blob at 0xa8000000
    Uncompressing Kernel Image
-   Using Device Tree in place at 00000000a8000000, end 00000000a8004a51
+   Using Device Tree in place at 00000000a8000000, end 00000000a80038cf
 
 Starting kernel ...
 
 [    0.000000] OF: fdt: Ignoring memory range 0xa0000000 - 0xa0200000
-[    0.000000] Linux version 5.7.0-rc6-00001-g9e40580a2b69 (hqfang@softserver) (gcc version 9.2.0 (GCC), GNU ld (GNU Binutils) 2.32) #1 Thu May 21 15:31:19 CST 2020
-[    0.000000] Initial ramdisk at: 0x(____ptrval____) (19325206 bytes)
+[    0.000000] Linux version 5.7.0-01403-g3d77e6a8804a (xl_ci@softserver) (gcc version 9.2.0 (GCC), GNU ld (GNU Binutils) 2.32) #1 Thu Jun 11 15:46:17 CST 2020
+[    0.000000] Initial ramdisk at: 0x(____ptrval____) (19155667 bytes)
 [    0.000000] Zone ranges:
 [    0.000000]   DMA32    [mem 0x00000000a0200000-0x00000000afffffff]
 [    0.000000]   Normal   empty
@@ -292,68 +292,53 @@ Starting kernel ...
 [    0.000000] Inode-cache hash table entries: 16384 (order: 5, 131072 bytes, linear)
 [    0.000000] Sorting __ex_table...
 [    0.000000] mem auto-init: stack:off, heap alloc:off, heap free:off
-[    0.000000] Memory: 160580K/260096K available (2676K kernel code, 3654K rwdata, 2048K rodata, 120K init, 261K bss, 99516K reserved, 0K cma-reserved)
+[    0.000000] Memory: 162872K/260096K available (1838K kernel code, 2408K rwdata, 2048K rodata, 112K init, 221K bss, 97224K reserved, 0K cma-reserved)
 [    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
 [    0.000000] NR_IRQS: 0, nr_irqs: 0, preallocated irqs: 0
+[    0.000000] plic: mapped 53 interrupts with 1 handlers for 2 contexts.
 [    0.000000] riscv_timer_init_dt: Registering clocksource cpuid [0] hartid [0]
 [    0.000000] clocksource: riscv_clocksource: mask: 0xffffffffffffffff max_cycles: 0x1ef4687b1, max_idle_ns: 112843571739654 ns
-[    0.000183] sched_clock: 64 bits at 32kHz, resolution 30517ns, wraps every 70368744171142ns
-[    0.371215] printk: console [hvc0] enabled
-[    0.379882] Calibrating delay loop (skipped), value calculated using timer frequency.. 0.06 BogoMIPS (lpj=327)
-[    0.399841] pid_max: default: 32768 minimum: 301
-[    0.413146] Mount-cache hash table entries: 512 (order: 0, 4096 bytes, linear)
-[    0.427246] Mountpoint-cache hash table entries: 512 (order: 0, 4096 bytes, linear)
-[    0.479034] devtmpfs: initialized
-[    0.510589] random: get_random_bytes called from setup_net+0x38/0x180 with crng_init=0
-[    0.514190] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
-[    0.549316] futex hash table entries: 256 (order: 0, 6144 bytes, linear)
-[    0.570861] NET: Registered protocol family 16
-[    0.715393] clocksource: Switched to clocksource riscv_clocksource
-[    0.759735] NET: Registered protocol family 2
-[    0.783721] tcp_listen_portaddr_hash hash table entries: 256 (order: 0, 4096 bytes, linear)
-[    0.800506] TCP established hash table entries: 2048 (order: 2, 16384 bytes, linear)
-[    0.816864] TCP bind hash table entries: 2048 (order: 2, 16384 bytes, linear)
-[    0.831787] TCP: Hash tables configured (established 2048 bind 2048)
-[    0.849426] UDP hash table entries: 256 (order: 1, 8192 bytes, linear)
-[    0.862670] UDP-Lite hash table entries: 256 (order: 1, 8192 bytes, linear)
-[    0.880584] NET: Registered protocol family 1
-[    0.900421] RPC: Registered named UNIX socket transport module.
-[    0.911682] RPC: Registered udp transport module.
-[    0.921081] RPC: Registered tcp transport module.
-[    0.930633] RPC: Registered tcp NFSv4.1 backchannel transport module.
-[    0.950134] Trying to unpack rootfs image as initramfs...
-[   28.934753] Freeing initrd memory: 18868K
-[   28.954437] workingset: timestamp_bits=62 max_order=16 bucket_order=0
-[   29.232269] io scheduler mq-deadline registered
-[   29.240753] io scheduler kyber registered
-[   30.807312] brd: module loaded
-[   31.038543] loop: module loaded
-[   31.048370] nuclei_spi 10014000.spi: IRQ index 0 not found
-[   31.060272] nuclei_spi 10034000.spi: IRQ index 0 not found
-[   31.076843] sdhci: Secure Digital Host Controller Interface driver
-[   31.088409] sdhci: Copyright(c) Pierre Ossman
-[   31.106018] NET: Registered protocol family 17
-[   31.135894] Freeing unused kernel memory: 120K
-[   31.145019] Run /init as init process
+[    0.000793] sched_clock: 64 bits at 32kHz, resolution 30517ns, wraps every 70368744171142ns
+[    0.388671] printk: console [hvc0] enabled
+[    0.400207] Calibrating delay loop (skipped), value calculated using timer frequency.. 0.06 BogoMIPS (lpj=327)
+[    0.422149] pid_max: default: 32768 minimum: 301
+[    0.449981] Mount-cache hash table entries: 512 (order: 0, 4096 bytes, linear)
+[    0.467315] Mountpoint-cache hash table entries: 512 (order: 0, 4096 bytes, linear)
+[    0.651397] devtmpfs: initialized
+[    0.763244] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+[    0.785278] futex hash table entries: 256 (order: 0, 6144 bytes, linear)
+[    1.187774] clocksource: Switched to clocksource riscv_clocksource
+[    1.346893] Trying to unpack rootfs image as initramfs...
+[  111.023071] Freeing initrd memory: 18700K
+[  111.087738] workingset: timestamp_bits=62 max_order=16 bucket_order=0
+[  112.157379] io scheduler mq-deadline registered
+[  112.169494] io scheduler kyber registered
+[  119.163360] brd: module loaded
+[  120.453826] loop: module loaded
+[  120.493865] sifive_spi 10014000.spi: mapped; irq=1, cs=1
+[  120.577636] sifive_spi 10034000.spi: mapped; irq=2, cs=1
+[  120.730560] mmc_spi spi1.0: SD/MMC host mmc0, no DMA, no WP, no poweroff, cd polling
+[  120.767211] random: get_random_bytes called from init_oops_id+0x26/0x30 with crng_init=0
+[  120.895477] Freeing unused kernel memory: 112K
+[  120.912078] Run /init as init process
 Starting syslogd: OK
 Starting klogd: OK
 Running sysctl: OK
 Starting mdev... OK
 modprobe: can't change directory to '/lib/modules': No such file or directory
-Saving random seed: [   55.008789] random: dd: uninitialized urandom read (512 bytes read)
-OK
 
 Welcome to Nuclei System Techology
 nucleisys login: root
 Password:
-# uname -a
-Linux nucleisys 5.7.0-rc6-00001-g9e40580a2b69 #1 Thu May 21 15:31:19 CST 2020 riscv64 GNU/Linux
+login[60]: root login on 'console'
 # cat /proc/cpuinfo
 processor       : 0
 hart            : 0
 isa             : rv64imac
 mmu             : sv39
 
+# uname -a
+Linux nucleisys 5.7.0-01403-g3d77e6a8804a #1 Thu Jun 11 15:46:17 CST 2020 riscv64 GNU/Linux
 # ls /
 bin      init     linuxrc  opt      run      tmp
 dev      lib      media    proc     sbin     usr
@@ -367,3 +352,12 @@ You can run `make help` for quick usage of this Nuclei Linux SDK.
 ## Notice
 
 This repo is based on opensource repo https://github.com/sifive/freedom-u-sdk/tree/archive/buildroot
+
+## Known issues
+
+* For UX600, if you run simulation using xl_spike, it can run to login prompt, but when you login, it will
+  show timeout issue, this is caused by xl_spike timer is not standard type, but the boot images for FPGA
+  board can boot successfully and works well.
+
+* For UX600FD, if you run simulation using xl_spike, it can only run to init process, then it will enter to
+  kernel panic, but the generated boot images works for FPGA board.
