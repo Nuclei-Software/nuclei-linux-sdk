@@ -59,7 +59,10 @@ stages:
     script:
         - |
             echo ">>Run using xlspike for $CORE" &&
-            timeout --foreground -s SIGKILL 40m xl_spike work/opensbi/platform/nuclei/ux600/firmware/fw_payload.elf
+            timeout --foreground -s SIGKILL 5m xl_spike work/opensbi/platform/nuclei/ux600/firmware/fw_payload.elf > >(tee run_xlspike.log) || {
+                cat run_xlspike.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi; 
+                cat run_xlspike.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi; 
+            }
 
 ## Job for build sdk
 # Build For UX600 Core, without FPU
