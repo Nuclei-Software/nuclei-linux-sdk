@@ -345,6 +345,62 @@ dev      lib      media    proc     sbin     usr
 etc      lib64    mnt      root     sys      var
 ~~~
 
+## Application Development
+
+If you want to do application development in Linux with Hummingbird FPGA evaluation board, please
+follow these steps.
+
+Currently, SDCard is not working in Linux, so if you want to put your own application, and run it in
+linux, you have to add your application into rootfs and rebuild it, and use the newly generated boot
+images, and put it into SDCard.
+
+For example, I would like to compile new `dhrystone` application and run it in linux.
+
+0. Make sure you have built boot images, using `make bootimages`
+
+1. Copy the old `dhrystone` source code from `work/buildroot_initramfs/build/dhrystone-2` to
+   `work/buildroot_initramfs/build/dhrystone-3`
+
+2. cd to `work/buildroot_initramfs/build/dhrystone-3`, and modify `Makefile` as below:
+
+   ~~~makefile
+   # Make sure you use the compiler in this path below
+   CC = ../../host/bin/riscv-nuclei-linux-gnu-gcc
+   CPPFLAGS += -DNO_PROTOTYPES=1 -DHZ=100
+   # Customized optimization options
+   CFLAGS +=  -O2 -flto -funroll-all-loops -finline-limit=600 \
+            -ftree-dominator-opts -fno-if-conversion2 -fselective-scheduling \
+            -fno-code-hoisting -fno-common -funroll-loops -finline-functions \
+            -falign-functions=4 -falign-jumps=4 -falign-loops=4
+   LDLIBS += -lm
+
+   all: dhrystone
+
+   dhrystone: dhry_1.o dhry_2.o
+      $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+   clean:
+      rm -f *.o dhrystone
+
+   .PHONY: all clean
+   ~~~
+
+3. Run `make clean all` to rebuild this `dhrystone`
+
+4. Copy generated `dhrystone` to previous generated buildroot_initramfs_sysroot folder, using
+   command `cp dhrystone ../../../buildroot_initramfs_sysroot/usr/bin/dhrystone_opt`
+
+5. cd to Nuclei linux SDK root, and run `make preboot` to clean previously generated boot images.
+
+6. Generate new boot images with `dhrystone_opt` application added using command `make bootimages`
+
+7. Download the generated `work/boot.zip` and extract it right under the SDCard root.
+
+8. If you have already flashed `freeloader` using openocd, then just insert the SDCard, and reboot the
+   board, when board is power on, and linux kernel is up, you can run the application `dhrystone_opt` in
+   linux shell.
+
+
 ## Help
 
 You can run `make help` for quick usage of this Nuclei Linux SDK.
