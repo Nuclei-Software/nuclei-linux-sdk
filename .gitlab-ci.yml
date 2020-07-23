@@ -4,7 +4,6 @@ variables:
     GIT_STRATEGY: fetch
 
 before_script:
-    - module load nucleisys/openocd
     - module load common
 
 stages:
@@ -48,7 +47,7 @@ stages:
         - xz -f -z build_sysroot.log
         - |
             echo ">>Build freeloader for $CORE" && make -j freeloader > >(tee build_freeloader.log) || {
-                xz -f -z build_sysroot.log
+                xz -f -z build_freeloader.log
                 exit 1
             }
         - xz -f -z build_freeloader.log
