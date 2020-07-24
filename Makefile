@@ -277,25 +277,25 @@ upload_freeloader: $(freeloader_elf)
 
 .PHONY: clean cleanboot cleanlinux cleanbuildroot cleanfreeloader cleanopensbi prepare presim preboot
 clean: cleanfreeloader
-	rm -rf -- $(wrkdir)
+	rm -rf $(wrkdir)
 
 cleanboot:
-	rm -rf -- $(boot_wrkdir) $(boot_zip) $(initramfs) $(initramfs).lz4
+	rm -rf $(boot_wrkdir) $(boot_zip) $(initramfs) $(initramfs).lz4
 
 cleanlinux:
-	rm -rf -- $(linux_wrkdir) $(vmlinux_bin)
+	rm -rf $(linux_wrkdir) $(vmlinux_bin)
 
 cleanbuildroot:
-	rm -rf -- $(buildroot_initramfs_wrkdir)
+	rm -rf $(buildroot_initramfs_wrkdir)
 
 cleanuboot:
-	rm -rf -- $(uboot_wrkdir)
+	rm -rf $(uboot_wrkdir)
 
 cleanfreeloader:
 	make -C $(freeloader_srcdir) clean
 
 cleanopensbi:
-	rm -rf -- $(opensbi_wrkdir)
+	rm -rf $(opensbi_wrkdir)
 
 # If you change your make target from bootimages to sim, you need to run presim first
 presim: prepare
