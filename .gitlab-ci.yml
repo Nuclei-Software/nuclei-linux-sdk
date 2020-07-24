@@ -48,7 +48,7 @@ stages:
         - xz -f -z build_sysroot.log
         - echo ">>Build freeloader for $CORE"
         - |
-            make -j freeloader > >(tee build_freeloader.log) || {
+            make --trace -j2 freeloader > >(tee build_freeloader.log) || {
                 xz -f -z build_freeloader.log
                 exit 1
             }
@@ -93,7 +93,6 @@ stages:
 # Build For UX600 Core, without FPU
 build_ux600:
     stage: build_ux600
-    dependencies: []
     variables:
         CORE: "ux600"
     <<: *build_linux_sdk_job_def
@@ -114,7 +113,6 @@ run_ux600:
 # Build For UX600FD Core, with FPU
 build_ux600fd:
     stage: build_ux600fd
-    dependencies: []
     variables:
         CORE: "ux600fd"
     <<: *build_linux_sdk_job_def
