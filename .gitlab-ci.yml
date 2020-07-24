@@ -35,32 +35,34 @@ stages:
     tags:
         - software-server
     script:
-        - echo ">>Show help message for $CORE" && make help
+        - echo ">>Show help message for $CORE"
+        - make help
+        - echo ">>Build buildroot_initramfs_sysroot for $CORE"
         - |
-            echo ">>Build buildroot_initramfs_sysroot for $CORE" && 
-            make buildroot_initramfs_sysroot > >(tee build_sysroot.log |grep '>>>') || {
+            make -j buildroot_initramfs_sysroot > >(tee build_sysroot.log |grep '>>>') || {
                 echo 'Show last 200 lines of build log'
                 tail -n 200 build_sysroot.log
                 xz -f -z build_sysroot.log
                 exit 1
             }
         - xz -f -z build_sysroot.log
+        - echo ">>Build freeloader for $CORE"
         - |
-            echo ">>Build freeloader for $CORE" && make freeloader > >(tee build_freeloader.log) || {
+            make -j freeloader > >(tee build_freeloader.log) || {
                 xz -f -z build_freeloader.log
                 exit 1
             }
         - xz -f -z build_freeloader.log
+        - echo ">>Build and generate boot images for $CORE"
         - |
-            echo ">>Build and generate boot images for $CORE" && 
-            make preboot && make bootimages > >(tee build_bootimages.log) || {
+            make preboot && make -j bootimages > >(tee build_bootimages.log) || {
                 xz -f -z build_bootimages.log
                 exit 1
             }
         - xz -f -z build_bootimages.log
+        - echo ">>Build simulation target for $CORE"
         - |
-            echo ">>Build simulation target for $CORE" &&
-            make presim && make opensbi_sim > >(tee build_opensbi_payload.log) || {
+            make presim && make -j opensbi_sim > >(tee build_opensbi_payload.log) || {
                 xz -f -z build_opensbi_payload.log
                 exit 1
             }
@@ -80,8 +82,8 @@ stages:
     tags:
         - software-server
     script:
+        - echo ">>Run using xlspike for $CORE"
         - |
-            echo ">>Run using xlspike for $CORE" &&
             timeout --foreground -s SIGKILL 4m xl_spike work/opensbi/platform/nuclei/ux600/firmware/fw_payload.elf > >(tee run_xlspike.log) || {
                 if cat run_xlspike.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi; 
                 if cat run_xlspike.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi; 
