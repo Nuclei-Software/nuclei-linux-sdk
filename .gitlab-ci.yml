@@ -46,6 +46,7 @@ stages:
                 exit 1
             }
         - xz -f -z build_sysroot.log
+        - sleep 10
         - echo ">>Build freeloader for $CORE"
         - |
             make --trace -j2 freeloader > >(tee build_freeloader.log) || {
