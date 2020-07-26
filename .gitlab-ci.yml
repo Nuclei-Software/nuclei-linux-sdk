@@ -48,7 +48,7 @@ stages:
         - xz -f -z build_sysroot.log
         - echo ">>Build freeloader for $CORE"
         - |
-            make --trace freeloader > >(tee build_freeloader.log) || {
+            make freeloader > >(tee build_freeloader.log) || {
                 xz -f -z build_freeloader.log
                 exit 1
             }
