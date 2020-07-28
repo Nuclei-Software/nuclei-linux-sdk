@@ -13,6 +13,10 @@ stages:
     - run_ux600fd
     - deploy
 
+cache:
+    paths:
+        - buildroot/dl
+
 ## Job template for build linux sdk
 .build_linux_sdk_template: &build_linux_sdk_job_def
     only:
