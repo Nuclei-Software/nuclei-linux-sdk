@@ -11,37 +11,84 @@ SoC FPGA bitstream running in Nuclei HummingBird FPGA Board.
 ### Ubuntu 18.04 x86_64 host
 
 - Status: Working
-- Build dependencies: `build-essential git autotools texinfo bison flex lz4
+- Build dependencies: `build-essential git autotools-dev make cmake texinfo bison flex lz4
   libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler`
 - Get prebuilt openocd from [Nuclei Development Tools](https://nucleisys.com/download.php)
 - Setup openocd and add it into **PATH**
 
 ## Build Instructions
 
-Checkout this repository. Then you will need to checkout all of the linked
-submodules using:
+### Install Dependencies
 
-`git submodule update --recursive --init`
+Install the software dependencies required by this SDK using command:
 
-This will take some time and require around 7GB of disk space. Some modules may
+~~~shell
+sudo apt-get install build-essential git autotools-dev cmake texinfo bison flex lz4 \
+   libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler
+~~~
+
+### Install Nuclei Tools
+
+Download prebuilt 64bit `openocd` tool from [Nuclei Development Tools](https://nucleisys.com/download.php),
+and extract it into your PC, and then setup **PATH** using this command:
+
+~~~shell
+# Make sure you changed /path/to/openocd/bin to the real path of your PC
+export PATH=/path/to/openocd/bin:$PATH
+# Check path is set correctly
+which openocd
+~~~
+
+### Clone Repo
+
+* Checkout this repository using `git`.
+  
+  - If you have good network access to github, you can clone this repo using command
+    `git clone https://github.com/Nuclei-Software/nuclei-linux-sdk`
+  - Otherwise, you can try with our mirror maintained in gitee using command
+    `git clone https://gitee.com/Nuclei-Software/nuclei-linux-sdk`     
+
+* Then you will need to checkout all of the linked submodules using:
+
+  ~~~shell
+  cd nuclei-linux-sdk
+  git submodule update --recursive --init
+  ~~~
+
+* To make sure you have checked out clean source code, you need to run `git status` command,
+  and get expected output as below:
+
+  ~~~console
+  On branch dev_nuclei
+  Your branch is up to date with 'origin/dev_nuclei'.
+
+  nothing to commit, working tree clean
+  ~~~
+
+* If you have trouble in get clean working tree, you can try command
+  `git submodule update --recursive --init` again, you might need to
+  retry several times depending on your network access speed.
+
+This will take some time and require around 2GB of disk space. Some modules may
 fail because certain dependencies don't have the best git hosting. The only
 solution is to wait and try again later (or ask someone for a copy of that
 source repository).
 
-Once the submodules are initialized, run `make` and the complete toolchain
-and images will be built. The completed build tree will consume about 14G of disk
-space.
-
 ## Select UX600 Core Configuration
 
-You can choose different core configuration by modify the `CORE ?= ux600` line in Makefile.
+You can choose different core configuration by modify the `CORE ?= ux600` line in `Makefile`.
 
 We support two configurations for **CORE**:
 
 * `ux600`: rv64imac core configuration without FPU.
 * `ux600fd`: rv64imafdc core configuration with FPU.
 
-Please modify to your correct core configuration before build any source code.
+Please modify the `Makefile` to your correct core configuration before build any source code.
+
+* If you want to compile and run using simulator *xl-spike*, please
+  check steps mentioned in **Booting Linux on Nuclei xl-spike**
+* If you want to compile and run using FPGA evaluation board, please
+  check steps mentioned in **Booting Linux on Nuclei HummingBird Board**
 
 ## Booting Linux on Nuclei xl-spike
 
