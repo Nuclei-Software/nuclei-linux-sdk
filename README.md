@@ -11,8 +11,8 @@ SoC FPGA bitstream running in Nuclei HummingBird FPGA Board.
 ### Ubuntu 18.04 x86_64 host
 
 - Status: Working
-- Build dependencies: `build-essential git autotools-dev make cmake texinfo bison flex lz4
-  libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler`
+- Build dependencies: `build-essential git autotools-dev make cmake texinfo bison minicom flex lz4
+  libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler libncursesw5-dev libncursesw5`
 - Get prebuilt openocd from [Nuclei Development Tools](https://nucleisys.com/download.php)
 - Setup openocd and add it into **PATH**
 
@@ -23,8 +23,8 @@ SoC FPGA bitstream running in Nuclei HummingBird FPGA Board.
 Install the software dependencies required by this SDK using command:
 
 ~~~shell
-sudo apt-get install build-essential git autotools-dev cmake texinfo bison flex lz4 \
-   libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler
+sudo apt-get install build-essential git autotools-dev cmake texinfo bison minicom flex lz4 \
+   libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler libncursesw5-dev libncursesw5
 ~~~
 
 ### Install Nuclei Tools
