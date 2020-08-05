@@ -18,7 +18,6 @@ buildroot_initramfs_wrkdir := $(wrkdir)/buildroot_initramfs
 
 RISCV ?= $(buildroot_initramfs_wrkdir)/host
 RVPATH := $(RISCV)/bin:$(PATH)
-GITID := $(shell git describe --dirty --always)
 
 platform_dts := $(confdir)/nuclei_$(CORE).dts
 platform_dtb := $(wrkdir)/nuclei_$(CORE).dtb
