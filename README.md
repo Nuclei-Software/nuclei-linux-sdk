@@ -58,7 +58,7 @@ which openocd
 * To make sure you have checked out clean source code, you need to run `git status` command,
   and get expected output as below:
 
-  ~~~console
+  ~~~
   On branch dev_nuclei
   Your branch is up to date with 'origin/dev_nuclei'.
 
@@ -73,6 +73,23 @@ This will take some time and require around 2GB of disk space. Some modules may
 fail because certain dependencies don't have the best git hosting. The only
 solution is to wait and try again later (or ask someone for a copy of that
 source repository).
+
+### Update source code
+
+Update source code if there are new commits in this repo.
+
+Assume currently you are in `dev_nuclei` branch, and the working tree is clean.
+
+Then you run the following command to update this repo:
+
+~~~shell
+# Pull lastest source code and rebase your local commits onto it
+git pull --rebase origin dev_nuclei
+# Update git submodules
+git submodule update
+# Check workspace status to see whether it is clean
+git status
+~~~
 
 ## Select UX600 Core Configuration
 
@@ -105,7 +122,7 @@ and run opensbi with linux payload on xlspike by running `make sim`.
 
 Here is sample output running in xl_spike:
 
-~~~console
+~~~
 xl_spike --isa=rv64imac /home/hqfang/workspace/software/nuclei-linux-sdk/work/opensbi/platform/nuclei/ux600/firmware/fw_payload.elf
 rv64 file
 warning: tohost and fromhost symbols not in ELF; can't communicate with target
@@ -241,7 +258,7 @@ The linux login user name and password is *root* and *nuclei*.
 
 Sample output in **UART @ 57600bps**.
 
-~~~console
+~~~
 OpenSBI v0.7
    ____                    _____ ____ _____
   / __ \                  / ____|  _ \_   _|
@@ -394,6 +411,8 @@ etc      lib64    mnt      root     sys      var
 
 ## Application Development
 
+### Prebuilt applications with RootFS
+
 If you want to do application development in Linux with Hummingbird FPGA evaluation board, please
 follow these steps.
 
@@ -447,6 +466,45 @@ For example, I would like to compile new `dhrystone` application and run it in l
    board, when board is power on, and linux kernel is up, you can run the application `dhrystone_opt` in
    linux shell.
 
+
+### Put prebuilt applications into SDCard
+
+In the lastest commits since 079414d, sdcard can be initialized successfully during kernel boot.
+
+Sample console output of kernel init message for sdcard ready.
+
+~~~
+[  124.646575] mmcblk0: mmc0:0000 SA08G 7.21 GiB
+[  125.242645]  mmcblk0: p1
+~~~
+
+> **Note**: Currently the sdcard driver is using polling mode as temporary workaround.
+
+When you have login the linux system, you can run command below to check
+whether sdcard is initialized successfully.
+
+~~~sh
+# ls -l /dev/mmc*
+brw-rw----    1 root     root      179,   0 Jan  1 00:04 /dev/mmcblk0
+brw-rw----    1 root     root      179,   1 Jan  1 00:04 /dev/mmcblk0p1
+~~~
+
+If there are **/dev/mmcblk0p1** devices, then you can mount sdcard in *mnt*
+directory using command:
+
+~~~sh
+# Mount /dev/mmcblk0p1 into /mnt
+mount -t vfat /dev/mmcblk0p1 /mnt
+# Check whether sdcard is mounted successfully
+ls -l /mnt
+~~~
+
+If you want to put your prebuilt applications into SDCard, you need to unmount
+the sdcard first using `umount /mnt`, and then eject the sdcard from the tf slot, and then insert the sdcard to sdcard reader and connect to your PC, and copy your prebuilt applications into SDCard.
+
+When your applications are placed into the sdcard correctly, then you can insert your card into tf slot, and mount it into `/mnt` directory.
+
+For example, if you have an application called `coremark`, then you can directly run it using `/mnt/coremark`.
 
 ## Help
 
