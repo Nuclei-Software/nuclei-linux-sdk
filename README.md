@@ -247,7 +247,9 @@ build environment for generate boot images.
 If the freeloader is flashed to the board, then you can prepare the SDCard boot materials,
 you can run `make bootimages` to generate the boot images to *work/boot*, and an zip file
 called *work/boot.zip* , you can copy this *boot.zip* file to your SDCard, and extract it,
-then you can insert this SDCard to your SDCard slot beside the TFT LCD.
+then you can insert this SDCard to your SDCard slot(J57) beside the TFT LCD.
+
+> SDCard is recommended to use SDHC format.
 
 ### Run Linux
 
@@ -256,7 +258,7 @@ uboot will automatically load linux image and initramfs from SDCard and boot lin
 
 The linux login user name and password is *root* and *nuclei*.
 
-Sample output in **UART @ 57600bps**.
+Sample output in **UART @ 57600bps, Data 8bit, Parity None, Stop Bits 1bit, No Flow Control**.
 
 ~~~
 OpenSBI v0.7
@@ -522,3 +524,5 @@ This repo is based on opensource repo https://github.com/sifive/freedom-u-sdk/tr
 
 * For UX600FD, if you run simulation using xl_spike, it can only run to init process, then it will enter to
   kernel panic, but the generated boot images works for FPGA board.
+
+* For some SDCard format, it might not be supported, please check your SDCard is SDHC format.
