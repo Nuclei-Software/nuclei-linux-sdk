@@ -3,8 +3,10 @@
 This will download external prebuilt toolchain, and build linux kernel, device tree, ramdisk,
 and opensbi with linux kernel payload for Nuclei xl-spike which can emulate Nuclei UX600 SoC.
 
-It can also build linux kernel, ramdisk, opensbi and freeloader for Nuclei UX600
+It can also build linux kernel, rootfs ramdisk, opensbi and freeloader for Nuclei UX600
 SoC FPGA bitstream running in Nuclei HummingBird FPGA Board.
+
+> The rootfs used in this SDK is initramfs format.
 
 ## Tested Configurations
 
@@ -413,6 +415,46 @@ etc      lib64    mnt      root     sys      var
 
 ## Application Development
 
+### Quick help
+
+You can run `make help` to show quick help message about how to use this linux sdk.
+
+For detailed usage about components like buildroot, linux kernel, opensbi or uboot, please
+
+check [Reference](#Reference).
+
+### Customize buildroot packages
+
+You can customize buildroot packages to add or remove package in buildroot using command:
+
+~~~shell
+make buildroot_initramfs-menuconfig
+~~~
+
+The new configuration will be saved to `conf/` folder, for when a full rebuild of buildroot
+is necessary, please check [this link](https://buildroot.org/downloads/manual/manual.html#full-rebuild).
+
+* *conf/buildroot_initramfs_ux600_config*: The buildroot configuration for UX600
+* *conf/buildroot_initramfs_ux600fd_config*: The buildroot configuration for UX600FD
+
+By default, we add many packages in buildroot default configuration, you can remove the packages
+you dont need in configuration to generate smaller rootfs, a full rebuild of SDK is required for
+removing buildroot package.
+
+### Customize kernel configuration
+
+You can customize linux kernel configuration using command `make linux-menuconfig`, the new configuration will be saved to `conf` folder
+
+* *conf/linux_defconfig*: The linux kernel configuration for UX600 or UX600FD
+* *conf/nuclei_ux600.dts*: Device tree for UX600 used in hardware
+* *conf/nuclei_ux600fd.dts*: Device tree for UX600FD used in hardware
+* *conf/nuclei_ux600_sim.dts*: Device tree for UX600 used in simulation
+* *conf/nuclei_ux600fd_sim.dts*: Device tree for UX600FD used in simulation
+
+### Remove generated boot images
+
+You can remove generated boot images using command `make cleanboot`.
+
 ### Prebuilt applications with RootFS
 
 If you want to do application development in Linux with Hummingbird FPGA evaluation board, please
@@ -526,3 +568,10 @@ This repo is based on opensource repo https://github.com/sifive/freedom-u-sdk/tr
   kernel panic, but the generated boot images works for FPGA board.
 
 * For some SDCard format, it might not be supported, please check your SDCard is SDHC format.
+
+## Reference
+
+* [Buildroot Manual](https://buildroot.org/downloads/manual/manual.html)
+* [OpenSBI Manual](https://github.com/riscv/opensbi#documentation)
+* [Uboot Manual](https://www.denx.de/wiki/U-Boot/Documentation)
+* [Linux Manual](https://www.kernel.org/doc/html/latest/)
