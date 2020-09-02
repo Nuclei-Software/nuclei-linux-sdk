@@ -100,6 +100,7 @@ help:
 	@echo "- cleanboot : clean generated boot images"
 	@echo "- cleanlinux : clean linux workspace"
 	@echo "- cleanbuildroot : clean buildroot workspace"
+	@echo "- cleansysroot : clean buildroot sysroot files"
 	@echo "- cleanuboot : clean u-boot workspace"
 	@echo "- cleanfreeloader : clean freeloader generated objects"
 	@echo "- cleanopensbi : clean opensbi workspace"
@@ -274,7 +275,7 @@ upload_freeloader: $(freeloader_elf)
 	-ex "monitor flash protect 0 0 last off" -ex "load" \
 	-ex "monitor resume" -ex "monitor shutdown" -ex "quit"
 
-.PHONY: clean cleanboot cleanlinux cleanbuildroot cleanfreeloader cleanopensbi prepare presim preboot
+.PHONY: clean cleanboot cleanlinux cleanbuildroot cleansysroot cleanfreeloader cleanopensbi prepare presim preboot
 clean: cleanfreeloader
 	rm -rf $(wrkdir)
 
@@ -286,6 +287,9 @@ cleanlinux:
 
 cleanbuildroot:
 	rm -rf $(buildroot_initramfs_wrkdir)
+
+cleansysroot:
+	rm -rf $(buildroot_initramfs_sysroot) $(buildroot_initramfs_sysroot_stamp)
 
 cleanuboot:
 	rm -rf $(uboot_wrkdir)
