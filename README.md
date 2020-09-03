@@ -7,6 +7,9 @@ It can also build linux kernel, rootfs ramdisk, opensbi and freeloader for Nucle
 SoC FPGA bitstream running in Nuclei HummingBird FPGA Board.
 
 > The rootfs used in this SDK is initramfs format.
+> **Note**: This is a special version for put opensbi, uboot, kernel, rootfs and dtb all in
+> freeloader, so user just need to build freeloader, and then flash it, it will boot the kernel,
+> onboard MCU flash need to be replaced to >= 8MB.
 
 ## Tested Configurations
 
@@ -234,12 +237,25 @@ norflash to DDR, and then goto entry of *opensbi*.
 
 To build *freeloader*, you just need to run `make freeloader`
 
+> For this special version, no need to prepare the sdcard boot image, just `make freeloader`
+> will be enough.
+
+**Notice**:
+
+If you want to build a freeloader which can be loaded to 4M Flash, you can run `make freeloader4m`
+to achieve it, but when you want to switch back to normal configuration, you will need to clean this
+workspace first via `make clean`.
+
 ### Upload Freeloader to HummingBird FPGA Board
 
 If you have connected your board to your Linux development environment, and setuped JTAG drivers,
 then you can run `make upload_freeloader` to upload the *freeloader/freeloader.elf* to your board.
 
 You can use riscv-nuclei-elf-gdb and openocd to download this program by yourself.
+
+> No need to do the **Build SDCard Boot Images** steps for run linux directly from MCU flash.
+> Onboard MCU flash need to be replaced with > 8MB, or you can optimize the kernel + rootfs
+> size down to about 2M, total freeloader size < 4MB.
 
 ### Build SDCard Boot Images
 
