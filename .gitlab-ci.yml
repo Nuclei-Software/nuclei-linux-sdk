@@ -64,6 +64,13 @@ cache:
                 exit 1
             }
         - xz -f -z build_bootimages.log
+        - echo ">>Build and generate freeloader 4MB version for $CORE"
+        - |
+            make freeloader4m > >(tee build_freeloader4m.log) || {
+                xz -f -z build_freeloader4m.log
+                exit 1
+            }
+        - xz -f -z build_freeloader4m.log
         - echo ">>Build simulation target for $CORE"
         - |
             make presim && make -j opensbi_sim > >(tee build_opensbi_payload.log) || {
