@@ -90,6 +90,8 @@ help:
 	@echo "- buildroot_initramfs-menuconfig : run menuconfig for buildroot, configuration will be saved into conf/"
 	@echo "- buildroot_initramfs_sysroot : generate rootfs directory using buildroot"
 	@echo "- linux-menuconfig : run menuconfig for linux kernel, configuration will be saved into conf/"
+	@echo "- buildroot_busybox-menuconfig : run menuconfig for busybox in buildroot"
+	@echo "- uboot-menuconfig : run menuconfig for uboot"
 	@echo "- initrd : generate initramfs cpio file"
 	@echo "- bootimages : generate boot images for SDCard"
 	@echo "- freeloader : generate freeloader(first stage loader) run in norflash"
@@ -129,6 +131,10 @@ buildroot_initramfs-menuconfig: $(buildroot_initramfs_wrkdir)/.config $(buildroo
 	$(MAKE) -C $(dir $<) O=$(buildroot_initramfs_wrkdir) menuconfig
 	$(MAKE) -C $(dir $<) O=$(buildroot_initramfs_wrkdir) savedefconfig
 	cp $(dir $<)/defconfig $(buildroot_initramfs_config)
+
+.PHONY: buildroot_busybox-menuconfig
+buildroot_busybox-menuconfig: $(buildroot_initramfs_wrkdir)/.config $(buildroot_srcdir)
+	$(MAKE) -C $(dir $<) O=$(buildroot_initramfs_wrkdir) busybox-menuconfig
 
 $(buildroot_initramfs_sysroot_stamp): $(buildroot_initramfs_tar)
 	mkdir -p $(buildroot_initramfs_sysroot)
@@ -252,6 +258,10 @@ uboot: $(uboot_bin)
 $(uboot_wrkdir)/.config: $(uboot_srcdir) $(target_gcc)
 	mkdir -p $(uboot_wrkdir)
 	make -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) nuclei_hbird_defconfig
+
+.PHONY: uboot-menuconfig
+uboot-menuconfig: $(uboot_wrkdir)/.config
+	make -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) menuconfig
 
 $(uboot_dtb): $(uboot_bin)
 $(uboot_mkimage) $(uboot_bin): $(uboot_srcdir) $(uboot_wrkdir)/.config
