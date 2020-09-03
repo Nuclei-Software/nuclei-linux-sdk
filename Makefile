@@ -95,6 +95,7 @@ help:
 	@echo "- initrd : generate initramfs cpio file"
 	@echo "- bootimages : generate boot images for SDCard"
 	@echo "- freeloader : generate freeloader(first stage loader) run in norflash"
+	@echo "- freeloader4m : generate freeloader(first stage loader) 4MB version run in norflash"
 	@echo "- upload_freeloader : upload freeloader into development board using openocd and gdb"
 	@echo "- uboot : build uboot and generate uboot binary"
 	@echo "- sim : run opensbi + linux payload in simulation using xl_spike"
@@ -267,7 +268,26 @@ $(uboot_dtb): $(uboot_bin)
 $(uboot_mkimage) $(uboot_bin): $(uboot_srcdir) $(uboot_wrkdir)/.config
 	make -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) all
 
-.PHONY: freeloader
+.PHONY: freeloader prepare4m freeloader4m
+
+prepare4m: buildroot_initramfs_sysroot
+	find $(buildroot_initramfs_wrkdir)/build/ -type f -wholename "*busybox*/.config" | xargs sed -i '/CONFIG_STATIC/cCONFIG_STATIC=y'
+	rm -rf $(buildroot_initramfs_wrkdir)/images/*
+	rm -rf $(buildroot_initramfs_sysroot) $(buildroot_initramfs_sysroot_stamp)
+	$(MAKE) -C $(buildroot_srcdir) O=$(buildroot_initramfs_wrkdir) busybox-rebuild
+	$(MAKE) CORE=$(CORE) buildroot_initramfs_sysroot
+	sed -i '/sbin\/getty/cconsole::respawn:/bin/sh' $(buildroot_initramfs_sysroot)/etc/inittab
+	sed -i '/init\.d/d' $(buildroot_initramfs_sysroot)/etc/inittab
+	rm -rf $(buildroot_initramfs_sysroot)/lib/*
+	$(MAKE) CORE=$(CORE) cleanboot bootimages
+
+freeloader4m: prepare4m $(freeloader_elf)
+	@echo "freeloader is generated in $(freeloader_elf)"
+	@echo "You can download this elf into development board using make upload_freeloader"
+	@echo "or using openocd and gdb to achieve it"
+	@echo "File size of freeloader is as below:"
+	size $(freeloader_elf)
+	ls -lh $(freeloader_elf)
 
 freeloader: $(freeloader_elf)
 	@echo "freeloader is generated in $(freeloader_elf)"
