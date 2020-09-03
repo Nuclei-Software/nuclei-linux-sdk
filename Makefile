@@ -274,7 +274,7 @@ freeloader: $(freeloader_elf)
 	@echo "You can download this elf into development board using make upload_freeloader"
 	@echo "or using openocd and gdb to achieve it"
 
-$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin)
+$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(boot_zip)
 	make -C $(freeloader_srcdir) ARCH=$(ISA) ABI=$(ABI) CROSS_COMPILE=$(CROSS_COMPILE) \
 		FW_JUMP_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(uboot_dtb)
 
