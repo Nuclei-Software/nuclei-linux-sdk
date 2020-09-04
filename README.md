@@ -54,12 +54,12 @@ which openocd
 
 ### Clone Repo
 
-* Checkout this repository using `git`.
+* Checkout this repository and checkout `dev_nuclei_flash` branch using `git`.
   
   - If you have good network access to github, you can clone this repo using command
-    `git clone https://github.com/Nuclei-Software/nuclei-linux-sdk`
+    `git clone -b dev_nuclei_flash https://github.com/Nuclei-Software/nuclei-linux-sdk`
   - Otherwise, you can try with our mirror maintained in gitee using command
-    `git clone https://gitee.com/Nuclei-Software/nuclei-linux-sdk`     
+    `git clone -b dev_nuclei_flash https://gitee.com/Nuclei-Software/nuclei-linux-sdk`     
 
 * Then you will need to checkout all of the linked submodules using:
 
@@ -72,8 +72,8 @@ which openocd
   and get expected output as below:
 
   ~~~
-  On branch dev_nuclei
-  Your branch is up to date with 'origin/dev_nuclei'.
+  On branch dev_nuclei_flash
+  Your branch is up to date with 'origin/dev_nuclei_flash'.
 
   nothing to commit, working tree clean
   ~~~
@@ -91,13 +91,13 @@ source repository).
 
 Update source code if there are new commits in this repo.
 
-Assume currently you are in `dev_nuclei` branch, and the working tree is clean.
+Assume currently you are in `dev_nuclei_flash` branch, and **the working tree is clean**.
 
 Then you run the following command to update this repo:
 
 ~~~shell
 # Pull lastest source code and rebase your local commits onto it
-git pull --rebase origin dev_nuclei
+git pull --rebase origin dev_nuclei_flash
 # Update git submodules
 git submodule update
 # Check workspace status to see whether it is clean
