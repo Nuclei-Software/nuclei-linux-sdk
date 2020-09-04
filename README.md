@@ -8,6 +8,21 @@ SoC FPGA bitstream running in Nuclei HummingBird FPGA Board.
 
 > The rootfs used in this SDK is initramfs format.
 
+> * If you want to boot linux directly from flash without SD Card, please checkout
+>   `dev_nuclei_flash` branch. You can switch to `dev_nuclei_flash` branch via command below:
+>   ~~~
+>   # Please make sure your workspace is clean
+>   git status
+>   # Fetch latest change, and checkout dev_nuclei_flash branch, and update submodules
+>   git fetch -a
+>   git checkout dev_nuclei_flash
+>   git submodule init
+>   git submodule update
+>   # make sure the workspace is clean and your are on branch dev_nuclei_flash now 
+>   git status
+>   ~~~
+> * The documentation in `dev_nuclei_flash` branch is also updated according to its feature.
+
 ## Tested Configurations
 
 ### Ubuntu 18.04 x86_64 host
