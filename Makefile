@@ -277,7 +277,7 @@ prepare4m: buildroot_initramfs_sysroot
 	$(MAKE) -C $(buildroot_srcdir) O=$(buildroot_initramfs_wrkdir) busybox-rebuild
 	$(MAKE) CORE=$(CORE) buildroot_initramfs_sysroot
 	sed -i '/sbin\/getty/cconsole::respawn:/bin/sh' $(buildroot_initramfs_sysroot)/etc/inittab
-	sed -i '/init\.d/d' $(buildroot_initramfs_sysroot)/etc/inittab
+	#sed -i '/init\.d/d' $(buildroot_initramfs_sysroot)/etc/inittab
 	rm -rf $(buildroot_initramfs_sysroot)/lib/*
 	$(MAKE) CORE=$(CORE) cleanboot bootimages
 

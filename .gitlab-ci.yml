@@ -17,6 +17,38 @@ cache:
     paths:
         - buildroot/dl
 
+## Job template for build 4m freeloader
+.build_linux_sdk_4m_template: &build_linux_sdk_4m_job_def
+    only:
+        changes:
+          - conf/*
+          - Makefile
+          - .gitlab-ci.yml
+          - buildroot
+          - freeloader
+          - linux
+          - u-boot
+    artifacts:
+        name: "bootimages4m-${CI_COMMIT_SHA::8}"
+        paths:
+            - work/boot.zip
+            - work/opensbi/platform/nuclei/ux600/firmware/*.elf
+            - freeloader/freeloader.elf
+            - build_*.log.*
+        expire_in: 2 day
+    tags:
+        - software-server
+    script:
+        - echo ">>Show help message for $CORE"
+        - make help
+        - echo ">>Build and generate freeloader 4MB version for $CORE"
+        - |
+            make freeloader4m > >(tee build_freeloader4m.log) || {
+                xz -f -z build_freeloader4m.log
+                exit 1
+            }
+        - xz -f -z build_freeloader4m.log
+
 ## Job template for build linux sdk
 .build_linux_sdk_template: &build_linux_sdk_job_def
     only:
@@ -41,14 +73,6 @@ cache:
     script:
         - echo ">>Show help message for $CORE"
         - make help
-        - echo ">>Build and generate freeloader 4MB version for $CORE"
-        - |
-            make freeloader4m > >(tee build_freeloader4m.log) || {
-                xz -f -z build_freeloader4m.log
-                exit 1
-            }
-        - xz -f -z build_freeloader4m.log
-        - make clean
         - echo ">>Build buildroot_initramfs_sysroot for $CORE"
         - |
             make -j buildroot_initramfs_sysroot > >(tee build_sysroot.log |grep '>>>') || {
@@ -100,6 +124,21 @@ cache:
                 if cat run_xlspike.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi; 
                 if cat run_xlspike.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi; 
             }
+
+## Job for build sdk
+# Build 4M Flash For UX600 Core, without FPU
+build_ux600_4m:
+    stage: build_ux600
+    variables:
+        CORE: "ux600"
+    <<: *build_linux_sdk_4m_job_def
+
+# Build 4M Flash For UX600FD Core, with FPU
+build_ux600_4m:
+    stage: build_ux600fd
+    variables:
+        CORE: "ux600fd"
+    <<: *build_linux_sdk_4m_job_def
 
 ## Job for build sdk
 # Build For UX600 Core, without FPU
