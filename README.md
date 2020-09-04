@@ -7,9 +7,17 @@ It can also build linux kernel, rootfs ramdisk, opensbi and freeloader for Nucle
 SoC FPGA bitstream running in Nuclei HummingBird FPGA Board.
 
 > The rootfs used in this SDK is initramfs format.
-> **Note**: This is a special version for put opensbi, uboot, kernel, rootfs and dtb all in
-> freeloader, so user just need to build freeloader, and then flash it, it will boot the kernel,
-> onboard MCU flash need to be replaced to >= 8MB.
+
+> **Note**: This is a special version of Nuclei Linux SDK.
+> * The kernel configuration and buildroot configuration are optimized to generate smaller image size.
+> * freeloader in version will contain opensbi, uboot, kernel, rootfs and dtb binaries, so you
+>   when you build freeloader, and downloaded it into onboard flash, then you will be able to
+>   boot linux without SD card
+> * The freeloader linker script is modified, the linker script flash size changed from 4MB to 8MB.
+> * If you want to compile a normal version of freeloader, just follow [Build Freeloader](#build-freeloader), you will need to replace the onboard MCU-Flash(U24) to >= 8MB
+> * When you are going to replace the onboard MCU Flash, please choose a compatiable one and also need to be [supported by Nuclei OpenOCD](https://github.com/riscv-mcu/riscv-openocd/blob/nuclei-cjtag/src/flash/nor/spi.c).
+> * If you want to compile a 4MB version of freeloader, which you can put it into current board flash,
+>   you can just follow [Build 4MB Freeloader](#build-4mb-freeloader) to achieve it.
 
 ## Tested Configurations
 
@@ -229,22 +237,45 @@ nucleisys login:
 Contact with our sales via email contact@nucleisys.com to get FPGA bitstream for Nuclei
 UX600 SoC MCS and get guidance about how to program FPGA bitstream in the board.
 
-### Build Freeloader
+### Build Freeloader on your demand
 
-*freeloader* is a first stage bootloader which contains *opensbi*, *uboot* and *dtb* binaries,
-when bootup, it will enable I/D cache and load *opensbi*, *uboot* and *dtb* from onboard
-norflash to DDR, and then goto entry of *opensbi*.
+You can build different version of freeloader on your demand.
+
+#### Build Freeloader
+
+In this version, *freeloader* is a first stage bootloader which contains *opensbi*, *uboot*,
+*kernel*, *rootfs* and *dtb* binaries, when bootup, it will enable I/D cache and load *opensbi*, *uboot*, *kernel*, *rootfs* and *dtb* from onboard norflash to DDR, and then goto entry of *opensbi*.
 
 To build *freeloader*, you just need to run `make freeloader`
 
-> For this special version, no need to prepare the sdcard boot image, just `make freeloader`
+> * For this special version, no need to prepare the sdcard boot image, just `make freeloader`
 > will be enough.
+> * If you have run `make freeloader4m` command before, and want to switch back to normal size
+> of rootfs, please run `make clean` first to clean the workspace.
 
-**Notice**:
+#### Build 4MB Freeloader
 
 If you want to build a freeloader which can be loaded to 4M Flash, you can run `make freeloader4m`
 to achieve it, but when you want to switch back to normal configuration, you will need to clean this
 workspace first via `make clean`.
+
+> **NOTICE**:
+>
+> * For this specical 4MB version, the rootfs size is optimized down by removing all files in *lib*
+> folder, and change the busybox in buildroot from dynamic version to static version, and login
+> is disabled directly.
+> 
+> * First run of `make freeloader4m` will do the rootfs optimization for you, then if you run
+> `make freeloader`, it will still generate the 4MB version freeloader for you, unless you
+> clean buildroot or all the workspace.
+>
+> * If you changed buildroot configuration or kernel configuration, the freeloader size might increase,
+> and bigger than 4MB, please take care.
+>
+> * Since the *lib* in rootfs are deleted, so your application dynamic linked will not be able to run,
+> please generate static linked version, or you can use the normal version.
+> 
+> * For more details about how this 4MB freeloader is built, please directly look into the Makefile in this project.
 
 ### Upload Freeloader to HummingBird FPGA Board
 
@@ -254,8 +285,8 @@ then you can run `make upload_freeloader` to upload the *freeloader/freeloader.e
 You can use riscv-nuclei-elf-gdb and openocd to download this program by yourself.
 
 > No need to do the **Build SDCard Boot Images** steps for run linux directly from MCU flash.
-> Onboard MCU flash need to be replaced with > 8MB, or you can optimize the kernel + rootfs
-> size down to about 2M, total freeloader size < 4MB.
+> In this version, `make freeloader` or `make freeloader4m` will generate boot images for you,
+> you can also use this boot images with your old freeloader(contains freeloader, uboot and dtb only).
 
 ### Build SDCard Boot Images
 
