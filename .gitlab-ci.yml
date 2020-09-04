@@ -134,7 +134,7 @@ build_ux600_4m:
     <<: *build_linux_sdk_4m_job_def
 
 # Build 4M Flash For UX600FD Core, with FPU
-build_ux600_4m:
+build_ux600fd_4m:
     stage: build_ux600fd
     variables:
         CORE: "ux600fd"
