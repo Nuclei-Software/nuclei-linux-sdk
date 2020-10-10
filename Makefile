@@ -303,7 +303,7 @@ upload_freeloader: $(freeloader_elf)
 	-ex "target remote | $(openocd) --pipe -f $(platform_openocd_cfg)" \
 	--batch -ex "monitor reset halt" -ex "monitor halt" \
 	-ex "monitor flash protect 0 0 last off" -ex "load" \
-	-ex "monitor resume" -ex "monitor shutdown" -ex "quit"
+	-ex "monitor resume" -ex "quit"
 
 .PHONY: clean cleanboot cleanlinux cleanbuildroot cleansysroot cleanfreeloader cleanopensbi prepare presim preboot
 clean: cleanfreeloader
