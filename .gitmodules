@@ -17,3 +17,6 @@
 [submodule "u-boot"]
 	path = u-boot
 	url = ../u-boot.git
+[submodule "penglai-sdk"]
+	path = penglai-sdk
+	url = ../penglai-sdk.git
