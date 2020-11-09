@@ -55,11 +55,11 @@ which openocd
 ### Clone Repo
 
 * Checkout this repository and checkout `dev_nuclei_flash` branch using `git`.
-  
+
   - If you have good network access to github, you can clone this repo using command
     `git clone -b dev_nuclei_flash https://github.com/Nuclei-Software/nuclei-linux-sdk`
   - Otherwise, you can try with our mirror maintained in gitee using command
-    `git clone -b dev_nuclei_flash https://gitee.com/Nuclei-Software/nuclei-linux-sdk`     
+    `git clone -b dev_nuclei_flash https://gitee.com/Nuclei-Software/nuclei-linux-sdk`
 
 * Then you will need to checkout all of the linked submodules using:
 
@@ -125,7 +125,7 @@ Please modify the `Makefile` to your correct core configuration before build any
 **Note**: `xl_spike` tool should be installed and added into **PATH** in advance.
 Contact with our sales via email contact@nucleisys.com to get `xl-spike` tools.
 
-### Run on xl_spike 
+### Run on xl_spike
 
 If you have run `make bootimages` command before, please make sure you run `make presim` to prepare
 build environment for running linux in simulation.
@@ -139,7 +139,7 @@ Here is sample output running in xl_spike:
 xl_spike --isa=rv64imac /home/hqfang/workspace/software/nuclei-linux-sdk/work/opensbi/platform/nuclei/ux600/firmware/fw_payload.elf
 rv64 file
 warning: tohost and fromhost symbols not in ELF; can't communicate with target
-UART: 
+UART:
 UART: OpenSBI v0.7
 UART:    ____                    _____ ____ _____
 UART:   / __ \                  / ____|  _ \_   _|
@@ -149,7 +149,7 @@ UART:  | |__| | |_) |  __/ | | |____) | |_) || |_
 UART:   \____/| .__/ \___|_| |_|_____/|____/_____|
 UART:         | |
 UART:         |_|
-UART: 
+UART:
 UART: Platform Name          : Nuclei UX600
 UART: Platform HART Count    : 1
 UART: Platform Features      : timer,mfdeleg
@@ -159,7 +159,7 @@ UART: BOOT HART Features     : pmp,scountern,mcounteren,time
 UART: Firmware Base          : 0xa0000000
 UART: Firmware Size          : 76 KB
 UART: Runtime SBI Version    : 0.2
-UART: 
+UART:
 UART: MIDELEG : 0x0000000000000222
 UART: MEDELEG : 0x000000000000b109
 UART: PMP0    : 0x00000000a0000000-0x00000000a001ffff (A)
@@ -217,17 +217,17 @@ UART: Starting klogd: OK
 UART: Running sysctl: OK
 UART: Starting mdev... OK
 UART: modprobe: can't change directory to '/lib/modules': No such file or directory
-UART: 
+UART:
 UART: Welcome to Nuclei System Techology
 nucleisys login: root
 root
 UART: Password: nuclei
 
-UART: 
+UART:
 UART: Login timed out after 60 seconds
-UART: 
+UART:
 UART: Welcome to Nuclei System Techology
-nucleisys login: 
+nucleisys login:
 ~~~
 
 ## Booting Linux on [Nuclei HummingBird Board](https://nucleisys.com/developboard.php)
@@ -264,7 +264,7 @@ workspace first via `make clean`.
 > * For this specical 4MB version, the rootfs size is optimized down by removing all files in *lib*
 > folder, and change the busybox in buildroot from dynamic version to static version, and login
 > is disabled directly.
-> 
+>
 > * First run of `make freeloader4m` will do the rootfs optimization for you, then if you run
 > `make freeloader`, it will still generate the 4MB version freeloader for you, unless you
 > clean buildroot or all the workspace.
@@ -274,7 +274,7 @@ workspace first via `make clean`.
 >
 > * Since the *lib* in rootfs are deleted, so your application dynamic linked will not be able to run,
 > please generate static linked version, or you can use the normal version.
-> 
+>
 > * For more details about how this 4MB freeloader is built, please directly look into the Makefile in this project.
 
 ### Upload Freeloader to HummingBird FPGA Board
@@ -596,6 +596,74 @@ the sdcard first using `umount /mnt`, and then eject the sdcard from the tf slot
 When your applications are placed into the sdcard correctly, then you can insert your card into tf slot, and mount it into `/mnt` directory.
 
 For example, if you have an application called `coremark`, then you can directly run it using `/mnt/coremark`.
+
+## Penglai Enclave Instructions
+
+The monitor (OpenSBI) and Linux in this branch will initialize the Penglai related environment by default.
+
+To ensure the Penglai Enclave is properly initialized, you can type:
+
+~~~sh
+ls /dev/penglai_enclave_dev
+~~~
+
+in your booted shell, and you should see the device.
+
+### Run simple demo
+
+The Penglai User SDK and demos are located in penglai-sdk/.
+
+Currently it's still standalone and will not be compiled automatically.
+
+Following the instructions to build the prime enclave demo and put it into the image:
+
+
+**Build the demo**:
+
+~~~sh
+# In the root dir of the project
+cd penglai-sdk
+make
+~~~
+
+
+**Put the demo into the image**:
+
+~~~sh
+# In the root dir of the project
+make preboot
+cp penglai-sdk/demo/host/host work/buildroot_initramfs_sysroot/root/
+cp penglai-sdk/demo/prime/prime work/buildroot_initramfs_sysroot/root/
+make bootimages
+~~~
+
+Now boot with the newly created image, e.g.,
+
+~~~sh
+# In the root dir of the project
+make upload_freeloader
+~~~
+
+ the booted shell, you should see host and prime in /root/.
+
+**Run demo**:
+
+~~~sh
+# In /root
+./host prime
+~~~
+
+You should see results like
+
+~~~sh
+M mode: exit_enclave: retval of enclave is 2
+~~~
+
+which is the expected result of the demo.
+
+### Other infos
+
+To learn more about Penglai, please refer information in [Penglai github](https://github.com/penglai-enclave/penglai-enclave).
 
 ## Help
 
