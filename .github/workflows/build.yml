@@ -35,6 +35,7 @@ jobs:
           cd ..
           tar czvf source.tar.gz --exclude-vcs -C $base .
           mv source.tar.gz $base/
+          ls -hl $base/source.tar.gz
 
       - name: upload source
         uses: actions/upload-artifact@v2
