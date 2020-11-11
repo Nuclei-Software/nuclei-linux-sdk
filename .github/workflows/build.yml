@@ -32,7 +32,7 @@ jobs:
         run: |
           base=$(basename $PWD)
           cd ..
-          tar czvf source.tar.gz --exclude-vcs --exclude-vcs-ignores -C $base .
+          tar czvf source.tar.gz --exclude-vcs -C $base .
           mv source.tar.gz $base/
 
       - name: Upload source
