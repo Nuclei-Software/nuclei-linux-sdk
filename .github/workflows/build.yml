@@ -32,6 +32,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: buildroot/dl
+          key: build 
 
       # Install dependendenc
       - name: Install dependencies
@@ -50,24 +51,22 @@ jobs:
           make CORE=${{ matrix.core }} bootimages
       
       - name: Upload bootimages
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v2.2.0
         with:
           name: bootimages_${{ matrix.core }}
           path: |
             work/boot.zip
             freeloader/freeloader.elf
 
-      # workaround https://github.com/actions/upload-artifact/issues/38
       - name: tarball source
         run: |
           base=$(basename $PWD)
           cd ..
           tar czvf source.tar.gz --exclude-vcs --exclude-vcs-ignores -C $base .
           mv source.tar.gz $base/
-          ls -hl $base/source.tar.gz
 
       - name: upload source
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v2.2.0
         with:
           name: nuclei_linux_sdk_source
           path: source.tar.gz
