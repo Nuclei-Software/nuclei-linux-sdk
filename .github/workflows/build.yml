@@ -27,8 +27,24 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: recursive
+ 
+      - name: Tarball source
+        run: |
+          base=$(basename $PWD)
+          cd ..
+          tar czvf source.tar.gz --exclude-vcs --exclude-vcs-ignores -C $base .
+          mv source.tar.gz $base/
 
-      - name: Cache buildroot downloaded packages
+      - name: Upload source
+        if: matrix.core == 'ux600'
+        uses: actions/upload-artifact@v2.2.0
+        with:
+          name: nuclei_linux_sdk_source
+          path: source.tar.gz
+        # continue build on error
+        continue-on-error: true
+
+      - name: Caching packages
         uses: actions/cache@v2
         with:
           path: buildroot/dl
@@ -57,18 +73,3 @@ jobs:
           path: |
             work/boot.zip
             freeloader/freeloader.elf
-
-      - name: tarball source
-        run: |
-          base=$(basename $PWD)
-          cd ..
-          tar czvf source.tar.gz --exclude-vcs --exclude-vcs-ignores -C $base .
-          mv source.tar.gz $base/
-
-      - name: upload source
-        uses: actions/upload-artifact@v2.2.0
-        with:
-          name: nuclei_linux_sdk_source
-          path: source.tar.gz
-        continue-on-error: true
-
