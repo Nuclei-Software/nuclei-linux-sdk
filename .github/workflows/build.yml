@@ -27,21 +27,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: recursive
-      
-      # workaround https://github.com/actions/upload-artifact/issues/38
-      - name: tarball source
-        run: |
-          base=$(basename $PWD)
-          cd ..
-          tar czvf source.tar.gz --exclude-vcs -C $base .
-          mv source.tar.gz $base/
-          ls -hl $base/source.tar.gz
-
-      - name: upload source
-        uses: actions/upload-artifact@v2
-        with:
-          name: nuclei_linux_sdk_source
-          path: source.tar.gz
 
       - name: Cache buildroot downloaded packages
         uses: actions/cache@v2
@@ -71,4 +56,20 @@ jobs:
           path: |
             work/boot.zip
             freeloader/freeloader.elf
-            
+
+      # workaround https://github.com/actions/upload-artifact/issues/38
+      - name: tarball source
+        run: |
+          base=$(basename $PWD)
+          cd ..
+          tar czvf source.tar.gz --exclude-vcs --exclude-vcs-ignores -C $base .
+          mv source.tar.gz $base/
+          ls -hl $base/source.tar.gz
+
+      - name: upload source
+        uses: actions/upload-artifact@v2
+        with:
+          name: nuclei_linux_sdk_source
+          path: source.tar.gz
+        continue-on-error: true
+
