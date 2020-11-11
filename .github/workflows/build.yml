@@ -1,0 +1,73 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Build
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the dev_nuclei branch
+on:
+  push:
+    branches: [ dev* ]
+  pull_request:
+    branches: [ dev_nuclei ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    name: build for ${{ matrix.core }} 
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        core: [ux600, ux600fd]
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout Linux SDK Code
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      
+      # workaround https://github.com/actions/upload-artifact/issues/38
+      - name: tarball source
+        run: |
+          base=$(basename $PWD)
+          cd ..
+          tar czvf source.tar.gz --exclude-vcs -C $base .
+          mv source.tar.gz $base/
+
+      - name: upload source
+        uses: actions/upload-artifact@v2
+        with:
+          name: nuclei_linux_sdk_source
+          path: source.tar.gz
+
+      - name: Cache buildroot downloaded packages
+        uses: actions/cache@v2
+        with:
+          path: buildroot/dl
+
+      # Install dependendenc
+      - name: Install dependencies
+        run: |
+          sudo apt-get install build-essential git autotools-dev cmake texinfo bison minicom flex liblz4-tool \
+            libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler libncursesw5-dev libncursesw5
+
+      # Build Freeloader
+      - name: Build freeloader for ${{ matrix.core }} 
+        run: |
+          make CORE=${{ matrix.core }} freeloader
+
+      # Build bootimages
+      - name: Build bootimages for ${{ matrix.core }} 
+        run: |
+          make CORE=${{ matrix.core }} bootimages
+      
+      - name: Upload bootimages
+        uses: actions/upload-artifact@v2
+        with:
+          name: bootimages_${{ matrix.core }}
+          path: |
+            work/boot.zip
+            freeloader/freeloader.elf
+            
