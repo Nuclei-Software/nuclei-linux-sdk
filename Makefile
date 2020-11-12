@@ -230,7 +230,7 @@ buildroot_initramfs_sysroot: $(buildroot_initramfs_sysroot)
 vmlinux: $(vmlinux)
 
 .PHONY: bootimages
-bootimages: penglai $(boot_zip)
+bootimages: $(boot_zip)
 	@echo "SDCard boot images are generated into $(boot_zip) and $(boot_wrkdir)"
 	@echo "You can extract the $(boot_zip) to SDCard and insert the SDCard back to board"
 	@echo "If freeloader is already flashed to board's norflash, then you can reset power of the board"
@@ -254,7 +254,7 @@ $(boot_uinitrd_lz4): $(initramfs)
 $(boot_kernel_dtb): $(platform_dts)
 	dtc -O dtb -o $(boot_kernel_dtb) $(platform_dts)
 
-$(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_lz4) $(boot_kernel_dtb)
+$(boot_zip): $(boot_wrkdir) $(boot_ubootscr) penglai $(boot_uimage_lz4) $(boot_uinitrd_lz4) $(boot_kernel_dtb)
 	rm -f $(boot_zip)
 	cd $(boot_wrkdir) && zip -q -r $(boot_zip) .
 
