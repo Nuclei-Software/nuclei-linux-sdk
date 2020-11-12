@@ -284,7 +284,7 @@ workspace first via `make clean`.
 If you have connected your board to your Linux development environment, and setuped JTAG drivers,
 then you can run `make upload_freeloader` to upload the *freeloader/freeloader.elf* to your board.
 
-You can use riscv-nuclei-elf-gdb and openocd to download this program by yourself.
+You can also use `riscv-nuclei-elf-gdb` and `openocd` to download this program by yourself.
 
 > No need to do the **Build SDCard Boot Images** steps for run linux directly from MCU flash.
 > In this version, `make freeloader` or `make freeloader4m` will generate boot images for you,
@@ -297,15 +297,27 @@ build environment for generate boot images.
 
 If the freeloader is flashed to the board, then you can prepare the SDCard boot materials,
 you can run `make bootimages` to generate the boot images to *work/boot*, and an zip file
-called *work/boot.zip* , you can copy this *boot.zip* file to your SDCard, and extract it,
+called *work/boot.zip* , you can extract this *boot.zip* to your SDCard or copy all the files
+located in *work/boot/*, make sure the files need to be put right in the root of SDCard,
 then you can insert this SDCard to your SDCard slot(J57) beside the TFT LCD.
 
+The contents of *work/boot* or *work/boot.zip* are as below:
+
+* **kernel.dtb**  : device tree binary file
+* **boot.scr**    : boot script used by uboot, generated from [./conf/boot.cmd](conf/boot.cmd)
+* **uImage.lz4**  : lz4 archived kernel image
+* **uInitrd.lz4** : lz4 archived rootfs image
+
 > SDCard is recommended to use SDHC format.
+> SDCard need to be formatted to `FAT32` format, with only 1 partition.
 
 ### Run Linux
 
 When all above is done, you can reset the power on board, then opensbi will boot uboot, and
-uboot will automatically load linux image and initramfs from SDCard and boot linux.
+uboot will automatically load linux image and initramfs from SDCard and boot linux if everything
+is prepared correctly.
+
+If you met with issues, please check the [**Known issues**](#known-issues).
 
 The linux login user name and password is *root* and *nuclei*.
 
@@ -681,10 +693,124 @@ This repo is based on opensource repo https://github.com/sifive/freedom-u-sdk/tr
   show timeout issue, this is caused by xl_spike timer is not standard type, but the boot images for FPGA
   board can boot successfully and works well.
 
+  If you want to execute using `xl_spike` without the login, you can edit the *work/buildroot_initramfs_sysroot/etc/inittab* file(started from `# now run any rc scripts`) as below, and save it:
+
+  ~~~
+  # now run any rc scripts
+  #::sysinit:/etc/init.d/rcS
+
+  # Put a getty on the serial port
+  #console::respawn:/sbin/getty -L  console 0 vt100 # GENERIC_SERIAL
+  ::respawn:-/bin/sh
+  ~~~
+
+  And then type `make presim` and `make sim` to run linux in *xl_spike*, you will be able to get following output in final:
+
+  ~~~
+  ## a lot of boot message are reduced here ##
+  UART: [  246.974853] sdhci: Secure Digital Host Controller Interface driver
+  UART: [  247.057922] sdhci: Copyright(c) Pierre Ossman
+  UART: [  247.447723] NET: Registered protocol family 17
+  UART: [  266.205169] Freeing unused kernel memory: 36052K
+  UART: [  266.314117] Run /init as init process
+  UART: # ls
+  ls
+  UART: bin      init     linuxrc  opt      run      tmp
+  UART: dev      lib      media    proc     sbin     usr
+  UART: etc      lib64    mnt      root     sys      var
+  UART: # cat /proc/cpuinfo
+  cat /proc/cpuinfo
+  UART: processor	: 0
+  UART: hart		: 0
+  UART: isa		: rv64imac
+  UART: mmu		: sv39
+  UART: 
+  ~~~
+
 * For UX600FD, if you run simulation using xl_spike, it can only run to init process, then it will enter to
   kernel panic, but the generated boot images works for FPGA board.
 
 * For some SDCard format, it might not be supported, please check your SDCard is SDHC format.
+
+* If you can't boot with the sdcard boot images, you can run the following commands in uboot to check whether sdcard is recognized.
+
+  1. Type `mmcinfo` to check whether sdcard is recognized? If no output, please re-insert the sdcard, and try
+     this command again, if still not working, please confirm that the MCS is correct or not?
+
+     ~~~
+     U-Boot 2020.07-rc2-g89856aea41 (Aug 05 2020 - 21:18:04 +0800)
+
+     CPU:   rv64imac
+     Model: nuclei,ux600
+     DRAM:  256 MiB
+     Board: Initialized
+     MMC:   spi@10034000:mmc@0: 0
+     In:    console
+     Out:   console
+     Err:   console
+     Net:   No ethernet found.
+     Hit any key to stop autoboot:  0
+     => mmcinfo
+     Device: spi@10034000:mmc@0
+     Manufacturer ID: 2
+     OEM: 544d
+     Name: SA08G
+     Bus Speed: 20000000
+     Mode: MMC legacy
+     Rd Block Len: 512
+     SD version 2.0
+     High Capacity: Yes
+     Capacity: 7.2 GiB
+     Bus Width: 1-bit
+     Erase Group Size: 512 Bytes
+     ~~~
+   
+  2. If SDCard is recognized correctly, please type `fatls mmc 0`, and check whether the following files
+     are listed as below, if you can get the following files in your sdcard, please reformat your sdcard to `Fat32` format, and copy the generated files in *work/boot/* to the root of sdcard, and re-insert the
+     sdcard to SD slot, and retry from step 1.
+
+     **Note:** Please make sure your SDCard is safely injected in your OS, and SDCard is formated to `Fat32`.
+
+     ~~~
+     => fatls mmc 0
+         2594   kernel.dtb   # device tree binary file
+          345   boot.scr     # boot script used by uboot, generated from ./conf/boot.cmd
+      3052821   uImage.lz4   # lz4 archived kernel image
+      19155960  uInitrd.lz4  # lz4 archived rootfs image
+
+      4 file(s), 0 dir(s)
+     ~~~
+
+  3. If the above steps are all correct, then you can run `boot` command to boot linux, or type commands
+     located in [./conf/boot.cmd](conf/boot.cmd).
+
+* The linux kernel and rootfs size is too big, is there any way to reduce it to speed up boot speed?
+
+  If you are familiar with linux and buildroot configuration files, you can directly modify the configuration
+  files located in `conf` folder.
+
+  * *conf/buildroot_initramfs_ux600_config*: The buildroot configuration for UX600
+  * *conf/buildroot_initramfs_ux600fd_config*: The buildroot configuration for UX600FD
+  * *conf/linux_defconfig*: The linux configuration for UX600 and UX600FD
+  * *conf/nuclei_ux600.dts*: The device tree file for UX600
+  * *conf/nuclei_ux600fd.dts*: The device tree file for UX600FD
+
+  If you modified this files directly and want to take effects, you need to `make clean` first, and regenerate
+  boot images.
+
+  You can also try `make buildroot_initramfs-menuconfig` to get a terminal menuconfig to configure the buildroot
+  packages.
+
+  You can also try `make linux-menuconfig` to get a  menuconfig to configure the linux kernel.
+
+* Other possible ways to reduce generated rootfs image size.
+
+  If you are familiar with the generated rootfs files located in `work/buildroot_initramfs_sysroot`, you can
+  manually remove the files you think it is not used, and type `make cleanboot` and then `make bootimages`,
+  you can check the size information generated by the command.
+
+* The best way to learn this project is taking a look at the [Makefile](Makefile) of this project to learn about
+  what is really done in each make target.
 
 ## Reference
 
