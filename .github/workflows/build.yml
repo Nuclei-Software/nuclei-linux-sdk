@@ -61,9 +61,19 @@ jobs:
           sudo apt-get install build-essential git autotools-dev cmake texinfo bison minicom flex liblz4-tool \
             libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler libncursesw5-dev libncursesw5
 
-      # Build Freeloader
-      - name: Build freeloader for ${{ matrix.core }} 
+      # Build 4M Freeloader
+      - name: Build freeloader4m for ${{ matrix.core }}
         run: |
+          make CORE=${{ matrix.core }} freeloader4m
+          cp freeloader/freeloader.elf work/freeloader4m.elf
+
+      # Build Freeloader
+      - name: Build freeloader for ${{ matrix.core }}
+        run: |
+          make cleanbuildroot
+          make cleansysroot
+          make cleanfreeloader
+          make cleanboot
           make CORE=${{ matrix.core }} freeloader
 
       # Build bootimages
@@ -78,6 +88,7 @@ jobs:
           path: |
             work/boot.zip
             freeloader/freeloader.elf
+            work/freeloader4m.elf
 
       - name: Upload cached packages
         if: matrix.core == 'ux600'
