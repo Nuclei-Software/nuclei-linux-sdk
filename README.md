@@ -615,14 +615,6 @@ For example, if you have an application called `coremark`, then you can directly
 
 The monitor (OpenSBI) and Linux in this branch will initialize the Penglai related environment by default.
 
-To ensure the Penglai Enclave is properly initialized, you can type:
-
-~~~sh
-ls /dev/penglai_enclave_dev
-~~~
-
-in your booted shell, and you should see the device.
-
 ### Run simple demo
 
 The Penglai User SDK and demos are located in penglai-sdk/.
@@ -631,38 +623,79 @@ Currently it's still standalone and will not be compiled automatically.
 
 Following the instructions to build the prime enclave demo and put it into the image:
 
+**Build the demo and generate boot images**:
 
-**Build the demo**:
-
-~~~sh
-# In the root dir of the project
-cd penglai-sdk
-make
-~~~
-
-
-**Put the demo into the image**:
+For this branch, when boot images are built, the penglai sdk is also
+built and demos are copied to `work/buildroot_initramfs_sysroot/root`.
 
 ~~~sh
 # In the root dir of the project
-make preboot
-cp penglai-sdk/demo/host/host work/buildroot_initramfs_sysroot/root/
-cp penglai-sdk/demo/prime/prime work/buildroot_initramfs_sysroot/root/
+# generate freeloader, freeloader need to be replaced
+make freeloader
+# generate bootimages
 make bootimages
 ~~~
 
-Now boot with the newly created image, e.g.,
+Now boot with the newly created image, and put the generated
+boot files located in `work/boot/` to SDCard root.
 
 ~~~sh
 # In the root dir of the project
 make upload_freeloader
 ~~~
 
- the booted shell, you should see host and prime in /root/.
+When uboot is up, then press any key in uart terminal to stop auto boot,
+and type command `run distro_bootcmd` to boot linux from sdcard.
+
+You will be able to see following output:
+
+~~~
+MMC:   spi@10034000:mmc@0: 0
+In:    console
+Out:   console
+Err:   console
+Net:   No ethernet found.
+Hit any key to stop autoboot:  0
+=> mmcinfo
+Device: spi@10034000:mmc@0
+Manufacturer ID: 2
+OEM: 544d
+Name: SA08G
+Bus Speed: 20000000
+Mode: MMC legacy
+Rd Block Len: 512
+SD version 2.0
+High Capacity: Yes
+Capacity: 7.2 GiB
+Bus Width: 1-bit
+Erase Group Size: 512 Bytes
+=> run distro_bootcmd
+switch to partitions #0, OK
+mmc0 is current device
+Scanning mmc 0:1...
+Found U-Boot script /boot.scr
+345 bytes read in 187 ms (1000 Bytes/s)
+## Executing script at a8100000
+Loading kernel
+3052821 bytes read in 63961 ms (45.9 KiB/s)
+Loading ramdisk
+~~~
+
+In the booted shell, you should see host and prime in /root/.
 
 **Run demo**:
 
+To ensure the Penglai Enclave is properly initialized, you can type in booted riscv linux:
+
 ~~~sh
+ls /dev/penglai_enclave_dev
+~~~
+
+In your booted shell, and you should see the device, then you can run penglai demo code.
+
+~~~sh
+# command run in UART terminal when riscv linux is logged in
+cd root
 # In /root
 ./host prime
 ~~~
@@ -670,6 +703,7 @@ make upload_freeloader
 You should see results like
 
 ~~~sh
+...ignored logs...
 M mode: exit_enclave: retval of enclave is 2
 ~~~
 
