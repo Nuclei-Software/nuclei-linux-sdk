@@ -72,6 +72,10 @@ boot_uimage_lz4 := $(boot_wrkdir)/uImage.lz4
 boot_uinitrd_lz4 := $(boot_wrkdir)/uInitrd.lz4
 boot_kernel_dtb := $(boot_wrkdir)/kernel.dtb
 
+# Variables for penglai-sdk
+penglaisdk_srcdir := $(srcdir)/penglai-sdk
+penglaisdk_wrkdir := $(srcdir)/penglai-sdk
+
 # xlspike is prebuilt and installed to PATH
 xlspike := xl_spike
 
@@ -94,6 +98,7 @@ help:
 	@echo "- uboot-menuconfig : run menuconfig for uboot"
 	@echo "- initrd : generate initramfs cpio file"
 	@echo "- bootimages : generate boot images for SDCard"
+	@echo "- penglai : build penglai-sdk project"
 	@echo "- freeloader : generate freeloader(first stage loader) run in norflash"
 	@echo "- freeloader4m : generate freeloader(first stage loader) 4MB version run in norflash"
 	@echo "- upload_freeloader : upload freeloader into development board using openocd and gdb"
@@ -105,6 +110,7 @@ help:
 	@echo "- cleanbuildroot : clean buildroot workspace"
 	@echo "- cleansysroot : clean buildroot sysroot files"
 	@echo "- cleanuboot : clean u-boot workspace"
+	@echo "- cleanpenglai : clean penglai-sdk project"
 	@echo "- cleanfreeloader : clean freeloader generated objects"
 	@echo "- cleanopensbi : clean opensbi workspace"
 	@echo "- preboot : If you run sim target before, and want to change to bootimages target, run this to prepare environment"
@@ -224,7 +230,7 @@ buildroot_initramfs_sysroot: $(buildroot_initramfs_sysroot)
 vmlinux: $(vmlinux)
 
 .PHONY: bootimages
-bootimages: $(boot_zip)
+bootimages: penglai $(boot_zip)
 	@echo "SDCard boot images are generated into $(boot_zip) and $(boot_wrkdir)"
 	@echo "You can extract the $(boot_zip) to SDCard and insert the SDCard back to board"
 	@echo "If freeloader is already flashed to board's norflash, then you can reset power of the board"
@@ -305,8 +311,17 @@ upload_freeloader: $(freeloader_elf)
 	-ex "monitor flash protect 0 0 last off" -ex "load" \
 	-ex "monitor resume" -ex "quit"
 
+.PHONY: penglai cleanpenglai
+
+penglai: buildroot_initramfs_sysroot
+	$(MAKE) CROSS_COMPILE=$(CROSS_COMPILE) -C $(penglaisdk_srcdir) all
+	$(MAKE) CROSS_COMPILE=$(CROSS_COMPILE) BUILDROOT_SYSROOT=$(buildroot_initramfs_sysroot) -C $(penglaisdk_srcdir) copy
+
+cleanpenglai:
+	$(MAKE) CROSS_COMPILE=$(CROSS_COMPILE) -C $(penglaisdk_srcdir) clean
+
 .PHONY: clean cleanboot cleanlinux cleanbuildroot cleansysroot cleanfreeloader cleanopensbi prepare presim preboot
-clean: cleanfreeloader
+clean: cleanfreeloader cleanpenglai
 	rm -rf $(wrkdir)
 
 cleanboot:
