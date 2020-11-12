@@ -1,5 +1,7 @@
 # Nuclei Linux SDK
 
+[![Build](https://github.com/Nuclei-Software/nuclei-linux-sdk/workflows/Build/badge.svg)](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions)
+
 This will download external prebuilt toolchain, and build linux kernel, device tree, ramdisk,
 and opensbi with linux kernel payload for Nuclei xl-spike which can emulate Nuclei UX600 SoC.
 
