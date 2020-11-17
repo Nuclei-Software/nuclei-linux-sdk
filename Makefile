@@ -36,7 +36,7 @@ buildroot_initramfs_sysroot := $(wrkdir)/buildroot_initramfs_sysroot
 
 linux_srcdir := $(srcdir)/linux
 linux_wrkdir := $(wrkdir)/linux
-linux_defconfig := $(confdir)/linux_defconfig
+linux_defconfig := $(confdir)/linux_$(CORE)_defconfig
 linux_gen_initramfs=$(linux_srcdir)/usr/gen_initramfs.sh
 
 vmlinux := $(linux_wrkdir)/vmlinux
