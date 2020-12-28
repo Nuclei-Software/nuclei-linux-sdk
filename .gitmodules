@@ -17,3 +17,11 @@
 [submodule "u-boot"]
 	path = u-boot
 	url = ../u-boot.git
+
+[submodule "linux-keystone-driver"]
+	path = linux-keystone-driver
+	url = ../linux-keystone-driver.git
+
+[submodule "keystone-sdk"]
+	path = keystone-sdk
+	url = ../keystone-sdk.git
