@@ -1,3 +1,8 @@
 linux-*.tar.xz
 work/
 toolchain
+.vscode/
+*.dump
+*.dasm
+*.~
+backup/
