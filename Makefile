@@ -358,6 +358,8 @@ $(keystone_overlay)/tests.ke: keystone_tests
 
 $(keystone_overlay)/keystone-driver.ko: keystone_driver
 
+$(keystone_image_files): keystone_images
+
 keystone_images: $(keystone_overlay_files)
 	cp $(keystone_overlay)/* $(buildroot_initramfs_sysroot)/root/
 
