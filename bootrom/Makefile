@@ -1,9 +1,13 @@
 CROSS_COMPILE ?= riscv-nuclei-linux-gnu-
+ARCH ?= rv64imac
+ABI ?= lp64
+
 CC = $(CROSS_COMPILE)gcc
 OBJCOPY= $(CROSS_COMPILE)objcopy
 
+
 CFLAGS = \
-	-march=rv64imac -mcmodel=medany -mabi=lp64 \
+	-march=$(ARCH) -mabi=$(ABI) -mcmodel=medany \
 	-nostdlib -nostartfiles -fno-common -std=gnu11 \
 	-static \
 	-fPIC \

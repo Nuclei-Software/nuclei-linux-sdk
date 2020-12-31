@@ -63,6 +63,22 @@ uboot_mkimage := $(uboot_wrkdir)/tools/mkimage
 
 uboot_cmd := $(confdir)/uboot.cmd
 
+# Directory for keystone
+keystone_srcdir := $(srcdir)/keystone-sdk
+keystone_wrkdir := $(wrkdir)/keystone-sdk
+keystone_sdk_stamp := $(wrkdir)/keystone-sdk/.keystone_sdk
+keystone_overlay := $(wrkdir)/overlay
+keystone_driver_srcdir := $(srcdir)/linux-keystone-driver
+keystone_driver_wrkdir := $(wrkdir)/linux-keystone-driver
+keystone_image_list := tests.ke keystone-driver.ko
+keystone_overlay_files := $(addprefix $(keystone_overlay)/,$(keystone_image_list))
+keystone_image_files := $(addprefix $(buildroot_initramfs_sysroot)/root/,$(keystone_image_list))
+
+# BootROM
+bootrom_srcdir := $(srcdir)/bootrom
+bootrom_wrkdir := $(wrkdir)/bootrom
+bootrom_bin := $(bootrom_wrkdir)/bootrom.bin
+
 # Directory for boot images stored in sdcard
 boot_wrkdir := $(wrkdir)/boot
 boot_zip := $(wrkdir)/boot.zip
@@ -172,7 +188,7 @@ $(linux_image): $(linux_srcdir) $(linux_wrkdir)/.config
 initrd: $(initramfs)
 	@echo "initramfs cpio file is generated into $<"
 
-$(initramfs): $(buildroot_initramfs_sysroot) $(linux_image)
+$(initramfs): $(buildroot_initramfs_sysroot) $(keystone_image_files) $(linux_image)
 	cd $(linux_wrkdir) && \
 		$(linux_gen_initramfs) \
 		-o $@ -u $(shell id -u) -g $(shell id -g) \
@@ -264,7 +280,7 @@ freeloader: $(freeloader_elf)
 	@echo "You can download this elf into development board using make upload_freeloader"
 	@echo "or using openocd and gdb to achieve it"
 
-$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin)
+$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(bootrom_bin)
 	make -C $(freeloader_srcdir) ARCH=$(ISA) ABI=$(ABI) CROSS_COMPILE=$(CROSS_COMPILE) \
 		FW_JUMP_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(uboot_dtb)
 
@@ -299,6 +315,68 @@ cleanfreeloader:
 
 cleanopensbi:
 	rm -rf $(opensbi_wrkdir)
+
+.PHONY: keystone keystone_tests keystone_overlay keystone_driver cleankeystone cleankeystoneimages
+
+keystone: $(keystone_sdk_stamp)
+
+cleankeystone:
+	rm -rf $(keystone_wrkdir)
+
+$(keystone_sdk_stamp): $(buildroot_initramfs_sysroot)
+	mkdir -p $(keystone_wrkdir)
+	cd $(keystone_wrkdir) && KEYSTONE_SDK_DIR=$(keystone_wrkdir) \
+		ARCH=$(ISA) ABI=$(ABI) PATH=$(RVPATH) cmake $(keystone_srcdir)
+	cd $(keystone_wrkdir) && make install
+	touch $@
+
+keystone_tests: keystone $(keystone_overlay)
+	cd $(keystone_wrkdir) && KEYSTONE_SDK_DIR=$(keystone_wrkdir) \
+		ARCH=$(ISA) ABI=$(ABI) PATH=$(RVPATH) make examples
+	find $(keystone_wrkdir) -name "tests.ke" | xargs -I{} rsync {} $(keystone_overlay)
+
+$(keystone_overlay):
+	mkdir -p $(keystone_overlay)
+
+keystone_driver: $(linux_srcdir) $(buildroot_initramfs_sysroot) $(keystone_driver_wrkdir)
+	rsync -r $(keystone_driver_srcdir)/ $(keystone_driver_wrkdir)
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
+		ARCH=riscv \
+		CROSS_COMPILE=$(CROSS_COMPILE) \
+		PATH=$(RVPATH) modules
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
+		ARCH=riscv \
+		CROSS_COMPILE=$(CROSS_COMPILE) \
+		PATH=$(RVPATH) \
+		M=$(keystone_driver_wrkdir) modules
+	find $(keystone_driver_wrkdir) -name "*.ko" | xargs -I{} rsync {} $(keystone_overlay)
+
+$(keystone_driver_wrkdir):
+	mkdir -p $(keystone_driver_wrkdir)
+
+$(keystone_overlay)/tests.ke: keystone_tests
+
+$(keystone_overlay)/keystone-driver.ko: keystone_driver
+
+keystone_images: $(keystone_overlay_files)
+	cp $(keystone_overlay)/* $(buildroot_initramfs_sysroot)/root/
+
+cleankeystoneimages:
+	rm -rf $(keystone_overlay_files)
+	rm -rf $(keystone_image_files)
+
+.PHONY: bootrom cleanbootrom
+
+bootrom: $(bootrom_srcdir) $(buildroot_initramfs_sysroot)
+	mkdir -p $(bootrom_wrkdir)
+	make -C $(bootrom_srcdir) O=$(bootrom_wrkdir) \
+		ARCH=$(ISA) ABI=$(ABI) \
+		CROSS_COMPILE=$(CROSS_COMPILE)
+
+$(bootrom_bin): bootrom
+
+cleanbootrom:
+	rm -rf $(bootrom_wrkdir)
 
 # If you change your make target from bootimages to sim, you need to run presim first
 presim: prepare
