@@ -757,6 +757,35 @@ To learn more about Penglai, please refer information in [Penglai github](https:
 
 You can run `make help` for quick usage of this Nuclei Linux SDK.
 
+## Port to your target
+
+For our current development demo SoC, we used the following resources:
+
+* RV64IMAC or RV64IMAFDC Core, with 16 PMP entries
+* DDR RAM: *0xa0000000 - 0xb0000000*, DDR RAM is seperated to place opensbi, uboot, kernel, rootfs, dtb binaries.
+* I/D Cache enabled
+* UART @ 0x10013000
+* GPIO @ 0x10012000
+* Nuclei Core Timer @ 0x2000000, Timer Freqency @ 32768 Hz
+* PLIC @ 0x8000000
+* QSPI @ 0x10034000, which connect to SDCard, SDCard will be used when boot from SDCard
+* QSPI @ 0x10014000, which connect to XIP SPIFlash 4M, memory mapped started at 0x20000000.
+  SPIFlash is used to place freeloader, which contains opensbi, uboot, dtb, and optional kernel and rootfs
+  when flash-only boot is performed. Flash-only boot will required at least 8M flash.
+
+To basically port this SDK to match your target, you need at least to change the following files:
+
+* *freeloader/freeloader.S*: Change **OPENSBI_START_BASE, UBOOT_START_BASE, FDT_START_BASE, COPY_START_BASE,    KERNEL_START_BASE, INITRD_START_BASE** to match your system memory map.
+* *freeloader/linker.lds*: Change *flash* memory description line to match your flash memory memory.
+* *opensbi/platform/nuclei/*: Change *config.mk* to match your system memory map, change *platform.c* to match your system
+  peripheral driver including uart, timer, gpio, etc.
+* *u-boot/arch/riscv/dts/nuclei-hbird.dts*: Change this dts file to match your SoC design.
+* *u-boot/board/nuclei/hbird*: Change *hbird.c* to match your board init requirements, change *Kconfig*'s **SYS_TEXT_BASE**.
+* *u-boot/include/configs/nuclei-hbird.h*: Change **CONFIG_SYS_SDRAM_BASE**, **CONFIG_STANDALONE_LOAD_ADDR**, and **CONFIG_EXTRA_ENV_SETTINGS**
+* *conf/nuclei_ux600.dts*, *conf/nuclei_ux600fd.dts* and *openocd_hbird.cfg*: Change these files to match your SoC design.
+* *conf/uboot.cmd*: Change to match your memory map.
+* *Makefile*: Change *$(uboot_mkimage)* command line run for *$(boot_uimage_lz4)* target
+
 ## Notice
 
 This repo is based on opensource repo https://github.com/sifive/freedom-u-sdk/tree/archive/buildroot
