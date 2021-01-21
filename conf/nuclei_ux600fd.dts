@@ -42,6 +42,11 @@
     ranges;
   };
 
+  /* Used for Uboot SBI Console */
+  console {
+    compatible = "sbi,console";
+  };
+
   hfclk: hfclk {
     #clock-cells = <0>;
     compatible = "fixed-clock";

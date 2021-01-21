@@ -102,6 +102,7 @@ help:
 	@echo "- freeloader : generate freeloader(first stage loader) run in norflash"
 	@echo "- freeloader4m : generate freeloader(first stage loader) 4MB version run in norflash"
 	@echo "- upload_freeloader : upload freeloader into development board using openocd and gdb"
+	@echo "- debug_freeloader : connect to board, and debug it using openocd and gdb"
 	@echo "- uboot : build uboot and generate uboot binary"
 	@echo "- sim : run opensbi + linux payload in simulation using xl_spike"
 	@echo "- clean : clean this full workspace"
@@ -274,7 +275,7 @@ $(uboot_dtb): $(uboot_bin)
 $(uboot_mkimage) $(uboot_bin): $(uboot_srcdir) $(uboot_wrkdir)/.config
 	make -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) all
 
-.PHONY: freeloader prepare4m freeloader4m
+.PHONY: freeloader prepare4m freeloader4m upload_freeloader debug_freeloader
 
 prepare4m: buildroot_initramfs_sysroot
 	find $(buildroot_initramfs_wrkdir)/build/ -type f -wholename "*busybox*/.config" | xargs sed -i '/CONFIG_STATIC/cCONFIG_STATIC=y'
@@ -299,10 +300,12 @@ freeloader: $(freeloader_elf)
 	@echo "freeloader is generated in $(freeloader_elf)"
 	@echo "You can download this elf into development board using make upload_freeloader"
 	@echo "or using openocd and gdb to achieve it"
+	@echo "If you want to use gdb and openocd to debug it"
+	@echo "You can run make debug_freeloader to connect to the running target cpu"
 
-$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(boot_zip)
+$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(boot_zip) $(platform_dtb)
 	make -C $(freeloader_srcdir) ARCH=$(ISA) ABI=$(ABI) CROSS_COMPILE=$(CROSS_COMPILE) \
-		FW_JUMP_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(uboot_dtb)
+		FW_JUMP_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(platform_dtb)
 
 upload_freeloader: $(freeloader_elf)
 	$(target_gdb) $< -ex "set remotetimeout 240" \
@@ -310,6 +313,13 @@ upload_freeloader: $(freeloader_elf)
 	--batch -ex "monitor reset halt" -ex "monitor halt" \
 	-ex "monitor flash protect 0 0 last off" -ex "load" \
 	-ex "monitor resume" -ex "quit"
+
+debug_freeloader: $(freeloader_elf)
+	$(target_gdb) $< -ex "set remotetimeout 240" \
+	-ex "target remote | $(openocd) --pipe -f $(platform_openocd_cfg)" \
+	-ex "set confirm off" -ex "add-symbol-file $(vmlinux)" \
+	-ex "add-symbol-file $(opensbi_jumpelf)" \
+	-ex "add-symbol-file $(uboot_elf)" -ex "set confirm on"
 
 .PHONY: penglai cleanpenglai
 
