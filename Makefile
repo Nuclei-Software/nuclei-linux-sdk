@@ -1,4 +1,4 @@
-CORE ?= ux600fd
+CORE ?= ux600
 
 ifeq ($(CORE),ux600fd)
 ISA ?= rv64gc
