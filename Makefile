@@ -57,6 +57,7 @@ freeloader_elf := $(freeloader_wrkdir)/freeloader.elf
 
 uboot_srcdir := $(srcdir)/u-boot
 uboot_wrkdir := $(wrkdir)/u-boot
+uboot_config := $(confdir)/uboot_$(CORE)_config
 uboot_bin := $(uboot_wrkdir)/u-boot.bin
 uboot_dtb := $(uboot_wrkdir)/u-boot.dtb
 uboot_mkimage := $(uboot_wrkdir)/tools/mkimage
@@ -77,6 +78,14 @@ xlspike := xl_spike
 
 # openocd is prebuilt and installed to PATH
 openocd := openocd
+
+# You can change GDBREMOTE to other gdb remotes
+## eg. if you have started openocd server with (bindto 0.0.0.0 defined in openocd.cfg)
+## make sure your machine can connect to remote machine
+## in remote machine(ipaddr 192.168.43.199) which connect the hardware board,
+## then you can change the GDBREMOTE to 192.168.43.199:3333
+## GDBREMOTE ?= 192.168.43.199:3333
+GDBREMOTE ?= | $(openocd) --pipe -f $(platform_openocd_cfg)
 
 target_gcc := $(CROSS_COMPILE)gcc
 target_gdb := $(CROSS_COMPILE)gdb
@@ -142,11 +151,6 @@ $(linux_wrkdir)/.config: $(linux_defconfig) $(linux_srcdir) $(target_gcc)
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) ARCH=riscv olddefconfig
 ifeq (,$(filter rv%c,$(ISA)))
 	sed 's/^.*CONFIG_RISCV_ISA_C.*$$/CONFIG_RISCV_ISA_C=n/' -i $@
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) ARCH=riscv olddefconfig
-endif
-ifeq ($(ISA),$(filter rv32%,$(ISA)))
-	sed 's/^.*CONFIG_ARCH_RV32I.*$$/CONFIG_ARCH_RV32I=y/' -i $@
-	sed 's/^.*CONFIG_ARCH_RV64I.*$$/CONFIG_ARCH_RV64I=n/' -i $@
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) ARCH=riscv olddefconfig
 endif
 
@@ -246,19 +250,25 @@ $(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_l
 	rm -f $(boot_zip)
 	cd $(boot_wrkdir) && zip -q -r $(boot_zip) .
 
-.PHONY: uboot
+.PHONY: uboot uboot-menuconfig
 uboot: $(uboot_bin)
 	@echo "Uboot binary is generated into $<"
 
+uboot-menuconfig: $(uboot_wrkdir)/.config $(uboot_srcdir)
+	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) menuconfig
+	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) savedefconfig
+	cp $(dir $<)/defconfig $(uboot_config)
+
 $(uboot_wrkdir)/.config: $(uboot_srcdir) $(target_gcc)
 	mkdir -p $(uboot_wrkdir)
-	make -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) nuclei_hbird_defconfig
+	cp $(uboot_config) $@
+	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) olddefconfig
 
 $(uboot_dtb): $(uboot_bin)
 $(uboot_mkimage) $(uboot_bin): $(uboot_srcdir) $(uboot_wrkdir)/.config
-	make -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) all
+	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) all
 
-.PHONY: freeloader upload_freeloader debug_freeloader
+.PHONY: freeloader upload_freeloader debug_freeloader run_openocd
 
 freeloader: $(freeloader_elf)
 	@echo "freeloader is generated in $(freeloader_elf)"
@@ -268,22 +278,27 @@ freeloader: $(freeloader_elf)
 	@echo "You can run make debug_freeloader to connect to the running target cpu"
 
 $(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb)
-	make -C $(freeloader_srcdir) ARCH=$(ISA) ABI=$(ABI) CROSS_COMPILE=$(CROSS_COMPILE) \
+	$(MAKE) -C $(freeloader_srcdir) ARCH=$(ISA) ABI=$(ABI) CROSS_COMPILE=$(CROSS_COMPILE) \
 		FW_JUMP_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(platform_dtb)
 
 upload_freeloader: $(freeloader_elf)
 	$(target_gdb) $< -ex "set remotetimeout 240" \
-	-ex "target remote | $(openocd) --pipe -f $(platform_openocd_cfg)" \
+	-ex "target remote $(GDBREMOTE)" \
 	--batch -ex "monitor reset halt" -ex "monitor halt" \
 	-ex "monitor flash protect 0 0 last off" -ex "load" \
 	-ex "monitor resume" -ex "quit"
 
 debug_freeloader: $(freeloader_elf)
 	$(target_gdb) $< -ex "set remotetimeout 240" \
-	-ex "target remote | $(openocd) --pipe -f $(platform_openocd_cfg)" \
+	-ex "target remote $(GDBREMOTE)" \
 	-ex "set confirm off" -ex "add-symbol-file $(vmlinux)" \
 	-ex "add-symbol-file $(opensbi_jumpelf)" \
 	-ex "add-symbol-file $(uboot_elf)" -ex "set confirm on"
+
+run_openocd:
+	@echo "Start openocd server"
+	$(openocd) -f $(platform_openocd_cfg)
+
 
 .PHONY: clean cleanboot cleanlinux cleanbuildroot cleansysroot cleanfreeloader cleanopensbi prepare presim preboot
 clean: cleanfreeloader
@@ -305,7 +320,7 @@ cleanuboot:
 	rm -rf $(uboot_wrkdir)
 
 cleanfreeloader:
-	make -C $(freeloader_srcdir) clean
+	$(MAKE) -C $(freeloader_srcdir) clean
 
 cleanopensbi:
 	rm -rf $(opensbi_wrkdir)
