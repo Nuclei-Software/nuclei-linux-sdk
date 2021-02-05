@@ -1,4 +1,4 @@
-CORE ?= ux600
+CORE ?= ux600fd
 
 ifeq ($(CORE),ux600fd)
 ISA ?= rv64gc
@@ -99,6 +99,7 @@ help:
 	@echo "- buildroot_initramfs-menuconfig : run menuconfig for buildroot, configuration will be saved into conf/"
 	@echo "- buildroot_initramfs_sysroot : generate rootfs directory using buildroot"
 	@echo "- linux-menuconfig : run menuconfig for linux kernel, configuration will be saved into conf/"
+	@echo "- uboot-menuconfig : run menuconfig for uboot, configuration will be saved into conf/"
 	@echo "- initrd : generate initramfs cpio file"
 	@echo "- bootimages : generate boot images for SDCard"
 	@echo "- freeloader : generate freeloader(first stage loader) run in norflash"
@@ -148,11 +149,7 @@ $(buildroot_initramfs_sysroot_stamp): $(buildroot_initramfs_tar)
 $(linux_wrkdir)/.config: $(linux_defconfig) $(linux_srcdir) $(target_gcc)
 	mkdir -p $(dir $@)
 	cp -p $< $@
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) ARCH=riscv olddefconfig
-ifeq (,$(filter rv%c,$(ISA)))
-	sed 's/^.*CONFIG_RISCV_ISA_C.*$$/CONFIG_RISCV_ISA_C=n/' -i $@
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) ARCH=riscv olddefconfig
-endif
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) ARCH=riscv CROSS_COMPILE=$(CROSS_COMPILE) olddefconfig
 
 $(vmlinux): $(linux_srcdir) $(linux_wrkdir)/.config
 	$(MAKE) -C $< O=$(linux_wrkdir) \
@@ -192,8 +189,8 @@ $(vmlinux_bin): $(vmlinux)
 
 .PHONY: linux-menuconfig
 linux-menuconfig: $(linux_wrkdir)/.config
-	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv menuconfig
-	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv savedefconfig
+	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv CROSS_COMPILE=$(CROSS_COMPILE) menuconfig
+	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv CROSS_COMPILE=$(CROSS_COMPILE) savedefconfig
 	cp $(dir $<)/defconfig $(linux_defconfig)
 
 $(platform_dtb) : $(platform_dts)
