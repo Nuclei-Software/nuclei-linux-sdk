@@ -1,4 +1,13 @@
-CORE ?= ux600fd
+## Makefile Variable CORE
+## CORE Supported:
+## ux600: rv64imac, lp64
+## ux600fd: rv64imafdc, lp64d
+CORE ?= ux600
+## Makefile Variable BOOT_MODE
+## BOOT_MODE Supported:
+## sd: boot from flash + sdcard, extra SDCard is required(kernel, rootfs, dtb placed in it)
+## flash: boot from flash only, flash will contain images placed in sdcard of sd boot mode
+BOOT_MODE ?= sd
 
 ifeq ($(CORE),ux600fd)
 ISA ?= rv64gc
@@ -79,6 +88,7 @@ xlspike := xl_spike
 # openocd is prebuilt and installed to PATH
 openocd := openocd
 
+## Makefile Variable GDBREMOTE
 # You can change GDBREMOTE to other gdb remotes
 ## eg. if you have started openocd server with (bindto 0.0.0.0 defined in openocd.cfg)
 ## make sure your machine can connect to remote machine
@@ -274,9 +284,14 @@ freeloader: $(freeloader_elf)
 	@echo "If you want to use gdb and openocd to debug it"
 	@echo "You can run make debug_freeloader to connect to the running target cpu"
 
+ifeq ($(BOOT_MODE),sd)
 $(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb)
-	$(MAKE) -C $(freeloader_srcdir) ARCH=$(ISA) ABI=$(ABI) CROSS_COMPILE=$(CROSS_COMPILE) \
-		FW_JUMP_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(platform_dtb)
+else
+$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb) $(boot_zip)
+endif
+	$(MAKE) -C $(freeloader_srcdir) ARCH=$(ISA) ABI=$(ABI) BOOT_MODE=$(BOOT_MODE) CROSS_COMPILE=$(CROSS_COMPILE) \
+		FW_JUMP_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(platform_dtb) \
+		KERNEL_BIN=$(boot_uimage_lz4) INITRD_BIN=$(boot_uinitrd_lz4)
 
 upload_freeloader: $(freeloader_elf)
 	$(target_gdb) $< -ex "set remotetimeout 240" \
