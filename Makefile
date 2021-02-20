@@ -286,6 +286,28 @@ freeloader: $(freeloader_elf)
 	@echo "If you want to use gdb and openocd to debug it"
 	@echo "You can run make debug_freeloader to connect to the running target cpu"
 
+ifeq ($(BOOT_MODE),flash)
+.PHONY: prepare4m freeloader4m
+prepare4m: buildroot_initramfs_sysroot
+	find $(buildroot_initramfs_wrkdir)/build/ -type f -wholename "*busybox*/.config" | xargs sed -i '/CONFIG_STATIC/cCONFIG_STATIC=y'
+	rm -rf $(buildroot_initramfs_wrkdir)/images/*
+	rm -rf $(buildroot_initramfs_sysroot) $(buildroot_initramfs_sysroot_stamp)
+	$(MAKE) -C $(buildroot_srcdir) O=$(buildroot_initramfs_wrkdir) busybox-rebuild
+	$(MAKE) CORE=$(CORE) buildroot_initramfs_sysroot
+	sed -i '/sbin\/getty/cconsole::respawn:/bin/sh' $(buildroot_initramfs_sysroot)/etc/inittab
+	#sed -i '/init\.d/d' $(buildroot_initramfs_sysroot)/etc/inittab
+	rm -rf $(buildroot_initramfs_sysroot)/lib/*
+	$(MAKE) CORE=$(CORE) cleanboot bootimages
+
+freeloader4m: prepare4m $(freeloader_elf)
+	@echo "freeloader is generated in $(freeloader_elf)"
+	@echo "You can download this elf into development board using make upload_freeloader"
+	@echo "or using openocd and gdb to achieve it"
+	@echo "File size of freeloader is as below:"
+	size $(freeloader_elf)
+	ls -lh $(freeloader_elf)
+endif
+
 ifeq ($(BOOT_MODE),sd)
 $(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb)
 else
