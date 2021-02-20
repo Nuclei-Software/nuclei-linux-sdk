@@ -11,7 +11,6 @@ stages:
     - build_ux600fd
     - run_ux600
     - run_ux600fd
-    - deploy
 
 cache:
     paths:
@@ -29,7 +28,7 @@ cache:
           - linux
           - u-boot
     artifacts:
-        name: "bootimages-${CI_COMMIT_SHA::8}"
+        name: "bootimages-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
         paths:
             - work/boot.zip
             - work/opensbi/platform/nuclei/ux600/firmware/*.elf
@@ -39,7 +38,7 @@ cache:
     tags:
         - software-server
     script:
-        - echo ">>Show help message for $CORE"
+        - echo ">>Show help message for $CORE - $BOOT_MODE"
         - make help
         - echo ">>Build buildroot_initramfs_sysroot for $CORE"
         - |
@@ -50,21 +49,21 @@ cache:
                 exit 1
             }
         - xz -f -z build_sysroot.log
-        - echo ">>Build freeloader for $CORE"
+        - echo ">>Build freeloader for $CORE - $BOOT_MODE"
         - |
             make freeloader > >(tee build_freeloader.log) || {
                 xz -f -z build_freeloader.log
                 exit 1
             }
         - xz -f -z build_freeloader.log
-        - echo ">>Build and generate boot images for $CORE"
+        - echo ">>Build and generate boot images for $CORE - $BOOT_MODE"
         - |
             make preboot && make -j bootimages > >(tee build_bootimages.log) || {
                 xz -f -z build_bootimages.log
                 exit 1
             }
         - xz -f -z build_bootimages.log
-        - echo ">>Build simulation target for $CORE"
+        - echo ">>Build simulation target for $CORE - $BOOT_MODE"
         - |
             make presim && make -j opensbi_sim > >(tee build_opensbi_payload.log) || {
                 xz -f -z build_opensbi_payload.log
@@ -86,7 +85,7 @@ cache:
     tags:
         - software-server
     script:
-        - echo ">>Run using xlspike for $CORE"
+        - echo ">>Run using xlspike for $CORE - $BOOT_MODE"
         - |
             timeout --foreground -s SIGKILL 8m xl_spike work/opensbi/platform/nuclei/ux600/firmware/fw_payload.elf > >(tee run_xlspike.log) || {
                 if cat run_xlspike.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi; 
@@ -94,41 +93,87 @@ cache:
             }
 
 ## Job for build sdk
-# Build For UX600 Core, without FPU
-build_ux600:
+# Build For UX600 Core, without FPU, flash boot mode
+build_ux600_flash:
     stage: build_ux600
     variables:
         CORE: "ux600"
+        BOOT_MODE: "flash"
+    <<: *build_linux_sdk_job_def
+
+## Job for build sdk
+# Build For UX600 Core, without FPU, sd boot mode
+build_ux600_sd:
+    stage: build_ux600
+    variables:
+        CORE: "ux600"
+        BOOT_MODE: "sd"
     <<: *build_linux_sdk_job_def
 
 
 ## Job for run sim
-# Run For UX600 Core, without FPU
-run_ux600:
+# Run For UX600 Core, without FPU, flash boot mode
+run_ux600_flash:
     stage: run_ux600
     dependencies:
-        - build_ux600
+        - build_ux600_flash
     variables:
         CORE: "ux600"
+        BOOT_MODE: "flash"
+    <<: *run_linux_sdk_job_def
+
+## Job for run sim
+# Run For UX600 Core, without FPU, sd boot mode
+run_ux600_sd:
+    stage: run_ux600
+    dependencies:
+        - build_ux600_sd
+    variables:
+        CORE: "ux600"
+        BOOT_MODE: "sd"
     <<: *run_linux_sdk_job_def
 
 
 ## Job for build sdk
-# Build For UX600FD Core, with FPU
-build_ux600fd:
+# Build For UX600FD Core, with FPU, flash boot mode
+build_ux600fd_flash:
     stage: build_ux600fd
     variables:
         CORE: "ux600fd"
+        BOOT_MODE: "flash"
+    <<: *build_linux_sdk_job_def
+
+## Job for build sdk
+# Build For UX600FD Core, with FPU, sd boot mode
+build_ux600fd_sd:
+    stage: build_ux600fd
+    variables:
+        CORE: "ux600fd"
+        BOOT_MODE: "sd"
     <<: *build_linux_sdk_job_def
 
 ## Job for run sim
-# Run For UX600FD Core, with FPU
+# Run For UX600FD Core, with FPU, flash boot mode
 # This ux600fd init process will fail
-run_ux600fd:
+run_ux600fd_flash:
     stage: run_ux600fd
     allow_failure: true
     dependencies:
-        - build_ux600fd
+        - build_ux600fd_flash
     variables:
         CORE: "ux600fd"
+        BOOT_MODE: "flash"
+    <<: *run_linux_sdk_job_def
+
+## Job for run sim
+# Run For UX600FD Core, with FPU, sd boot mode
+# This ux600fd init process will fail
+run_ux600fd_sd:
+    stage: run_ux600fd
+    allow_failure: true
+    dependencies:
+        - build_ux600fd_sd
+    variables:
+        CORE: "ux600fd"
+        BOOT_MODE: "sd"
     <<: *run_linux_sdk_job_def
