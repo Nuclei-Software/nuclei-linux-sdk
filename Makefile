@@ -2,12 +2,12 @@
 ## CORE Supported:
 ## ux600: rv64imac, lp64
 ## ux600fd: rv64imafdc, lp64d
-CORE ?= ux600
+CORE ?= ux600fd
 ## Makefile Variable BOOT_MODE
 ## BOOT_MODE Supported:
 ## sd: boot from flash + sdcard, extra SDCard is required(kernel, rootfs, dtb placed in it)
 ## flash: boot from flash only, flash will contain images placed in sdcard of sd boot mode
-BOOT_MODE ?= sd
+BOOT_MODE ?= flash
 
 ifeq ($(CORE),ux600fd)
 ISA ?= rv64gc
@@ -59,6 +59,7 @@ opensbi_srcdir := $(srcdir)/opensbi
 opensbi_wrkdir := $(wrkdir)/opensbi
 opensbi_payload := $(opensbi_wrkdir)/platform/nuclei/ux600/firmware/fw_payload.elf
 opensbi_jumpbin := $(opensbi_wrkdir)/platform/nuclei/ux600/firmware/fw_jump.bin
+opensbi_jumpelf := $(opensbi_wrkdir)/platform/nuclei/ux600/firmware/fw_jump.elf
 
 freeloader_srcdir := $(srcdir)/freeloader
 freeloader_wrkdir := $(srcdir)/freeloader
@@ -66,9 +67,10 @@ freeloader_elf := $(freeloader_wrkdir)/freeloader.elf
 
 uboot_srcdir := $(srcdir)/u-boot
 uboot_wrkdir := $(wrkdir)/u-boot
-uboot_config := $(confdir)/uboot_$(CORE)_config
+uboot_config := $(confdir)/uboot_$(CORE)_$(BOOT_MODE)_config
 uboot_bin := $(uboot_wrkdir)/u-boot.bin
 uboot_dtb := $(uboot_wrkdir)/u-boot.dtb
+uboot_elf := $(uboot_wrkdir)/u-boot
 uboot_mkimage := $(uboot_wrkdir)/tools/mkimage
 
 uboot_cmd := $(confdir)/uboot.cmd
@@ -242,12 +244,12 @@ $(boot_ubootscr): $(uboot_cmd) $(uboot_mkimage)
 	$(uboot_mkimage) -A riscv -T script -O linux -C none -a 0 -e 0 -n "bootscript" -d $(uboot_cmd) $@
 
 $(boot_uimage_lz4): $(linux_image)
-	lz4 $< $(boot_image) -f -2
-	$(uboot_mkimage) -A riscv -O linux -T kernel -C lz4 -a 0xa0200000 -e 0xa0200000 -n Linux -d $(boot_image) $@
+	lz4 $< $(boot_image) -f -9
+	$(uboot_mkimage) -A riscv -O linux -T kernel -C lz4 -a 0xa0400000 -e 0xa0400000 -n Linux -d $(boot_image) $@
 	rm -f $(boot_image)
 
 $(boot_uinitrd_lz4): $(initramfs)
-	lz4 $(initramfs) $(initramfs).lz4 -f -2 -l
+	lz4 $(initramfs) $(initramfs).lz4 -f -9 -l
 	$(uboot_mkimage) -A riscv -T ramdisk -C lz4 -n Initrd -d $(initramfs).lz4 $(boot_uinitrd_lz4)
 
 $(boot_kernel_dtb): $(platform_dts)
