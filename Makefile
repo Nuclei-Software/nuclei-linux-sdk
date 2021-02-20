@@ -2,12 +2,12 @@
 ## CORE Supported:
 ## ux600: rv64imac, lp64
 ## ux600fd: rv64imafdc, lp64d
-CORE ?= ux600fd
+CORE ?= ux600
 ## Makefile Variable BOOT_MODE
 ## BOOT_MODE Supported:
 ## sd: boot from flash + sdcard, extra SDCard is required(kernel, rootfs, dtb placed in it)
 ## flash: boot from flash only, flash will contain images placed in sdcard of sd boot mode
-BOOT_MODE ?= flash
+BOOT_MODE ?= sd
 
 ifeq ($(CORE),ux600fd)
 ISA ?= rv64gc
