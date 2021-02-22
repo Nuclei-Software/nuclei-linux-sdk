@@ -24,6 +24,7 @@ jobs:
     strategy:
       matrix:
         core: [ux600, ux600fd]
+        boot_mode: [sd, flash]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -64,17 +65,17 @@ jobs:
       # Build Freeloader
       - name: Build freeloader for ${{ matrix.core }} 
         run: |
-          make CORE=${{ matrix.core }} freeloader
+          make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} freeloader
 
       # Build bootimages
       - name: Build bootimages for ${{ matrix.core }} 
         run: |
-          make CORE=${{ matrix.core }} bootimages
+          make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} bootimages
       
       - name: Upload bootimages
         uses: actions/upload-artifact@v2.2.0
         with:
-          name: bootimages_${{ matrix.core }}
+          name: bootimages_${{ matrix.core }}_${{ matrix.boot_mode }}
           path: |
             work/boot.zip
             freeloader/freeloader.elf
