@@ -21,7 +21,7 @@
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
       mmu-type = "riscv,sv39";
-      clock-frequency = <8000000>;
+      clock-frequency = <16000000>;
       cpu0_intc: interrupt-controller {
         #interrupt-cells = <1>;
         interrupt-controller;
@@ -50,7 +50,7 @@
   hfclk: hfclk {
     #clock-cells = <0>;
     compatible = "fixed-clock";
-    clock-frequency = <8000000>;
+    clock-frequency = <16000000>;
     clock-output-names = "hfclk";
   };
   
