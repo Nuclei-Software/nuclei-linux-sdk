@@ -220,7 +220,7 @@ $(opensbi_payload): $(opensbi_srcdir) $(vmlinux_bin) $(platform_sim_dtb)
 	mkdir -p $(opensbi_wrkdir)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
 		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) \
-		PLATFORM=nuclei/generic FW_PAYLOAD_PATH=$(vmlinux_bin) FW_PAYLOAD_FDT_PATH=$(platform_sim_dtb)
+		PLATFORM=nuclei/generic FW_PAYLOAD_PATH=$(vmlinux_bin) FW_FDT_PATH=$(platform_sim_dtb)
 
 $(buildroot_initramfs_sysroot): $(buildroot_initramfs_sysroot_stamp)
 
