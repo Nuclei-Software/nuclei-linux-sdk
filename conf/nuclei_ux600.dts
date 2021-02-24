@@ -83,7 +83,7 @@
   };
 
   qspi0: spi@10014000 {
-    compatible = "sifive,spi0";
+    compatible = "nuclei,spi0";
     reg = <0x0 0x10014000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
     interrupts = <34>;
@@ -97,14 +97,14 @@
       compatible = "gd25q32", "jedec,spi-nor";
       reg = <0>;
       spi-max-frequency = <1000000>;
-  //    m25p,fast-read;
+      // m25p,fast-read;
       #spi-tx-bus-width = <1>;
       #spi-rx-bus-width = <1>;
     };
   };
 
   qspi2: spi@10034000 {
-    compatible = "sifive,spi0";
+    compatible = "nuclei,spi0";
     reg = <0x0 0x10034000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
     interrupts = <36>;
