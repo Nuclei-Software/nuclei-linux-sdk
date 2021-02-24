@@ -57,9 +57,9 @@ initramfs := $(wrkdir)/initramfs.cpio.gz
 
 opensbi_srcdir := $(srcdir)/opensbi
 opensbi_wrkdir := $(wrkdir)/opensbi
-opensbi_payload := $(opensbi_wrkdir)/platform/nuclei/ux600/firmware/fw_payload.elf
-opensbi_jumpbin := $(opensbi_wrkdir)/platform/nuclei/ux600/firmware/fw_jump.bin
-opensbi_jumpelf := $(opensbi_wrkdir)/platform/nuclei/ux600/firmware/fw_jump.elf
+opensbi_payload := $(opensbi_wrkdir)/platform/nuclei/generic/firmware/fw_payload.elf
+opensbi_jumpbin := $(opensbi_wrkdir)/platform/nuclei/generic/firmware/fw_jump.bin
+opensbi_jumpelf := $(opensbi_wrkdir)/platform/nuclei/generic/firmware/fw_jump.elf
 
 freeloader_srcdir := $(srcdir)/freeloader
 freeloader_wrkdir := $(srcdir)/freeloader
@@ -69,7 +69,6 @@ uboot_srcdir := $(srcdir)/u-boot
 uboot_wrkdir := $(wrkdir)/u-boot
 uboot_config := $(confdir)/uboot_$(CORE)_$(BOOT_MODE)_config
 uboot_bin := $(uboot_wrkdir)/u-boot.bin
-uboot_dtb := $(uboot_wrkdir)/u-boot.dtb
 uboot_elf := $(uboot_wrkdir)/u-boot
 uboot_mkimage := $(uboot_wrkdir)/tools/mkimage
 
@@ -214,15 +213,14 @@ $(platform_sim_dtb) : $(platform_sim_dts)
 $(opensbi_jumpbin):
 	rm -rf $(opensbi_wrkdir)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
-		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) \
-		PLATFORM=nuclei/ux600
+		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM=nuclei/generic
 
 $(opensbi_payload): $(opensbi_srcdir) $(vmlinux_bin) $(platform_sim_dtb)
 	rm -rf $(opensbi_wrkdir)
 	mkdir -p $(opensbi_wrkdir)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
 		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) \
-		PLATFORM=nuclei/ux600 FW_PAYLOAD_PATH=$(vmlinux_bin) FW_PAYLOAD_FDT_PATH=$(platform_sim_dtb)
+		PLATFORM=nuclei/generic FW_PAYLOAD_PATH=$(vmlinux_bin) FW_PAYLOAD_FDT_PATH=$(platform_sim_dtb)
 
 $(buildroot_initramfs_sysroot): $(buildroot_initramfs_sysroot_stamp)
 
@@ -273,7 +271,6 @@ $(uboot_wrkdir)/.config: $(uboot_srcdir) $(target_gcc)
 	cp $(uboot_config) $@
 	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) olddefconfig
 
-$(uboot_dtb): $(uboot_bin)
 $(uboot_mkimage) $(uboot_bin): $(uboot_srcdir) $(uboot_wrkdir)/.config
 	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) all
 
@@ -314,7 +311,7 @@ else
 $(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb) $(boot_zip)
 endif
 	$(MAKE) -C $(freeloader_srcdir) ARCH=$(ISA) ABI=$(ABI) BOOT_MODE=$(BOOT_MODE) CROSS_COMPILE=$(CROSS_COMPILE) \
-		FW_JUMP_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(platform_dtb) \
+		OPENSBI_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(platform_dtb) \
 		KERNEL_BIN=$(boot_uimage_lz4) INITRD_BIN=$(boot_uinitrd_lz4)
 
 upload_freeloader: $(freeloader_elf)
@@ -330,6 +327,20 @@ debug_freeloader: $(freeloader_elf)
 	-ex "set confirm off" -ex "add-symbol-file $(vmlinux)" \
 	-ex "add-symbol-file $(opensbi_jumpelf)" \
 	-ex "add-symbol-file $(uboot_elf)" -ex "set confirm on"
+
+upload_sbipayload: $(opensbi_payload)
+	$(target_gdb) $< -ex "set remotetimeout 240" \
+	-ex "target remote $(GDBREMOTE)" \
+	--batch -ex "monitor reset halt" -ex "monitor halt" \
+	-ex "monitor flash protect 0 0 last off" -ex "load" \
+	-ex "monitor resume" -ex "quit"
+
+debug_sbipayload: $(opensbi_payload)
+	$(target_gdb) $< -ex "set remotetimeout 240" \
+	-ex "target remote $(GDBREMOTE)" \
+	-ex "set confirm off" -ex "add-symbol-file $(vmlinux)" \
+	-ex "add-symbol-file $(opensbi_payload)" \
+	-ex "set confirm on"
 
 run_openocd:
 	@echo "Start openocd server"
