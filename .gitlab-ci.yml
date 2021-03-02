@@ -36,7 +36,8 @@ cache:
             - build_*.log.*
         expire_in: 2 day
     tags:
-        - software-server
+        - env::native
+        - host::xls01
     script:
         - echo ">>Show help message for $CORE - $BOOT_MODE"
         - make help
@@ -83,7 +84,8 @@ cache:
           - linux
           - u-boot
     tags:
-        - software-server
+        - env::native
+        - host::xls01
     script:
         - echo ">>Run using xlspike for $CORE - $BOOT_MODE"
         - |
