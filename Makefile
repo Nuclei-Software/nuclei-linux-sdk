@@ -172,7 +172,14 @@ $(vmlinux): $(linux_srcdir) $(linux_wrkdir)/.config
 		PATH=$(RVPATH) \
 		vmlinux
 
-$(linux_image): $(linux_srcdir) $(linux_wrkdir)/.config
+$(linux_image): linux
+	@echo "Linux image is generated $@"
+
+.PHONY: initrd linux
+initrd: $(initramfs)
+	@echo "initramfs cpio file is generated into $<"
+
+linux: $(linux_srcdir) $(linux_wrkdir)/.config
 	$(MAKE) -C $< O=$(linux_wrkdir) \
 		CONFIG_INITRAMFS_ROOT_UID=$(shell id -u) \
 		CONFIG_INITRAMFS_ROOT_GID=$(shell id -g) \
@@ -180,10 +187,6 @@ $(linux_image): $(linux_srcdir) $(linux_wrkdir)/.config
 		CROSS_COMPILE=$(CROSS_COMPILE) \
 		PATH=$(RVPATH) \
 		Image
-
-.PHONY: initrd
-initrd: $(initramfs)
-	@echo "initramfs cpio file is generated into $<"
 
 $(initramfs): $(buildroot_initramfs_sysroot) $(linux_image)
 	cd $(linux_wrkdir) && \
@@ -210,8 +213,11 @@ $(platform_dtb) : $(platform_dts)
 $(platform_sim_dtb) : $(platform_sim_dts)
 	dtc -O dtb -o $(platform_sim_dtb) $(platform_sim_dts)
 
-$(opensbi_jumpbin):
-	rm -rf $(opensbi_wrkdir)
+.PHONY: opensbi
+
+$(opensbi_jumpbin): opensbi
+
+opensbi: $(target_gcc)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
 		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM=nuclei/generic
 
@@ -219,8 +225,8 @@ $(opensbi_payload): $(opensbi_srcdir) $(vmlinux_bin) $(platform_sim_dtb)
 	rm -rf $(opensbi_wrkdir)
 	mkdir -p $(opensbi_wrkdir)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
-		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) \
-		PLATFORM=nuclei/generic FW_PAYLOAD_PATH=$(vmlinux_bin) FW_FDT_PATH=$(platform_sim_dtb)
+		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM=nuclei/generic \
+		FW_PAYLOAD_PATH=$(vmlinux_bin) FW_FDT_PATH=$(platform_sim_dtb)
 
 $(buildroot_initramfs_sysroot): $(buildroot_initramfs_sysroot_stamp)
 
@@ -233,7 +239,7 @@ bootimages: $(boot_zip)
 	@echo "SDCard boot images are generated into $(boot_zip) and $(boot_wrkdir)"
 	@echo "You can extract the $(boot_zip) to SDCard and insert the SDCard back to board"
 	@echo "If freeloader is already flashed to board's norflash, then you can reset power of the board"
-	@echo "Then you can open UART terminal with baudrate 57600, you will be able to see kernel boot message"
+	@echo "Then you can open UART terminal with baudrate 115200, you will be able to see kernel boot message"
 
 $(boot_wrkdir):
 	mkdir -p $@
@@ -258,8 +264,8 @@ $(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_l
 	cd $(boot_wrkdir) && zip -q -r $(boot_zip) .
 
 .PHONY: uboot uboot-menuconfig
-uboot: $(uboot_bin)
-	@echo "Uboot binary is generated into $<"
+uboot: $(uboot_srcdir) $(uboot_wrkdir)/.config
+	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) all
 
 uboot-menuconfig: $(uboot_wrkdir)/.config $(uboot_srcdir)
 	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) menuconfig
@@ -271,8 +277,8 @@ $(uboot_wrkdir)/.config: $(uboot_srcdir) $(target_gcc)
 	cp $(uboot_config) $@
 	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) olddefconfig
 
-$(uboot_mkimage) $(uboot_bin): $(uboot_srcdir) $(uboot_wrkdir)/.config
-	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) all
+$(uboot_mkimage) $(uboot_bin): uboot
+	@echo "Uboot binary is generated into $<"
 
 .PHONY: freeloader upload_freeloader debug_freeloader run_openocd
 
@@ -386,4 +392,3 @@ opensbi_sim: $(opensbi_payload)
 
 sim: $(opensbi_payload)
 	$(xlspike) --isa=$(ISA) $(opensbi_payload)
-
