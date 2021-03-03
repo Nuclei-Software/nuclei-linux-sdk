@@ -116,6 +116,8 @@ help:
 	@echo "- freeloader : generate freeloader(first stage loader) run in norflash"
 	@echo "- upload_freeloader : upload freeloader into development board using openocd and gdb"
 	@echo "- debug_freeloader : connect to board, and debug it using openocd and gdb"
+	@echo "- linux : build linux image"
+	@echo "- opensbi : build opensbi jump binary"
 	@echo "- uboot : build uboot and generate uboot binary"
 	@echo "- sim : run opensbi + linux payload in simulation using xl_spike"
 	@echo "- clean : clean this full workspace"
