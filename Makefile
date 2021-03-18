@@ -21,8 +21,8 @@ $(error There is no coresponding ARCH_ABI setting for CORE $(CORE), please check
 endif
 
 # Set ISA and ABI
-ISA ?= $(word 1, $(CORE_ARCH_ABI))
-ABI ?= $(word 2, $(CORE_ARCH_ABI))
+ISA := $(word 1, $(CORE_ARCH_ABI))
+ABI := $(word 2, $(CORE_ARCH_ABI))
 
 srcdir := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 srcdir := $(srcdir:/=)
