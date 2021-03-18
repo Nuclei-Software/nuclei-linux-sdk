@@ -31,7 +31,7 @@ cache:
         name: "bootimages-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
         paths:
             - work/boot.zip
-            - work/opensbi/platform/nuclei/generic/firmware/*.elf
+            - work/opensbi/platform/nuclei/
             - freeloader/freeloader.elf
             - build_*.log.*
         expire_in: 2 day
@@ -89,7 +89,7 @@ cache:
     script:
         - echo ">>Run using xlspike for $CORE - $BOOT_MODE"
         - |
-            timeout --foreground -s SIGKILL 8m xl_spike work/opensbi/platform/nuclei/generic/firmware/fw_payload.elf > >(tee run_xlspike.log) || {
+            timeout --foreground -s SIGKILL 8m xl_spike work/opensbi/platform/nuclei/demosoc/firmware/fw_payload.elf > >(tee run_xlspike.log) || {
                 if cat run_xlspike.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi; 
                 if cat run_xlspike.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi; 
             }
