@@ -1,0 +1,10 @@
+# Format for adding a new core
+# XXX_CORE_ARCH_ABI = ARCH ABI
+UX600_CORE_ARCH_ABI = rv64imac lp64
+UX600FD_CORE_ARCH_ABI = rv64imafdc lp64d
+UX900_CORE_ARCH_ABI = rv64imac lp64
+UX900FD_CORE_ARCH_ABI = rv64imafdc lp64d
+
+# Don't forget to add a new core below
+# if you add a new XXX_CORE_ARCH_ABI above
+SUPPORTED_CORES = ux600 ux600fd ux900 ux900fd

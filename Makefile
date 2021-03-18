@@ -1,7 +1,7 @@
 ## Makefile Variable CORE
 ## CORE Supported:
-## ux600: rv64imac, lp64
-## ux600fd: rv64imafdc, lp64d
+## ux600/ux900: rv64imac, lp64
+## ux600fd/ux900fd: rv64imafdc, lp64d
 CORE ?= ux600
 ## Makefile Variable BOOT_MODE
 ## BOOT_MODE Supported:
@@ -9,13 +9,20 @@ CORE ?= ux600
 ## flash: boot from flash only, flash will contain images placed in sdcard of sd boot mode
 BOOT_MODE ?= sd
 
-ifeq ($(CORE),ux600fd)
-ISA ?= rv64gc
-ABI ?= lp64d
-else
-ISA ?= rv64imac
-ABI ?= lp64
+# Include Nuclei RISC-V Core Makefile
+include Makefile.core
+
+CORE_UPPER = $(shell echo $(CORE) | tr 'a-z' 'A-Z')
+check_item_exist = $(strip $(if $(filter 1, $(words $(1))),$(filter $(1), $(sort $(2))),))
+CORE_ARCH_ABI = $($(CORE_UPPER)_CORE_ARCH_ABI)
+ifneq ($(words $(CORE_ARCH_ABI)), 2)
+$(warning Here we only support these cores: $(SUPPORTED_CORES))
+$(error There is no coresponding ARCH_ABI setting for CORE $(CORE), please check Makefile.core)
 endif
+
+# Set ISA and ABI
+ISA ?= $(word 1, $(CORE_ARCH_ABI))
+ABI ?= $(word 2, $(CORE_ARCH_ABI))
 
 srcdir := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 srcdir := $(srcdir:/=)
@@ -28,16 +35,16 @@ buildroot_initramfs_wrkdir := $(wrkdir)/buildroot_initramfs
 RISCV ?= $(buildroot_initramfs_wrkdir)/host
 RVPATH := $(RISCV)/bin:$(PATH)
 
-platform_dts := $(confdir)/nuclei_$(CORE).dts
-platform_dtb := $(wrkdir)/nuclei_$(CORE).dtb
-platform_sim_dts := $(confdir)/nuclei_$(CORE)_sim.dts
-platform_sim_dtb := $(wrkdir)/nuclei_$(CORE)_sim.dtb
+platform_dts := $(confdir)/nuclei_$(ISA).dts
+platform_dtb := $(wrkdir)/nuclei_$(ISA).dtb
+platform_sim_dts := $(confdir)/nuclei_$(ISA)_sim.dts
+platform_sim_dtb := $(wrkdir)/nuclei_$(ISA)_sim.dtb
 
 platform_openocd_cfg := $(confdir)/openocd_hbird.cfg
 
 target := riscv-nuclei-linux-gnu
 CROSS_COMPILE := $(RISCV)/bin/$(target)-
-buildroot_initramfs_config := $(confdir)/buildroot_initramfs_$(CORE)_config
+buildroot_initramfs_config := $(confdir)/buildroot_initramfs_$(ISA)_config
 
 buildroot_initramfs_tar := $(buildroot_initramfs_wrkdir)/images/rootfs.tar
 buildroot_initramfs_sysroot_stamp := $(wrkdir)/.buildroot_initramfs_sysroot
@@ -45,7 +52,7 @@ buildroot_initramfs_sysroot := $(wrkdir)/buildroot_initramfs_sysroot
 
 linux_srcdir := $(srcdir)/linux
 linux_wrkdir := $(wrkdir)/linux
-linux_defconfig := $(confdir)/linux_$(CORE)_defconfig
+linux_defconfig := $(confdir)/linux_$(ISA)_defconfig
 linux_gen_initramfs=$(linux_srcdir)/usr/gen_initramfs.sh
 
 vmlinux := $(linux_wrkdir)/vmlinux
@@ -67,7 +74,7 @@ freeloader_elf := $(freeloader_wrkdir)/freeloader.elf
 
 uboot_srcdir := $(srcdir)/u-boot
 uboot_wrkdir := $(wrkdir)/u-boot
-uboot_config := $(confdir)/uboot_$(CORE)_$(BOOT_MODE)_config
+uboot_config := $(confdir)/uboot_$(ISA)_$(BOOT_MODE)_config
 uboot_bin := $(uboot_wrkdir)/u-boot.bin
 uboot_elf := $(uboot_wrkdir)/u-boot
 uboot_mkimage := $(uboot_wrkdir)/tools/mkimage
