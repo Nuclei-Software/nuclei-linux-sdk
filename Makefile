@@ -64,9 +64,9 @@ initramfs := $(wrkdir)/initramfs.cpio.gz
 
 opensbi_srcdir := $(srcdir)/opensbi
 opensbi_wrkdir := $(wrkdir)/opensbi
-opensbi_payload := $(opensbi_wrkdir)/platform/nuclei/generic/firmware/fw_payload.elf
-opensbi_jumpbin := $(opensbi_wrkdir)/platform/nuclei/generic/firmware/fw_jump.bin
-opensbi_jumpelf := $(opensbi_wrkdir)/platform/nuclei/generic/firmware/fw_jump.elf
+opensbi_payload := $(opensbi_wrkdir)/platform/nuclei/demosoc/firmware/fw_payload.elf
+opensbi_jumpbin := $(opensbi_wrkdir)/platform/nuclei/demosoc/firmware/fw_jump.bin
+opensbi_jumpelf := $(opensbi_wrkdir)/platform/nuclei/demosoc/firmware/fw_jump.elf
 
 freeloader_srcdir := $(srcdir)/freeloader
 freeloader_wrkdir := $(srcdir)/freeloader
@@ -228,13 +228,13 @@ $(opensbi_jumpbin): opensbi
 
 opensbi: $(target_gcc)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
-		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM=nuclei/generic
+		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM=nuclei/demosoc
 
 $(opensbi_payload): $(opensbi_srcdir) $(vmlinux_bin) $(platform_sim_dtb)
 	rm -rf $(opensbi_wrkdir)
 	mkdir -p $(opensbi_wrkdir)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
-		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM=nuclei/generic \
+		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM=nuclei/demosoc \
 		FW_PAYLOAD_PATH=$(vmlinux_bin) FW_FDT_PATH=$(platform_sim_dtb)
 
 $(buildroot_initramfs_sysroot): $(buildroot_initramfs_sysroot_stamp)
