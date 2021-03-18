@@ -2,19 +2,27 @@
 
 [![Build](https://github.com/Nuclei-Software/nuclei-linux-sdk/workflows/Build/badge.svg)](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions)
 
-This will download external prebuilt toolchain, and build linux kernel, device tree, ramdisk,
-and opensbi with linux kernel payload for Nuclei xl-spike which can emulate Nuclei UX600 SoC.
+> Normal development of Nuclei Linux SDK are switched to *dev_nuclei_next* branch, other branchs such as
+> *dev_nuclei* are not recommended.
 
-It can also build linux kernel, rootfs ramdisk, opensbi and freeloader for Nuclei UX600
-SoC FPGA bitstream running in Nuclei HummingBird FPGA Board.
+This will download external prebuilt toolchain, and build linux kernel, device tree, ramdisk,
+and opensbi with linux kernel payload for Nuclei xl-spike which can emulate Nuclei Demo SoC.
+
+It can also build linux kernel, rootfs ramdisk, opensbi and freeloader for Nuclei Demo SoC
+FPGA bitstream running in Nuclei HummingBird FPGA Board.
+
+Nuclei Demo SoC is mainly used for evaluation, which can be configured to use Nuclei RISC-V Core.
+
+If you want to run linux on Nuclei Demo SoC, you will need UX600 or UX900 RISC-V Core present in it.
 
 > The rootfs used in this SDK is initramfs format.
 
-> * If you want to boot evaluate TEE feature, please checkout this branch:
+> * If you want to boot evaluate TEE feature, please checkout these branches:
 >   - *dev_nuclei_keystone*: Keystone TEE porting for Nuclei RISC-V Core
 >   - *dev_flash_penglai_spmp*: Penglai TEE porting for Nuclei RISC-V Core, sPMP required
+>   - *dev_flash_spmp*: not TEE feature, just used to boot Nuclei RISC-V Core, sPMP required
 >
-> You can switch to selected branch, eg. `dev_nuclei_keystone` branch via command below:
+> eg. You can switch to selected branch, eg. `dev_nuclei_keystone` branch via command below:
 >   ~~~
 >   # Please make sure your workspace is clean
 >   git status
@@ -81,8 +89,8 @@ which openocd
   and get expected output as below:
 
   ~~~
-  On branch dev_nuclei
-  Your branch is up to date with 'origin/dev_nuclei'.
+  On branch dev_nuclei_next
+  Your branch is up to date with 'origin/dev_nuclei_next'.
 
   nothing to commit, working tree clean
   ~~~
@@ -100,44 +108,63 @@ source repository).
 
 Update source code if there are new commits in this repo.
 
-Assume currently you are in `dev_nuclei` branch, and the working tree is clean.
+Assume currently you are in `dev_nuclei_next` branch, and the working tree is clean.
 
 Then you run the following command to update this repo:
 
 ~~~shell
 # Pull lastest source code and rebase your local commits onto it
-git pull --rebase origin dev_nuclei
+git pull --rebase origin dev_nuclei_next
 # Update git submodules
 git submodule update
 # Check workspace status to see whether it is clean
 git status
 ~~~
 
+## Show Help
+
+You can run `make help` to show help message about how to use this Nuclei Linux SDK.
+
+But if you want to change and adapt for your SoC, you need to understand the build system in Makefile.
+
+## Nuclei Linux SDK Integration
+
+Here are the version numbers of sub projects used in Nuclei Linux SDK.
+
+* Linux 5.10
+* Uboot v2021.01
+* OpenSBI v0.9
+* Buildroot 2020.11.2
+
+Our changes to support Nuclei Demo SoC are adapted based on above version.
+
 ## Modify Build Configuration
 
 You can choose different core configuration by modify the `CORE ?= ux600` line in `Makefile`.
 
-We support two configurations for **CORE**:
+We support four configurations for **CORE**, choose the right core according to your configuration:
 
-* `ux600`: rv64imac core configuration without FPU.
-* `ux600fd`: rv64imafdc core configuration with FPU.
+* `ux600` or `ux900`: rv64imac RISC-V CORE configuration without FPU.
+* `ux600fd` or `ux900fd`: rv64imafdc RISC-V CORE configuration with FPU.
 
 You can choose different boot mode by modify the `BOOT_MODE ?= sd` line in `Makefile`.
 
 * `sd`: boot from flash + sdcard, extra SDCard is required(kernel, rootfs, dtb placed in it)
-* `flash`: boot from flash only, flash will contain images placed in sdcard of sd boot mode, at least 8M flash is required.
+* `flash`: boot from flash only, flash will contain images placed in sdcard of sd boot mode, at least 8M flash is required, current onboard mcu-flash of DDR200T is only 4M, so this feature is not ready for it.
 
 Please modify the `Makefile` to your correct core configuration before build any source code.
 
-* If you want to compile and run using simulator *xl-spike*, please
-  check steps mentioned in **Booting Linux on Nuclei xl-spike**
+* **Deprecated**: If you want to compile and run using simulator *xl-spike*, please
+  check steps mentioned in [Booting Linux on Nuclei xl-spike](#Booting-Linux-on-Nuclei-xl-spike)
 * If you want to compile and run using FPGA evaluation board, please
-  check steps mentioned in **Booting Linux on Nuclei HummingBird Board**
+  check steps mentioned in [Booting Linux on Nuclei HummingBird Board](#Booting-Linux-on-Nuclei-HummingBird-Board)
 
 ## Booting Linux on Nuclei xl-spike
 
 **Note**: `xl_spike` tool should be installed and added into **PATH** in advance.
 Contact with our sales via email contact@nucleisys.com to get `xl-spike` tools.
+
+> This feature will be **deprecated** in future.
 
 ### Run on xl_spike 
 
@@ -165,7 +192,7 @@ UART:   \____/| .__/ \___|_| |_|_____/|____/_____|
 UART:         | |
 UART:         |_|
 UART: 
-UART: Platform Name             : Nuclei Generic
+UART: Platform Name             : Nuclei Demo SoC
 UART: Platform Features         : timer,mfdeleg
 UART: Platform HART Count       : 1
 UART: Firmware Base             : 0xa0000000
@@ -280,20 +307,29 @@ UART: mmu		: sv39
 UART: 
 UART: # cat /proc/device-tree/model   
 cat /proc/device-tree/model
-UART: nuclei,ux600# uname -a
+UART: nuclei,demo-soc# uname -a
 uname -a
 UART: Linux nucleisys 5.10.0+ #5 Wed Feb 24 15:59:29 CST 2021 riscv64 GNU/Linux
 UART: # 
 ~~~
 
-If you want to remove the login, and directly enter to bash, please check [**Known issues**](#known-issues).
+If you want to remove the login, and directly enter to bash, please check [**Known issues and FAQ**](#Known-issues-and-FAQs).
 
-## Booting Linux on [Nuclei HummingBird Board](https://nucleisys.com/developboard.php)
+## Booting Linux on Nuclei HummingBird Board
 
-### Get Nuclei UX600 SoC MCS from Nuclei
+### Get Nuclei Demo SoC MCS from Nuclei
 
-Contact with our sales via email contact@nucleisys.com to get FPGA bitstream for Nuclei
-UX600 SoC MCS and get guidance about how to program FPGA bitstream in the board.
+Contact with our sales via email **contact@nucleisys.com** to get FPGA bitstream for Nuclei
+Demo SoC MCS and get guidance about how to program FPGA bitstream in the board.
+
+Nuclei Demo SoC can be configured using Nuclei RISC-V Linux Capable Core such as UX600 and UX900,
+To learn about Nuclei RISC-V Linux Capable Core, please check:
+
+* [UX600 Series 64-Bit High Performance Application Processor](https://nucleisys.com/product.php?site=ux600)
+* [900 Series 32/64-Bit High Performance Processor](https://nucleisys.com/product.php?site=900)
+
+Nuclei HummingBird FPGA Evaluation Board, DDR200T version is correct hardware to
+run linux on it, click [Nuclei DDR200T Board](https://nucleisys.com/developboard.php#ddr200t) to learn about more.
 
 ### Build Freeloader
 
@@ -308,12 +344,13 @@ To build *freeloader*, you just need to run `make freeloader`
 If you have connected your board to your Linux development environment, and setuped JTAG drivers,
 then you can run `make upload_freeloader` to upload the *freeloader/freeloader.elf* to your board.
 
-You can also use `riscv-nuclei-elf-gdb` and `openocd` to download this program by yourself.
+You can also use `riscv-nuclei-elf-gdb` and `openocd` to download this program by yourself, for
+simple steps, please see [Known issues and FAQs](#Known-issues-and-FAQs).
 
 ### Build SDCard Boot Images
 
 If **BOOT_MODE** is set to `flash`, then no need to prepare the boot images, just program the
-freeloader.elf to on board flash, but it required at least 8M flash.
+**freeloader.elf** to on board flash, but it required at least 8M flash.
 
 If you have run `make sim` command before, please make sure you run `make preboot` to prepare
 build environment for generate boot images.
@@ -321,7 +358,7 @@ build environment for generate boot images.
 If the freeloader is flashed to the board, then you can prepare the SDCard boot materials,
 you can run `make bootimages` to generate the boot images to *work/boot*, and an zip file
 called *work/boot.zip* , you can extract this *boot.zip* to your SDCard or copy all the files
-located in *work/boot/*, make sure the files need to be put right in the root of SDCard,
+located in *work/boot/*, make sure the files need to be put **right in the root of SDCard**,
 then you can insert this SDCard to your SDCard slot(J57) beside the TFT LCD.
 
 The contents of *work/boot* or *work/boot.zip* are as below:
@@ -340,11 +377,13 @@ When all above is done, you can reset the power on board, then opensbi will boot
 uboot will automatically load linux image and initramfs from SDCard and boot linux if everything
 is prepared correctly.
 
-If you met with issues, please check the [**Known issues**](#known-issues).
+If you met with issues, please check the [**Known issues and FAQ**](#Known-issues-and-FAQs).
 
 The linux login user name and password is *root* and *nuclei*.
 
 Sample output in **UART @ 115200bps, Data 8bit, Parity None, Stop Bits 1bit, No Flow Control**.
+
+> **Flow control must be disabled in UART terminal**.
 
 > UART baudrate changed from 57600bps to 115200bps, due to evaluation SoC frequency by default
 > changed from 8MHz to 16MHz, and now uart can work correctly on 115200bps.
@@ -360,7 +399,7 @@ OpenSBI v0.9
         | |
         |_|
 
-Platform Name             : Nuclei Generic
+Platform Name             : Nuclei Demo SoC
 Platform Features         : timer,mfdeleg
 Platform HART Count       : 1
 Firmware Base             : 0xa0000000
@@ -393,7 +432,7 @@ Boot HART MEDELEG         : 0x000000000000b109
 U-Boot 2021.01-00010-g54613b3315 (Feb 24 2021 - 15:02:31 +0800)
 
 CPU:   rv64imac
-Model: nuclei,ux600
+Model: nuclei,demo-soc
 DRAM:  256 MiB
 Board: Initialized
 MMC:   spi@10034000:mmc@0: 0
@@ -557,8 +596,8 @@ make buildroot_initramfs-menuconfig
 The new configuration will be saved to `conf/` folder, for when a full rebuild of buildroot
 is necessary, please check [this link](https://buildroot.org/downloads/manual/manual.html#full-rebuild).
 
-* *conf/buildroot_initramfs_ux600_config*: The buildroot configuration for UX600
-* *conf/buildroot_initramfs_ux600fd_config*: The buildroot configuration for UX600FD
+* *conf/buildroot_initramfs_rv64imac_config*: The buildroot configuration for RISC-V ISA/ARCH is **rv64imac**, such as ux600 and ux900
+* *conf/buildroot_initramfs_rv64imafdc_config*: The buildroot configuration for for RISC-V ISA/ARCH is **rv64imafdc**, such as ux600fd and ux900fd
 
 By default, we add many packages in buildroot default configuration, you can remove the packages
 you dont need in configuration to generate smaller rootfs, a full rebuild of SDK is required for
@@ -568,12 +607,21 @@ removing buildroot package.
 
 You can customize linux kernel configuration using command `make linux-menuconfig`, the new configuration will be saved to `conf` folder
 
-* *conf/linux_ux600_defconfig*: The linux kernel configuration for UX600
-* *conf/linux_ux600fd_defconfig*: The linux kernel configuration for UX600FD
-* *conf/nuclei_ux600.dts*: Device tree for UX600 used in hardware
-* *conf/nuclei_ux600fd.dts*: Device tree for UX600FD used in hardware
-* *conf/nuclei_ux600_sim.dts*: Device tree for UX600 used in simulation
-* *conf/nuclei_ux600fd_sim.dts*: Device tree for UX600FD used in simulation
+* *conf/linux_rv64imac_defconfig*: The linux kernel configuration for RISC-V rv64imac ARCH.
+* *conf/linux_rv64imafdc_defconfig*: The linux kernel configuration for  RISC-V rv64imafdc ARCH.
+* *conf/nuclei_rv64imac.dts*: Device tree for RISC-V rv64imac ARCH used in hardware
+* *conf/nuclei_rv64imafdc.dts*: Device tree for RISC-V rv64imafdc ARCH used in hardware
+* *conf/nuclei_rv64imac_sim.dts*: Device tree for RISC-V rv64imac ARCH used in simulation
+* *conf/nuclei_rv64imafdc_sim.dts*: Device tree for RISC-V rv64imafdc ARCH used in simulation
+
+### Customize uboot configuration
+
+You can customize linux kernel configuration using command `make uboot-menuconfig`, the new configuration will be saved to `conf` folder
+
+* *conf/uboot_rv64imac_flash_config*: uboot configuration for RISC-V rv64imac ARCH, flash boot mode
+* *conf/uboot_rv64imafdc_flash_config*: uboot configuration for RISC-V rv64imafdc ARCH, flash boot mode
+* *conf/uboot_rv64imac_sd_config*: uboot configuration for RISC-V rv64imac ARCH, flash boot mode
+* *conf/uboot_rv64imafdc_sd_config*: uboot configuration for RISC-V rv64imafdc ARCH, sd boot mode
 
 ### Remove generated boot images
 
@@ -703,7 +751,7 @@ To basically port this SDK to match your target, you need at least to change the
 * *u-boot/arch/riscv/dts/nuclei-hbird.dts*: Change this dts file to match your SoC design.
 * *u-boot/board/nuclei/hbird*: Change *hbird.c* to match your board init requirements, change *Kconfig*'s **SYS_TEXT_BASE**.
 * *u-boot/include/configs/nuclei-hbird.h*: Change **CONFIG_SYS_SDRAM_BASE**, **CONFIG_STANDALONE_LOAD_ADDR**, and **CONFIG_EXTRA_ENV_SETTINGS**
-* *conf/nuclei_ux600.dts*, *conf/nuclei_ux600fd.dts* and *openocd_hbird.cfg*: Change these files to match your SoC design.
+* *conf/nuclei_rv64imac.dts*, *conf/nuclei_rv64imafdc.dts* and *openocd_hbird.cfg*: Change these files to match your SoC design.
 * *conf/uboot.cmd*: Change to match your memory map.
 * *Makefile*: Change *$(uboot_mkimage)* command line run for *$(boot_uimage_lz4)* target
 
@@ -711,9 +759,9 @@ To basically port this SDK to match your target, you need at least to change the
 
 This repo is based on opensource repo https://github.com/sifive/freedom-u-sdk/tree/archive/buildroot
 
-## Known issues
+## Known issues and FAQs
 
-* For UX600, if you run simulation using xl_spike, it can run to login prompt, but when you login, it will
+* For Nuclei Demo SoC, if you run simulation using xl_spike, it can run to login prompt, but when you login, it will
   show timeout issue, this is caused by xl_spike timer is not standard type, but the boot images for FPGA
   board can boot successfully and works well.
 
@@ -751,9 +799,6 @@ This repo is based on opensource repo https://github.com/sifive/freedom-u-sdk/tr
   UART: 
   ~~~
 
-* For UX600FD, if you run simulation using xl_spike, it can only run to init process, then it will enter to
-  kernel panic, but the generated boot images works for FPGA board.
-
 * For some SDCard format, it might not be supported, please check your SDCard is SDHC format.
 
 * If you can't boot with the sdcard boot images, you can run the following commands in uboot to check whether sdcard is recognized.
@@ -762,17 +807,6 @@ This repo is based on opensource repo https://github.com/sifive/freedom-u-sdk/tr
      this command again, if still not working, please confirm that the MCS is correct or not?
 
      ~~~
-     U-Boot 2020.07-rc2-g89856aea41 (Aug 05 2020 - 21:18:04 +0800)
-
-     CPU:   rv64imac
-     Model: nuclei,ux600
-     DRAM:  256 MiB
-     Board: Initialized
-     MMC:   spi@10034000:mmc@0: 0
-     In:    console
-     Out:   console
-     Err:   console
-     Net:   No ethernet found.
      Hit any key to stop autoboot:  0
      => mmcinfo
      Device: spi@10034000:mmc@0
@@ -813,19 +847,15 @@ This repo is based on opensource repo https://github.com/sifive/freedom-u-sdk/tr
   If you are familiar with linux and buildroot configuration files, you can directly modify the configuration
   files located in `conf` folder.
 
-  * *conf/buildroot_initramfs_ux600_config*: The buildroot configuration for UX600
-  * *conf/buildroot_initramfs_ux600fd_config*: The buildroot configuration for UX600FD
-  * *conf/linux_defconfig*: The linux configuration for UX600 and UX600FD
-  * *conf/nuclei_ux600.dts*: The device tree file for UX600
-  * *conf/nuclei_ux600fd.dts*: The device tree file for UX600FD
-
   If you modified this files directly and want to take effects, you need to `make clean` first, and regenerate
   boot images.
 
   You can also try `make buildroot_initramfs-menuconfig` to get a terminal menuconfig to configure the buildroot
   packages.
 
-  You can also try `make linux-menuconfig` to get a  menuconfig to configure the linux kernel.
+  You can also try `make linux-menuconfig` to get a menuconfig to configure the linux kernel.
+
+  You can also try `make uboot-menuconfig` to get a menuconfig to configure the uboot.
 
 * Other possible ways to reduce generated rootfs image size.
 
