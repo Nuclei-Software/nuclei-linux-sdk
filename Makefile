@@ -123,6 +123,7 @@ help:
 	@echo "- freeloader : generate freeloader(first stage loader) run in norflash"
 	@echo "- upload_freeloader : upload freeloader into development board using openocd and gdb"
 	@echo "- debug_freeloader : connect to board, and debug it using openocd and gdb"
+	@echo "- run_openocd : Run openocd to connect hardware board and start gdb server"
 	@echo "- linux : build linux image"
 	@echo "- opensbi : build opensbi jump binary"
 	@echo "- uboot : build uboot and generate uboot binary"
@@ -141,6 +142,7 @@ help:
 	@echo "Main targets used frequently depending on your user case"
 	@echo "If you want to run linux on development board, please run preboot, freeloader, bootimages targets"
 	@echo "If you want to run linux in simulation, please run presim, sim targets"
+	@echo "Deprecated: The xl-spike support will be deprecated in future release"
 
 
 $(target_gcc): buildroot_initramfs_sysroot
@@ -299,6 +301,7 @@ freeloader: $(freeloader_elf)
 	@echo "You can run make debug_freeloader to connect to the running target cpu"
 
 ifeq ($(BOOT_MODE),flash)
+# Internal used
 .PHONY: prepare4m freeloader4m
 prepare4m: buildroot_initramfs_sysroot
 	find $(buildroot_initramfs_wrkdir)/build/ -type f -wholename "*busybox*/.config" | xargs sed -i '/CONFIG_STATIC/cCONFIG_STATIC=y'
@@ -336,13 +339,15 @@ upload_freeloader: $(freeloader_elf)
 	-ex "monitor flash protect 0 0 last off" -ex "load" \
 	-ex "monitor resume" -ex "quit"
 
-debug_freeloader: $(freeloader_elf)
+# Please make sure freeloader, linux and uboot are generated
+debug_freeloader:
 	$(target_gdb) $< -ex "set remotetimeout 240" \
 	-ex "target remote $(GDBREMOTE)" \
 	-ex "set confirm off" -ex "add-symbol-file $(vmlinux)" \
 	-ex "add-symbol-file $(opensbi_jumpelf)" \
 	-ex "add-symbol-file $(uboot_elf)" -ex "set confirm on"
 
+# Internal used
 upload_sbipayload: $(opensbi_payload)
 	$(target_gdb) $< -ex "set remotetimeout 240" \
 	-ex "target remote $(GDBREMOTE)" \
@@ -350,7 +355,8 @@ upload_sbipayload: $(opensbi_payload)
 	-ex "monitor flash protect 0 0 last off" -ex "load" \
 	-ex "monitor resume" -ex "quit"
 
-debug_sbipayload: $(opensbi_payload)
+# Internal used, please make sure freeloader and linux are generated
+debug_sbipayload:
 	$(target_gdb) $< -ex "set remotetimeout 240" \
 	-ex "target remote $(GDBREMOTE)" \
 	-ex "set confirm off" -ex "add-symbol-file $(vmlinux)" \
