@@ -3,7 +3,7 @@
 name: Build
 
 # Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the dev_nuclei branch
+# events but only for the dev_nuclei_next branch
 on:
   push:
     branches: [ dev* ]
@@ -13,7 +13,7 @@ on:
     - .gitlab-ci.yml
     - .gitignore
   pull_request:
-    branches: [ dev_nuclei ]
+    branches: [ dev_nuclei_next ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
