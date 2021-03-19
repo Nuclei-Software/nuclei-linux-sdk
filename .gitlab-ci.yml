@@ -39,6 +39,8 @@ cache:
         - env::native
         - host::xls01
     script:
+        - echo ">>Clean previous build workspace"
+        - make clean
         - echo ">>Show help message for $CORE - $BOOT_MODE"
         - make help
         - echo ">>Build buildroot_initramfs_sysroot for $CORE"
@@ -140,6 +142,7 @@ run_ux600_sd:
 # Build For UX600FD Core, with FPU, flash boot mode
 build_ux600fd_flash:
     stage: build_ux600fd
+    dependencies:
     variables:
         CORE: "ux600fd"
         BOOT_MODE: "flash"
@@ -149,6 +152,7 @@ build_ux600fd_flash:
 # Build For UX600FD Core, with FPU, sd boot mode
 build_ux600fd_sd:
     stage: build_ux600fd
+    dependencies:
     variables:
         CORE: "ux600fd"
         BOOT_MODE: "sd"
