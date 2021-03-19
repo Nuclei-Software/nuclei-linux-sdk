@@ -19,7 +19,7 @@ on:
 jobs:
   # This workflow contains a single job called "build"
   build:
-    name: build for ${{ matrix.core }} 
+    name: build for ${{ matrix.core }} - ${{ matrix.boot_mode }}
     runs-on: ubuntu-18.04
     strategy:
       matrix:
@@ -42,7 +42,7 @@ jobs:
           mv source.tar.gz $base/
 
       - name: Upload source
-        if: matrix.core == 'ux600'
+        if: matrix.core == 'ux600' && matrix.boot_mode == 'sd'
         uses: actions/upload-artifact@v2.2.0
         with:
           name: nuclei_linux_sdk_source
@@ -63,16 +63,16 @@ jobs:
             libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler libncursesw5-dev libncursesw5
 
       # Build Freeloader
-      - name: Build freeloader for ${{ matrix.core }} 
+      - name: Build freeloader for ${{ matrix.core }} - ${{ matrix.boot_mode }}
         run: |
           make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} freeloader
 
       # Build bootimages
-      - name: Build bootimages for ${{ matrix.core }} 
+      - name: Build bootimages for ${{ matrix.core }} - ${{ matrix.boot_mode }}
         run: |
           make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} bootimages
       
-      - name: Upload bootimages
+      - name: Upload bootimages for ${{ matrix.core }} - ${{ matrix.boot_mode }}
         uses: actions/upload-artifact@v2.2.0
         with:
           name: bootimages_${{ matrix.core }}_${{ matrix.boot_mode }}
@@ -81,7 +81,7 @@ jobs:
             freeloader/freeloader.elf
 
       - name: Upload cached packages
-        if: matrix.core == 'ux600'
+        if: matrix.core == 'ux600' && matrix.boot_mode == 'sd'
         uses: actions/upload-artifact@v2.2.0
         with:
           name: build_caching
