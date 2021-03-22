@@ -769,9 +769,9 @@ To basically port this SDK to match your target, you need at least to change the
 * *conf/uboot.cmd*: Change to match your memory map.
 * *Makefile*: Change *$(uboot_mkimage)* command line run for *$(boot_uimage_lz4)* target
 
-## Notice
-
-This repo is based on opensource repo https://github.com/sifive/freedom-u-sdk/tree/archive/buildroot
+> If you have enabled TEE feature(sPMP module included), you need to configure spmp csr registers
+> as this commit https://github.com/Nuclei-Software/opensbi/commit/1d28050d01b93b6afe590487324b663c65a2c429 .
+> Then you will be able to boot up linux kernel, otherwise the init process will fail.
 
 ## Known issues and FAQs
 
