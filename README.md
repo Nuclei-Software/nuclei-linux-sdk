@@ -758,14 +758,14 @@ For our current development demo SoC, we used the following resources:
 
 To basically port this SDK to match your target, you need at least to change the following files:
 
-* *freeloader/freeloader.S*: Change **OPENSBI_START_BASE, UBOOT_START_BASE, FDT_START_BASE, COPY_START_BASE,    KERNEL_START_BASE, INITRD_START_BASE** to match your system memory map.
+* *freeloader/freeloader.S*: Change **OPENSBI_START_BASE, UBOOT_START_BASE, FDT_START_BASE, COPY_START_BASE, KERNEL_START_BASE, INITRD_START_BASE** to match your system memory map.
 * *freeloader/linker.lds*: Change *flash* memory description line to match your flash memory memory.
 * *opensbi/platform/nuclei/*: Change *config.mk* to match your system memory map, change *platform.c* to match your system
   peripheral driver including uart, timer, gpio, etc.
-* *u-boot/arch/riscv/dts/nuclei-hbird.dts*: Change this dts file to match your SoC design.
-* *u-boot/board/nuclei/hbird*: Change *hbird.c* to match your board init requirements, change *Kconfig*'s **SYS_TEXT_BASE**.
-* *u-boot/include/configs/nuclei-hbird.h*: Change **CONFIG_SYS_SDRAM_BASE**, **CONFIG_STANDALONE_LOAD_ADDR**, and **CONFIG_EXTRA_ENV_SETTINGS**
-* *conf/nuclei_rv64imac.dts*, *conf/nuclei_rv64imafdc.dts* and *openocd_hbird.cfg*: Change these files to match your SoC design.
+* *u-boot/arch/riscv/dts/nuclei-demosoc.dts*: Change this dts file to match your SoC design.
+* *u-boot/board/nuclei/demosoc*: Change *demosoc.c* to match your board init requirements, change *Kconfig*'s **SYS_TEXT_BASE**.
+* *u-boot/include/configs/nuclei-demosoc.h*: Change **CONFIG_SYS_SDRAM_BASE**, **CONFIG_STANDALONE_LOAD_ADDR**, and **CONFIG_EXTRA_ENV_SETTINGS**
+* *conf/nuclei_rv64imac.dts*, *conf/nuclei_rv64imafdc.dts* and *openocd_demosoc.cfg*: Change these files to match your SoC design.
 * *conf/uboot.cmd*: Change to match your memory map.
 * *Makefile*: Change *$(uboot_mkimage)* command line run for *$(boot_uimage_lz4)* target
 
@@ -907,14 +907,14 @@ To basically port this SDK to match your target, you need at least to change the
   make -C application/baremetal/helloworld debug
   make[1]: Entering directory 'D:/workspace/Sourcecode/nuclei-sdk/application/baremetal/helloworld'
   .... ....
-  "Compiling  : " ../../../SoC/hbird/Common/Source/system_hbird.c
+  "Compiling  : " ../../../SoC/demosoc/Common/Source/system_demosoc.c
   "Compiling  : " main.c
   "Linking    : " helloworld.elf
      text    data     bss     dec     hex filename
      8328     224    2492   11044    2b24 helloworld.elf
   "Download and debug helloworld.elf"
   riscv-nuclei-elf-gdb helloworld.elf -ex "set remotetimeout 240" \
-          -ex "target remote | openocd --pipe -f ../../../SoC/hbird/Board/hbird_eval/openocd_hbird.cfg"
+          -ex "target remote | openocd --pipe -f ../../../SoC/demosoc/Board/nuclei_fpga_eval/openocd_demosoc.cfg"
   D:\Software\NucleiStudio_IDE_202009\NucleiStudio\toolchain\gcc\bin\riscv-nuclei-elf-gdb.exe: warning: Couldn't     determine a path for the index cache directory.
   GNU gdb (GDB) 8.3.0.20190516-git
   Copyright (C) 2019 Free Software Foundation, Inc.
@@ -932,7 +932,7 @@ To basically port this SDK to match your target, you need at least to change the
   For help, type "help".
   Type "apropos word" to search for commands related to "word"...
   Reading symbols from helloworld.elf...
-  Remote debugging using | openocd --pipe -f ../../../SoC/hbird/Board/hbird_eval/openocd_hbird.cfg
+  Remote debugging using | openocd --pipe -f ../../../SoC/demosoc/Board/nuclei_fpga_eval/openocd_demosoc.cfg
   Nuclei OpenOCD, 64-bit Open On-Chip Debugger 0.10.0+dev-00020-g7701266e6-dirty (2020-09-22-07:31)
   Licensed under GNU GPL v2
   For bug reports, read

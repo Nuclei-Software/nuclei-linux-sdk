@@ -40,7 +40,7 @@ platform_dtb := $(wrkdir)/nuclei_$(ISA).dtb
 platform_sim_dts := $(confdir)/nuclei_$(ISA)_sim.dts
 platform_sim_dtb := $(wrkdir)/nuclei_$(ISA)_sim.dtb
 
-platform_openocd_cfg := $(confdir)/openocd_hbird.cfg
+platform_openocd_cfg := $(confdir)/openocd_demosoc.cfg
 
 target := riscv-nuclei-linux-gnu
 CROSS_COMPILE := $(RISCV)/bin/$(target)-
