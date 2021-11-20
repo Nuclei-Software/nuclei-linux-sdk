@@ -1,3 +1,8 @@
+## Makefile Variable SOC
+## SOC Supported:
+## demosoc: Nuclei Demo SoC used for evaluation
+SOC ?= demosoc
+
 ## Makefile Variable CORE
 ## CORE Supported:
 ## ux600/ux900: rv64imac, lp64
@@ -26,8 +31,22 @@ ABI := $(word 2, $(CORE_ARCH_ABI))
 
 srcdir := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 srcdir := $(srcdir:/=)
-confdir := $(srcdir)/conf
-wrkdir := $(CURDIR)/work
+wrkdir_root := $(CURDIR)/work
+
+# Set confdir and workdir for different SoC
+confdir := $(srcdir)/conf/$(SOC)
+wrkdir := $(wrkdir_root)/$(SOC)
+gendir := $(srcdir)/GENERATED
+backupdir := $(gendir)/backup/$(SOC)
+releasedir := $(gendir)/release
+snapshotdir := $(gendir)/snapshot
+gentimestamp := $(shell date -u +"%Y%m%dT%H%M%S")
+gengitdesver := $(shell which git >/dev/null && git describe --always --abbrev=10 --dirty 2>/dev/null)
+backupdir_snap := $(backupdir)/prebuilt_$(SOC)_$(shell date -u +"%Y%m%d-%H%M%S").zip
+sourcezip_snap := $(snapshotdir)/snapshot_$(gentimestamp)_$(gengitdesver).zip
+
+# Include SoC related Makefile
+include $(confdir)/build.mk
 
 buildroot_srcdir := $(srcdir)/buildroot
 buildroot_initramfs_wrkdir := $(wrkdir)/buildroot_initramfs
@@ -36,11 +55,13 @@ RISCV ?= $(buildroot_initramfs_wrkdir)/host
 RVPATH := $(RISCV)/bin:$(PATH)
 
 platform_dts := $(confdir)/nuclei_$(ISA).dts
+platform_preproc_dts := $(wrkdir)/nuclei_$(ISA).dts.preprocessed
 platform_dtb := $(wrkdir)/nuclei_$(ISA).dtb
 platform_sim_dts := $(confdir)/nuclei_$(ISA)_sim.dts
+platform_preproc_sim_dts := $(wrkdir)/nuclei_$(ISA)_sim.dts.preprocessed
 platform_sim_dtb := $(wrkdir)/nuclei_$(ISA)_sim.dtb
 
-platform_openocd_cfg := $(confdir)/openocd_demosoc.cfg
+platform_openocd_cfg := $(confdir)/openocd.cfg
 
 target := riscv-nuclei-linux-gnu
 CROSS_COMPILE := $(RISCV)/bin/$(target)-
@@ -56,20 +77,29 @@ linux_defconfig := $(confdir)/linux_$(ISA)_defconfig
 linux_gen_initramfs=$(linux_srcdir)/usr/gen_initramfs.sh
 
 vmlinux := $(linux_wrkdir)/vmlinux
+vmlinux_sim := $(linux_wrkdir)/vmlinux_sim
 linux_image := $(linux_wrkdir)/arch/riscv/boot/Image
 vmlinux_stripped := $(linux_wrkdir)/vmlinux-stripped
 vmlinux_bin := $(wrkdir)/vmlinux.bin
+vmlinux_sim_bin := $(wrkdir)/vmlinux_sim.bin
 
 initramfs := $(wrkdir)/initramfs.cpio.gz
 
 opensbi_srcdir := $(srcdir)/opensbi
 opensbi_wrkdir := $(wrkdir)/opensbi
-opensbi_payload := $(opensbi_wrkdir)/platform/nuclei/demosoc/firmware/fw_payload.elf
-opensbi_jumpbin := $(opensbi_wrkdir)/platform/nuclei/demosoc/firmware/fw_jump.bin
-opensbi_jumpelf := $(opensbi_wrkdir)/platform/nuclei/demosoc/firmware/fw_jump.elf
+opensbi_plat_confdir := $(confdir)/opensbi
+opensbi_plat_srcdir := $(srcdir)/opensbi/platform/nuclei/$(SOC)
+opensbi_payload := $(opensbi_wrkdir)/platform/nuclei/$(SOC)/firmware/fw_payload.elf
+opensbi_jumpbin := $(opensbi_wrkdir)/platform/nuclei/$(SOC)/firmware/fw_jump.bin
+opensbi_jumpelf := $(opensbi_wrkdir)/platform/nuclei/$(SOC)/firmware/fw_jump.elf
+
+opensbi_plat_deps := $(wildcard $(addprefix $(opensbi_plat_confdir)/, *.mk *.c *.h))
+
+amp_bins = $(CORE1_APP_BIN) $(CORE2_APP_BIN) $(CORE3_APP_BIN) 
 
 freeloader_srcdir := $(srcdir)/freeloader
-freeloader_wrkdir := $(srcdir)/freeloader
+freeloader_wrkdir := $(wrkdir)/freeloader
+freeloader_confmk := $(confdir)/freeloader.mk
 freeloader_elf := $(freeloader_wrkdir)/freeloader.elf
 
 uboot_srcdir := $(srcdir)/u-boot
@@ -90,6 +120,17 @@ boot_uimage_lz4 := $(boot_wrkdir)/uImage.lz4
 boot_uinitrd_lz4 := $(boot_wrkdir)/uInitrd.lz4
 boot_kernel_dtb := $(boot_wrkdir)/kernel.dtb
 
+# Files need to backup
+BACKUPMSG := $(wrkdir)/README.txt
+RUNLOG := $(wrkdir)/run.log
+FULL_BACKUPMSG := $(backupdir)/README.txt
+FILES2BACKUP := $(boot_zip) $(uboot_elf) $(freeloader_elf) $(vmlinux) $(linux_image) \
+	$(platform_preproc_dts) $(platform_dtb) $(opensbi_jumpelf) $(opensbi_payload) $(initramfs) \
+	$(addsuffix /.config, $(uboot_wrkdir) $(linux_wrkdir) $(buildroot_initramfs_wrkdir)) \
+	$(RUNLOG) $(BACKUPMSG)
+
+FILES2BACKUP := $(subst $(realpath $(srcdir))/,, $(realpath $(FILES2BACKUP))) 
+
 # xlspike is prebuilt and installed to PATH
 xlspike := xl_spike
 
@@ -103,7 +144,7 @@ openocd := openocd
 ## in remote machine(ipaddr 192.168.43.199) which connect the hardware board,
 ## then you can change the GDBREMOTE to 192.168.43.199:3333
 ## GDBREMOTE ?= 192.168.43.199:3333
-GDBREMOTE ?= | $(openocd) --pipe -f $(platform_openocd_cfg)
+GDBREMOTE ?= | $(openocd) -c \"gdb_port pipe; log_output openocd.log\" -f $(platform_openocd_cfg)
 
 target_gcc := $(CROSS_COMPILE)gcc
 target_gdb := $(CROSS_COMPILE)gdb
@@ -112,12 +153,14 @@ target_gdb := $(CROSS_COMPILE)gdb
 all: help
 
 help:
+	@echo "Current build configuration: SOC=$(SOC) CORE=$(CORE) BOOT_MODE=$(BOOT_MODE) RISCV_ARCH=$(ISA) RISCV_ABI=$(ABI)"
 	@echo "Here is a list of make targets supported"
 	@echo ""
-	@echo "- buildroot_initramfs-menuconfig : run menuconfig for buildroot, configuration will be saved into conf/"
+	@echo "- buildroot_initramfs-menuconfig : run menuconfig for buildroot, configuration will be saved into conf/$(SOC)"
+	@echo "- buildroot_busybox-menuconfig : run menuconfig for busybox in buildroot, configuration is not saved into conf/$(SOC)"
+	@echo "- linux-menuconfig : run menuconfig for linux kernel, configuration will be saved into conf/$(SOC)"
+	@echo "- uboot-menuconfig : run menuconfig for uboot, configuration will be saved into conf/$(SOC)"
 	@echo "- buildroot_initramfs_sysroot : generate rootfs directory using buildroot"
-	@echo "- linux-menuconfig : run menuconfig for linux kernel, configuration will be saved into conf/"
-	@echo "- uboot-menuconfig : run menuconfig for uboot, configuration will be saved into conf/"
 	@echo "- initrd : generate initramfs cpio file"
 	@echo "- bootimages : generate boot images for SDCard"
 	@echo "- freeloader : generate freeloader(first stage loader) run in norflash"
@@ -127,7 +170,6 @@ help:
 	@echo "- linux : build linux image"
 	@echo "- opensbi : build opensbi jump binary"
 	@echo "- uboot : build uboot and generate uboot binary"
-	@echo "- sim : run opensbi + linux payload in simulation using xl_spike"
 	@echo "- clean : clean this full workspace"
 	@echo "- cleanboot : clean generated boot images"
 	@echo "- cleanlinux : clean linux workspace"
@@ -136,13 +178,20 @@ help:
 	@echo "- cleanuboot : clean u-boot workspace"
 	@echo "- cleanfreeloader : clean freeloader generated objects"
 	@echo "- cleanopensbi : clean opensbi workspace"
+	@echo "- backup : backup generated prebuilt images into $(backupdir) folder, you need to input backup message when this target is triggered"
+	@echo "- snapshot : snapshot linux sdk source code into $(snapshotdir) folder, this snapshot zip files will not contain any vcs control files"
+ifeq ($(SOC),demosoc)
 	@echo "- preboot : If you run sim target before, and want to change to bootimages target, run this to prepare environment"
 	@echo "- presim : If you run bootimages target before, and want to change to sim target, run this to prepare environment"
+	@echo "- sim : run opensbi + linux payload in simulation using xl_spike"
+endif
 	@echo ""
 	@echo "Main targets used frequently depending on your user case"
 	@echo "If you want to run linux on development board, please run preboot, freeloader, bootimages targets"
+ifeq ($(SOC),demosoc)
 	@echo "If you want to run linux in simulation, please run presim, sim targets"
 	@echo "Deprecated: The xl-spike support will be deprecated in future release"
+endif
 
 
 $(target_gcc): buildroot_initramfs_sysroot
@@ -163,30 +212,27 @@ buildroot_initramfs-menuconfig: $(buildroot_initramfs_wrkdir)/.config $(buildroo
 	$(MAKE) -C $(dir $<) O=$(buildroot_initramfs_wrkdir) savedefconfig
 	cp $(dir $<)/defconfig $(buildroot_initramfs_config)
 
+.PHONY: buildroot_busybox-menuconfig
+buildroot_busybox-menuconfig: $(buildroot_initramfs_wrkdir)/.config $(buildroot_srcdir) $(target_gcc)
+	$(MAKE) -C $(dir $<) O=$(buildroot_initramfs_wrkdir) busybox-menuconfig
+
 $(buildroot_initramfs_sysroot_stamp): $(buildroot_initramfs_tar)
 	mkdir -p $(buildroot_initramfs_sysroot)
 	tar -xpf $< -C $(buildroot_initramfs_sysroot) --exclude ./dev --exclude ./usr/share/locale
 	touch $@
+
+.PHONY: initrd linux
 
 $(linux_wrkdir)/.config: $(linux_defconfig) $(linux_srcdir) $(target_gcc)
 	mkdir -p $(dir $@)
 	cp -p $< $@
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) ARCH=riscv CROSS_COMPILE=$(CROSS_COMPILE) olddefconfig
 
-$(vmlinux): $(linux_srcdir) $(linux_wrkdir)/.config
-	$(MAKE) -C $< O=$(linux_wrkdir) \
-		CONFIG_INITRAMFS_SOURCE="$(confdir)/initramfs.txt $(buildroot_initramfs_sysroot)" \
-		CONFIG_INITRAMFS_ROOT_UID=$(shell id -u) \
-		CONFIG_INITRAMFS_ROOT_GID=$(shell id -g) \
-		ARCH=riscv \
-		CROSS_COMPILE=$(CROSS_COMPILE) \
-		PATH=$(RVPATH) \
-		vmlinux
+$(vmlinux): linux
 
 $(linux_image): linux
 	@echo "Linux image is generated $@"
 
-.PHONY: initrd linux
 initrd: $(initramfs)
 	@echo "initramfs cpio file is generated into $<"
 
@@ -197,7 +243,7 @@ linux: $(linux_srcdir) $(linux_wrkdir)/.config
 		ARCH=riscv \
 		CROSS_COMPILE=$(CROSS_COMPILE) \
 		PATH=$(RVPATH) \
-		Image
+		vmlinux Image
 
 $(initramfs): $(buildroot_initramfs_sysroot) $(linux_image)
 	cd $(linux_wrkdir) && \
@@ -212,32 +258,56 @@ $(vmlinux_stripped): $(vmlinux)
 $(vmlinux_bin): $(vmlinux)
 	PATH=$(RVPATH) $(target)-objcopy -O binary $< $@
 
+ifeq ($(SOC),demosoc)
+$(vmlinux_sim): $(linux_srcdir) $(linux_wrkdir)/.config
+	$(MAKE) -C $< O=$(linux_wrkdir) \
+		CONFIG_INITRAMFS_SOURCE="$(confdir)/initramfs.txt $(buildroot_initramfs_sysroot)" \
+		CONFIG_INITRAMFS_ROOT_UID=$(shell id -u) \
+		CONFIG_INITRAMFS_ROOT_GID=$(shell id -g) \
+		ARCH=riscv \
+		CROSS_COMPILE=$(CROSS_COMPILE) \
+		PATH=$(RVPATH) \
+		vmlinux
+	cp -f $(vmlinux) $@
+
+$(vmlinux_sim_bin): $(vmlinux_sim)
+	PATH=$(RVPATH) $(target)-objcopy -O binary $< $@
+endif
+
 .PHONY: linux-menuconfig
 linux-menuconfig: $(linux_wrkdir)/.config
 	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv CROSS_COMPILE=$(CROSS_COMPILE) menuconfig
 	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv CROSS_COMPILE=$(CROSS_COMPILE) savedefconfig
 	cp $(dir $<)/defconfig $(linux_defconfig)
 
-$(platform_dtb) : $(platform_dts)
-	dtc -O dtb -o $(platform_dtb) $(platform_dts)
+$(platform_dtb) : $(platform_dts) $(target_gcc)
+	$(target_gcc) -E -nostdinc -undef -x assembler-with-cpp $(platform_dts) -o $(platform_preproc_dts)
+	dtc -O dtb -o $(platform_dtb) $(platform_preproc_dts)
 
-$(platform_sim_dtb) : $(platform_sim_dts)
-	dtc -O dtb -o $(platform_sim_dtb) $(platform_sim_dts)
+$(platform_sim_dtb) : $(platform_sim_dts) $(target_gcc)
+	$(target_gcc) -E -nostdinc -undef -x assembler-with-cpp $(platform_sim_dts) -o $(platform_preproc_sim_dts)
+	dtc -O dtb -o $(platform_sim_dtb) $(platform_preproc_sim_dts)
 
-.PHONY: opensbi
+.PHONY: opensbi opensbi_cp_plat
 
 $(opensbi_jumpbin): opensbi
 
-opensbi: $(target_gcc)
+opensbi: $(target_gcc) $(opensbi_plat_deps)
+	mkdir -p $(opensbi_plat_srcdir)
+	cp -u $(opensbi_plat_confdir)/* $(opensbi_plat_srcdir)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
-		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM=nuclei/demosoc
+		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM=nuclei/$(SOC)
 
-$(opensbi_payload): $(opensbi_srcdir) $(vmlinux_bin) $(platform_sim_dtb)
+ifeq ($(SOC),demosoc)
+$(opensbi_payload): $(opensbi_srcdir) $(vmlinux_sim_bin) $(platform_sim_dtb) $(opensbi_plat_deps)
 	rm -rf $(opensbi_wrkdir)
 	mkdir -p $(opensbi_wrkdir)
+	mkdir -p $(opensbi_plat_srcdir)
+	cp -u $(opensbi_plat_confdir)/* $(opensbi_plat_srcdir)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
-		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM=nuclei/demosoc \
-		FW_PAYLOAD_PATH=$(vmlinux_bin) FW_FDT_PATH=$(platform_sim_dtb)
+		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM=nuclei/$(SOC) \
+		FW_PAYLOAD_PATH=$(vmlinux_sim_bin) FW_FDT_PATH=$(platform_sim_dtb)
+endif
 
 $(buildroot_initramfs_sysroot): $(buildroot_initramfs_sysroot_stamp)
 
@@ -258,9 +328,12 @@ $(boot_wrkdir):
 $(boot_ubootscr): $(uboot_cmd) $(uboot_mkimage)
 	$(uboot_mkimage) -A riscv -T script -O linux -C none -a 0 -e 0 -n "bootscript" -d $(uboot_cmd) $@
 
+# UIMAGE_AE_CMD is defined in conf/$(SOC)/build.mk
+# For DDR_BASE = 0xA0000000, eg.
+# UIMAGE_AE_CMD := -a 0xA0400000 -e 0xA0400000
 $(boot_uimage_lz4): $(linux_image)
 	lz4 $< $(boot_image) -f -9
-	$(uboot_mkimage) -A riscv -O linux -T kernel -C lz4 -a 0xa0400000 -e 0xa0400000 -n Linux -d $(boot_image) $@
+	$(uboot_mkimage) -A riscv -O linux -T kernel -C lz4 $(UIMAGE_AE_CMD) -n Linux -d $(boot_image) $@
 	rm -f $(boot_image)
 
 $(boot_uinitrd_lz4): $(initramfs)
@@ -268,7 +341,8 @@ $(boot_uinitrd_lz4): $(initramfs)
 	$(uboot_mkimage) -A riscv -T ramdisk -C lz4 -n Initrd -d $(initramfs).lz4 $(boot_uinitrd_lz4)
 
 $(boot_kernel_dtb): $(platform_dts)
-	dtc -O dtb -o $(boot_kernel_dtb) $(platform_dts)
+	$(target_gcc) -E -nostdinc -undef -x assembler-with-cpp $(platform_dts) -o $(platform_preproc_dts)
+	dtc -O dtb -o $(boot_kernel_dtb) $(platform_preproc_dts)
 
 $(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_lz4) $(boot_kernel_dtb)
 	rm -f $(boot_zip)
@@ -324,13 +398,15 @@ freeloader4m: prepare4m $(freeloader_elf)
 endif
 
 ifeq ($(BOOT_MODE),sd)
-$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb)
+$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb) $(amp_bins)
 else
-$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb) $(boot_zip)
+$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb) $(boot_zip) $(amp_bins)
 endif
-	$(MAKE) -C $(freeloader_srcdir) ARCH=$(ISA) ABI=$(ABI) BOOT_MODE=$(BOOT_MODE) CROSS_COMPILE=$(CROSS_COMPILE) \
+	mkdir -p  $(freeloader_wrkdir)
+	$(MAKE) -C $(freeloader_srcdir) O=$(freeloader_wrkdir) ARCH=$(ISA) ABI=$(ABI) BOOT_MODE=$(BOOT_MODE) CROSS_COMPILE=$(CROSS_COMPILE) \
 		OPENSBI_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(platform_dtb) \
-		KERNEL_BIN=$(boot_uimage_lz4) INITRD_BIN=$(boot_uinitrd_lz4)
+		KERNEL_BIN=$(boot_uimage_lz4) INITRD_BIN=$(boot_uinitrd_lz4) CONFIG_MK=$(freeloader_confmk) \
+		CORE1_APP_BIN=$(CORE1_APP_BIN) CORE2_APP_BIN=$(CORE2_APP_BIN) CORE3_APP_BIN=$(CORE3_APP_BIN)
 
 upload_freeloader: $(freeloader_elf)
 	$(target_gdb) $< -ex "set remotetimeout 240" \
@@ -341,7 +417,7 @@ upload_freeloader: $(freeloader_elf)
 
 # Please make sure freeloader, linux and uboot are generated
 debug_freeloader:
-	$(target_gdb) $< -ex "set remotetimeout 240" \
+	$(target_gdb) $(freeloader_elf) -ex "set remotetimeout 240" \
 	-ex "target remote $(GDBREMOTE)" \
 	-ex "set confirm off" -ex "add-symbol-file $(vmlinux)" \
 	-ex "add-symbol-file $(opensbi_jumpelf)" \
@@ -357,7 +433,7 @@ upload_sbipayload: $(opensbi_payload)
 
 # Internal used, please make sure freeloader and linux are generated
 debug_sbipayload:
-	$(target_gdb) $< -ex "set remotetimeout 240" \
+	$(target_gdb) $(opensbi_payload) -ex "set remotetimeout 240" \
 	-ex "target remote $(GDBREMOTE)" \
 	-ex "set confirm off" -ex "add-symbol-file $(vmlinux)" \
 	-ex "add-symbol-file $(opensbi_payload)" \
@@ -368,7 +444,10 @@ run_openocd:
 	$(openocd) -f $(platform_openocd_cfg)
 
 
-.PHONY: clean cleanboot cleanlinux cleanbuildroot cleansysroot cleanfreeloader cleanopensbi prepare presim preboot
+.PHONY: distclean clean cleanboot cleanlinux cleanbuildroot cleansysroot cleanfreeloader  clean_freeloader cleanopensbi prepare presim preboot
+distclean:
+	rm -rf $(wrkdir_root)
+
 clean: cleanfreeloader
 	rm -rf $(wrkdir)
 
@@ -376,7 +455,7 @@ cleanboot:
 	rm -rf $(boot_wrkdir) $(boot_zip) $(initramfs) $(initramfs).lz4
 
 cleanlinux:
-	rm -rf $(linux_wrkdir) $(vmlinux_bin)
+	rm -rf $(linux_wrkdir) $(vmlinux_bin) $(vmlinux_sim_bin)
 
 cleanbuildroot:
 	rm -rf $(buildroot_initramfs_wrkdir)
@@ -387,23 +466,58 @@ cleansysroot:
 cleanuboot:
 	rm -rf $(uboot_wrkdir)
 
+clean_freeloader: cleanfreeloader
+
 cleanfreeloader:
-	$(MAKE) -C $(freeloader_srcdir) clean
+	$(MAKE) -C $(freeloader_srcdir) O=$(freeloader_wrkdir) clean
 
 cleanopensbi:
 	rm -rf $(opensbi_wrkdir)
 
-# If you change your make target from bootimages to sim, you need to run presim first
-presim: prepare
+
 # If you change your make target from sim to bootimages, you need to run preboot first
 preboot: prepare
 
 prepare:
-	rm -rf $(vmlinux_bin) $(vmlinux) $(linux_image)
+	rm -rf $(vmlinux_bin) $(vmlinux) $(linux_image) $(vmlinux_sim_bin) $(vmlinux_sim)
 
-.PHONY: sim opensbi_sim
+ifeq ($(SOC),demosoc)
+.PHONY: sim opensbi_sim presim
 
+# If you change your make target from bootimages to sim, you need to run presim first
+presim: prepare
 opensbi_sim: $(opensbi_payload)
 
 sim: $(opensbi_payload)
 	$(xlspike) --isa=$(ISA) $(opensbi_payload)
+endif
+
+.PHONY: backup snapshot
+# backup your build
+backup: $(wrkdir)
+	mkdir -p $(backupdir)
+	@echo "Backup SOC=$(SOC) built configs linux image, freeloader, opensbi, uboot, rootfs, dts and dtb into $(backupdir_snap)"
+	@echo "Backup Date : $(shell date)" > $(BACKUPMSG)
+	read -p 'Input your backup message: ' backupmsg ; echo "Backup messasge: $$backupmsg" >> $(BACKUPMSG)
+	@echo "> git log --oneline -1" >> $(BACKUPMSG)
+	git log --oneline -1 >> $(BACKUPMSG)
+	@echo "> git describe  --always --abbrev=10 --dirty" >> $(BACKUPMSG)
+	git describe  --always --abbrev=10 --dirty >> $(BACKUPMSG)
+	@echo "> git status -b -s" >> $(BACKUPMSG)
+	git status -b -s >> $(BACKUPMSG)
+	@echo "> git submodule" >> $(BACKUPMSG)
+	git submodule >> $(BACKUPMSG)
+	zip -q -r $(backupdir_snap) $(FILES2BACKUP)
+#	tar -czf $(backupdir_snap) $(FILES2BACKUP)
+	@echo "\n-----------------------------------------" >> $(FULL_BACKUPMSG)
+	@md5sum $(backupdir_snap) >> $(FULL_BACKUPMSG)
+	@cat $(BACKUPMSG)  >> $(FULL_BACKUPMSG)
+	@echo "empty content in run log file $(RUNLOG)"
+	@echo "" > $(RUNLOG)
+
+# snapshot source code
+snapshot:
+	@git-archive-all --version
+	@echo "Archive linux sdk source code snapshot to $(sourcezip_snap)"
+	@mkdir -p $(snapshotdir)
+	git-archive-all --prefix=nuclei-linux-sdk $(sourcezip_snap)

@@ -30,9 +30,9 @@ cache:
     artifacts:
         name: "bootimages-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
         paths:
-            - work/boot.zip
-            - work/opensbi/platform/nuclei/
-            - freeloader/freeloader.elf
+            - work/${SOC}/boot.zip
+            - work/${SOC}/opensbi/platform/nuclei/
+            - work/${SOC}/freeloader/freeloader.elf
             - build_*.log.*
         expire_in: 2 day
     tags:
@@ -91,7 +91,7 @@ cache:
     script:
         - echo ">>Run using xlspike for $CORE - $BOOT_MODE"
         - |
-            timeout --foreground -s SIGKILL 8m xl_spike work/opensbi/platform/nuclei/demosoc/firmware/fw_payload.elf > >(tee run_xlspike.log) || {
+            timeout --foreground -s SIGKILL 8m xl_spike work/${SOC}/opensbi/platform/nuclei/${SOC}/firmware/fw_payload.elf > >(tee run_xlspike.log) || {
                 if cat run_xlspike.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi; 
                 if cat run_xlspike.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi; 
             }
@@ -101,6 +101,7 @@ cache:
 build_ux600_flash:
     stage: build_ux600
     variables:
+        SOC: "demosoc"
         CORE: "ux600"
         BOOT_MODE: "flash"
     <<: *build_linux_sdk_job_def
@@ -110,6 +111,7 @@ build_ux600_flash:
 build_ux600_sd:
     stage: build_ux600
     variables:
+        SOC: "demosoc"
         CORE: "ux600"
         BOOT_MODE: "sd"
     <<: *build_linux_sdk_job_def
@@ -122,6 +124,7 @@ run_ux600_flash:
     dependencies:
         - build_ux600_flash
     variables:
+        SOC: "demosoc"
         CORE: "ux600"
         BOOT_MODE: "flash"
     <<: *run_linux_sdk_job_def
@@ -133,6 +136,7 @@ run_ux600_sd:
     dependencies:
         - build_ux600_sd
     variables:
+        SOC: "demosoc"
         CORE: "ux600"
         BOOT_MODE: "sd"
     <<: *run_linux_sdk_job_def
@@ -144,6 +148,7 @@ build_ux600fd_flash:
     stage: build_ux600fd
     dependencies:
     variables:
+        SOC: "demosoc"
         CORE: "ux600fd"
         BOOT_MODE: "flash"
     <<: *build_linux_sdk_job_def
@@ -154,6 +159,7 @@ build_ux600fd_sd:
     stage: build_ux600fd
     dependencies:
     variables:
+        SOC: "demosoc"
         CORE: "ux600fd"
         BOOT_MODE: "sd"
     <<: *build_linux_sdk_job_def
@@ -167,6 +173,7 @@ run_ux600fd_flash:
     dependencies:
         - build_ux600fd_flash
     variables:
+        SOC: "demosoc"
         CORE: "ux600fd"
         BOOT_MODE: "flash"
     <<: *run_linux_sdk_job_def
@@ -180,6 +187,7 @@ run_ux600fd_sd:
     dependencies:
         - build_ux600fd_sd
     variables:
+        SOC: "demosoc"
         CORE: "ux600fd"
         BOOT_MODE: "sd"
     <<: *run_linux_sdk_job_def

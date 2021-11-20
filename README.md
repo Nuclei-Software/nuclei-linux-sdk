@@ -9,7 +9,7 @@ This will download external prebuilt toolchain, and build linux kernel, device t
 and opensbi with linux kernel payload for Nuclei xl-spike which can emulate Nuclei Demo SoC.
 
 It can also build linux kernel, rootfs ramdisk, opensbi and freeloader for Nuclei Demo SoC
-FPGA bitstream running in Nuclei HummingBird FPGA Board.
+FPGA bitstream running in Nuclei FPGA Evaluation Board.
 
 Nuclei Demo SoC is mainly used for evaluation, which can be configured to use Nuclei RISC-V Core.
 
@@ -41,8 +41,9 @@ If you want to run linux on Nuclei Demo SoC, you will need UX600 or UX900 RISC-V
 ### Ubuntu 18.04 x86_64 host
 
 - Status: Working
-- Build dependencies: `build-essential git autotools-dev make cmake texinfo bison minicom flex liblz4-tool
-  libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler libncursesw5-dev libncursesw5`
+- Build dependencies
+  - packages: `build-essential git python3 python3-pip autotools-dev make cmake texinfo bison minicom flex liblz4-tool libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler libncursesw5-dev libncursesw5`
+  - python pips: `git-archive-all`
 - Get prebuilt openocd from [Nuclei Development Tools](https://nucleisys.com/download.php#tools)
 - Setup openocd and add it into **PATH**
 
@@ -53,8 +54,9 @@ If you want to run linux on Nuclei Demo SoC, you will need UX600 or UX900 RISC-V
 Install the software dependencies required by this SDK using command:
 
 ~~~shell
-sudo apt-get install build-essential git autotools-dev cmake texinfo bison minicom flex liblz4-tool \
+sudo apt-get install build-essential git python3 python3-pip autotools-dev cmake texinfo bison minicom flex liblz4-tool \
    libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler libncursesw5-dev libncursesw5
+sudo pip3 install git-archive-all
 ~~~
 
 ### Install Nuclei Tools
@@ -147,6 +149,11 @@ We support four configurations for **CORE**, choose the right core according to 
 * `ux600` or `ux900`: rv64imac RISC-V CORE configuration without FPU.
 * `ux600fd` or `ux900fd`: rv64imafdc RISC-V CORE configuration with FPU.
 
+You can choose different SoC by modify `SOC ?= demosoc` line in `Makefile`.
+
+* `demosoc`: The evaluation SoC from nuclei
+* you can add your SoC support by adding configuration in `conf/` folder
+
 You can choose different boot mode by modify the `BOOT_MODE ?= sd` line in `Makefile`.
 
 * `sd`: boot from flash + sdcard, extra SDCard is required(kernel, rootfs, dtb placed in it)
@@ -157,7 +164,7 @@ Please modify the `Makefile` to your correct core configuration before build any
 * **Deprecated**: If you want to compile and run using simulator *xl-spike*, please
   check steps mentioned in [Booting Linux on Nuclei xl-spike](#Booting-Linux-on-Nuclei-xl-spike)
 * If you want to compile and run using FPGA evaluation board, please
-  check steps mentioned in [Booting Linux on Nuclei HummingBird Board](#Booting-Linux-on-Nuclei-HummingBird-Board)
+  check steps mentioned in [Booting Linux on Nuclei FPGA Evaluation Board](#Booting-Linux-on-Nuclei-FPGA-Evaluation-Board)
 
 ## Booting Linux on Nuclei xl-spike
 
@@ -323,7 +330,7 @@ UART: #
 
 If you want to remove the login, and directly enter to bash, please check [**Known issues and FAQ**](#Known-issues-and-FAQs).
 
-## Booting Linux on Nuclei HummingBird Board
+## Booting Linux on Nuclei FPGA Evaluation Board
 
 ### Get Nuclei Demo SoC MCS from Nuclei
 
@@ -336,7 +343,7 @@ To learn about Nuclei RISC-V Linux Capable Core, please check:
 * [UX600 Series 64-Bit High Performance Application Processor](https://nucleisys.com/product.php?site=ux600)
 * [900 Series 32/64-Bit High Performance Processor](https://nucleisys.com/product.php?site=900)
 
-Nuclei HummingBird FPGA Evaluation Board, DDR200T version is correct hardware to
+Nuclei FPGA Evaluation Board, DDR200T version is correct hardware to
 run linux on it, click [Nuclei DDR200T Board](https://nucleisys.com/developboard.php#ddr200t) to learn about more.
 
 ### Build Freeloader
@@ -347,7 +354,7 @@ norflash to DDR, and then goto entry of *opensbi*.
 
 To build *freeloader*, you just need to run `make freeloader`
 
-### Upload Freeloader to HummingBird FPGA Board
+### Upload Freeloader to FPGA Evaluation Board
 
 If you have connected your board to your Linux development environment, and setuped JTAG drivers,
 then you can run `make upload_freeloader` to upload the *freeloader/freeloader.elf* to your board.
@@ -610,11 +617,11 @@ You can customize buildroot packages to add or remove package in buildroot using
 make buildroot_initramfs-menuconfig
 ~~~
 
-The new configuration will be saved to `conf/` folder, for when a full rebuild of buildroot
+The new configuration for demosoc will be saved to `conf/demosoc` folder, for when a full rebuild of buildroot
 is necessary, please check [this link](https://buildroot.org/downloads/manual/manual.html#full-rebuild).
 
-* *conf/buildroot_initramfs_rv64imac_config*: The buildroot configuration for RISC-V ISA/ARCH is **rv64imac**, such as ux600 and ux900
-* *conf/buildroot_initramfs_rv64imafdc_config*: The buildroot configuration for for RISC-V ISA/ARCH is **rv64imafdc**, such as ux600fd and ux900fd
+* *conf/demosoc/buildroot_initramfs_rv64imac_config*: The buildroot configuration for RISC-V ISA/ARCH is **rv64imac**, such as ux600 and ux900
+* *conf/demosoc/buildroot_initramfs_rv64imafdc_config*: The buildroot configuration for for RISC-V ISA/ARCH is **rv64imafdc**, such as ux600fd and ux900fd
 
 By default, we add many packages in buildroot default configuration, you can remove the packages
 you dont need in configuration to generate smaller rootfs, a full rebuild of SDK is required for
@@ -624,21 +631,21 @@ removing buildroot package.
 
 You can customize linux kernel configuration using command `make linux-menuconfig`, the new configuration will be saved to `conf` folder
 
-* *conf/linux_rv64imac_defconfig*: The linux kernel configuration for RISC-V rv64imac ARCH.
-* *conf/linux_rv64imafdc_defconfig*: The linux kernel configuration for  RISC-V rv64imafdc ARCH.
-* *conf/nuclei_rv64imac.dts*: Device tree for RISC-V rv64imac ARCH used in hardware
-* *conf/nuclei_rv64imafdc.dts*: Device tree for RISC-V rv64imafdc ARCH used in hardware
-* *conf/nuclei_rv64imac_sim.dts*: Device tree for RISC-V rv64imac ARCH used in simulation
-* *conf/nuclei_rv64imafdc_sim.dts*: Device tree for RISC-V rv64imafdc ARCH used in simulation
+* *conf/demosoc/linux_rv64imac_defconfig*: The linux kernel configuration for RISC-V rv64imac ARCH.
+* *conf/demosoc/linux_rv64imafdc_defconfig*: The linux kernel configuration for  RISC-V rv64imafdc ARCH.
+* *conf/demosoc/nuclei_rv64imac.dts*: Device tree for RISC-V rv64imac ARCH used in hardware
+* *conf/demosoc/nuclei_rv64imafdc.dts*: Device tree for RISC-V rv64imafdc ARCH used in hardware
+* *conf/demosoc/nuclei_rv64imac_sim.dts*: Device tree for RISC-V rv64imac ARCH used in simulation
+* *conf/demosoc/nuclei_rv64imafdc_sim.dts*: Device tree for RISC-V rv64imafdc ARCH used in simulation
 
 ### Customize uboot configuration
 
 You can customize linux kernel configuration using command `make uboot-menuconfig`, the new configuration will be saved to `conf` folder
 
-* *conf/uboot_rv64imac_flash_config*: uboot configuration for RISC-V rv64imac ARCH, flash boot mode
-* *conf/uboot_rv64imafdc_flash_config*: uboot configuration for RISC-V rv64imafdc ARCH, flash boot mode
-* *conf/uboot_rv64imac_sd_config*: uboot configuration for RISC-V rv64imac ARCH, flash boot mode
-* *conf/uboot_rv64imafdc_sd_config*: uboot configuration for RISC-V rv64imafdc ARCH, sd boot mode
+* *conf/demosoc/uboot_rv64imac_flash_config*: uboot configuration for RISC-V rv64imac ARCH, flash boot mode
+* *conf/demosoc/uboot_rv64imafdc_flash_config*: uboot configuration for RISC-V rv64imafdc ARCH, flash boot mode
+* *conf/demosoc/uboot_rv64imac_sd_config*: uboot configuration for RISC-V rv64imac ARCH, flash boot mode
+* *conf/demosoc/uboot_rv64imafdc_sd_config*: uboot configuration for RISC-V rv64imafdc ARCH, sd boot mode
 
 ### Remove generated boot images
 
@@ -646,7 +653,7 @@ You can remove generated boot images using command `make cleanboot`.
 
 ### Prebuilt applications with RootFS
 
-If you want to do application development in Linux with Hummingbird FPGA evaluation board, please
+If you want to do application development in Linux with FPGA Evaluation board, please
 follow these steps.
 
 Currently, SDCard is not working in Linux, so if you want to put your own application, and run it in
@@ -657,10 +664,10 @@ For example, I would like to compile new `dhrystone` application and run it in l
 
 0. Make sure you have built boot images, using `make bootimages`
 
-1. Copy the old `dhrystone` source code from `work/buildroot_initramfs/build/dhrystone-2` to
-   `work/buildroot_initramfs/build/dhrystone-3`
+1. Copy the old `dhrystone` source code from `work/<SOC>/buildroot_initramfs/build/dhrystone-2` to
+   `work/<SOC>/buildroot_initramfs/build/dhrystone-3`
 
-2. cd to `work/buildroot_initramfs/build/dhrystone-3`, and modify `Makefile` as below:
+2. cd to `work/<SOC>/buildroot_initramfs/build/dhrystone-3`, and modify `Makefile` as below:
 
    ~~~makefile
    # Make sure you use the compiler in this path below
@@ -756,18 +763,19 @@ For our current development demo SoC, we used the following resources:
   SPIFlash is used to place freeloader, which contains opensbi, uboot, dtb, and optional kernel and rootfs
   when flash-only boot is performed. **Flash-only boot** will required at least 8M flash.
 
-To basically port this SDK to match your target, you need at least to change the following files:
+To basically port this SDK to match your target, you can make a copy of `conf/demosoc` such as `conf/nsoc`:
 
-* *freeloader/freeloader.S*: Change **OPENSBI_START_BASE, UBOOT_START_BASE, FDT_START_BASE, COPY_START_BASE, KERNEL_START_BASE, INITRD_START_BASE** to match your system memory map.
-* *freeloader/linker.lds*: Change *flash* memory description line to match your flash memory memory.
-* *opensbi/platform/nuclei/*: Change *config.mk* to match your system memory map, change *platform.c* to match your system
-  peripheral driver including uart, timer, gpio, etc.
-* *u-boot/arch/riscv/dts/nuclei-demosoc.dts*: Change this dts file to match your SoC design.
-* *u-boot/board/nuclei/demosoc*: Change *demosoc.c* to match your board init requirements, change *Kconfig*'s **SYS_TEXT_BASE**.
-* *u-boot/include/configs/nuclei-demosoc.h*: Change **CONFIG_SYS_SDRAM_BASE**, **CONFIG_STANDALONE_LOAD_ADDR**, and **CONFIG_EXTRA_ENV_SETTINGS**
-* *conf/nuclei_rv64imac.dts*, *conf/nuclei_rv64imafdc.dts* and *openocd_demosoc.cfg*: Change these files to match your SoC design.
+* *freeloader.mk*: change the variable defined in this mk to match your design, if you will not using amp mode, please set AMP_START_CORE to max hart id, for example, if you have four core, change it to 4.
+* *build.mk*: Change **UIMAGE_AE_CMD** to match your DDR base, if you are using AMP, **CORE1_APP_BIN**, **CORE2_APP_BIN** and **CORE3_APP_BIN**
+  need to be configured, CORE1-CORE3 each memory is 8MB, and application base address is offset 0xE000000 at DDR base.
+* *opensbi/*: Change the opensbi support code for your soc.
+* *conf/nuclei_rv64imac.dts*, *conf/nuclei_rv64imafdc.dts* and *openocd.cfg*: Change these files to match your SoC design.
 * *conf/uboot.cmd*: Change to match your memory map.
-* *Makefile*: Change *$(uboot_mkimage)* command line run for *$(boot_uimage_lz4)* target
+* *conf/uboot_rv64imac_sd_config*, *conf/uboot_rv64imac_flash_config*, *conf/uboot_rv64imafdc_sd_config* and *conf/uboot_rv64imafdc_flash_config*:
+  change **CONFIG_SYS_TEXT_BASE** and **CONFIG_BOOTCOMMAND** to match your uboot system text address and boot command address.
+* *Makefile*: Change *$(uboot_mkimage)* command line run for *$(boot_uimage_lz4)* target, make sure the **-a 0x40400000 -e 0x40400000** matched with your DDR base.
+  The entry of rv64 linux offset to the start of ram is 0x400000, see *linux/arch/riscv/kernel/head.S*.
+* If you have a lot of changes in uboot or linux, please directly change code in it.
 
 > If you have enabled TEE feature(sPMP module included), you need to configure spmp csr registers
 > as this commit https://github.com/Nuclei-Software/opensbi/commit/1d28050d01b93b6afe590487324b663c65a2c429 .
@@ -776,7 +784,7 @@ To basically port this SDK to match your target, you need at least to change the
 ## Known issues and FAQs
 
 * For Nuclei Demo SoC, if you run simulation using xl_spike, it can run to login prompt, but when you login, it will
-  show timeout issue, this is caused by xl_spike timer is not standard type, but the boot images for FPGA
+  show timeout issue, this is caused by xl_spike timer is not standard type, but the boot images for FPGA evaluation
   board can boot successfully and works well.
 
   If you want to execute using `xl_spike` without the login, you can edit the *work/buildroot_initramfs_sysroot/etc/inittab* file(started from `# now run any rc scripts`) as below, and save it:
