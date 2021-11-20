@@ -83,7 +83,7 @@
 
   memory@A0000000 {
     device_type = "memory";
-    reg = <0x0 0xA0000000 0x0 0x09000000>;
+    reg = <0x0 0xA0000000 0x0 0xE000000>;
   };
 
   soc {
