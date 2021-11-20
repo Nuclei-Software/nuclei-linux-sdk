@@ -1,13 +1,18 @@
 /dts-v1/;
 
+#define TIMERCLK_FREQ       32768
+#define CPUCLK_FREQ         16000000
+#define PERIPHCLK_FREQ      16000000
+
 / {
   #address-cells = <2>;
   #size-cells = <2>;
   compatible = "nuclei,demo-soc";
   model = "nuclei,demo-soc";
-  
+
   chosen {
       bootargs = "earlycon=sbi console=ttyNUC0";
+      stdout-path = "serial0";
   };
 
   aliases {
@@ -18,16 +23,58 @@
   cpus {
     #address-cells = <1>;
     #size-cells = <0>;
-    timebase-frequency = <32768>;
+    timebase-frequency = <TIMERCLK_FREQ>;
     cpu0: cpu@0 {
       device_type = "cpu";
       reg = <0>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imac";
+      riscv,isa = "rv64imafdc";
       mmu-type = "riscv,sv39";
-      clock-frequency = <16000000>;
+      clock-frequency = <CPUCLK_FREQ>;
       cpu0_intc: interrupt-controller {
+        #interrupt-cells = <1>;
+        interrupt-controller;
+        compatible = "riscv,cpu-intc";
+      };
+    };
+    cpu1: cpu@1 {
+      device_type = "cpu";
+      reg = <1>;
+      status = "okay";
+      compatible = "riscv";
+      riscv,isa = "rv64imafdc";
+      mmu-type = "riscv,sv39";
+      clock-frequency = <CPUCLK_FREQ>;
+      cpu1_intc: interrupt-controller {
+        #interrupt-cells = <1>;
+        interrupt-controller;
+        compatible = "riscv,cpu-intc";
+      };
+    };
+    cpu2: cpu@2 {
+      device_type = "cpu";
+      reg = <2>;
+      status = "okay";
+      compatible = "riscv";
+      riscv,isa = "rv64imafdc";
+      mmu-type = "riscv,sv39";
+      clock-frequency = <CPUCLK_FREQ>;
+      cpu2_intc: interrupt-controller {
+        #interrupt-cells = <1>;
+        interrupt-controller;
+        compatible = "riscv,cpu-intc";
+      };
+    };
+    cpu3: cpu@3 {
+      device_type = "cpu";
+      reg = <3>;
+      status = "okay";
+      compatible = "riscv";
+      riscv,isa = "rv64imafdc";
+      mmu-type = "riscv,sv39";
+      clock-frequency = <CPUCLK_FREQ>;
+      cpu3_intc: interrupt-controller {
         #interrupt-cells = <1>;
         interrupt-controller;
         compatible = "riscv,cpu-intc";
@@ -55,18 +102,33 @@
   hfclk: hfclk {
     #clock-cells = <0>;
     compatible = "fixed-clock";
-    clock-frequency = <16000000>;
+    clock-frequency = <PERIPHCLK_FREQ>;
     clock-output-names = "hfclk";
   };
-  
+
   plic0: interrupt-controller@8000000 {
     #interrupt-cells = <1>;
     compatible = "riscv,plic0";
     interrupt-controller;
     riscv,ndev = <53>;
     interrupts-extended =
-          <&cpu0_intc 11 &cpu0_intc 9>;
+          <&cpu0_intc 11 &cpu0_intc 9
+           &cpu1_intc 11 &cpu1_intc 9
+           &cpu2_intc 11 &cpu2_intc 9
+           &cpu3_intc 11 &cpu3_intc 9>;
     reg = <0x0 0x8000000 0x0 0x4000000>;
+  };
+
+  clint0: clint@2001000 {
+    #interrupt-cells = <1>;
+    compatible = "riscv,clint0";
+    reg = <0x0 0x2001000 0x0 0xC000>;
+    interrupts-extended =
+          <&cpu0_intc 3 &cpu0_intc 7
+           &cpu1_intc 3 &cpu1_intc 7
+           &cpu2_intc 3 &cpu2_intc 7
+           &cpu3_intc 3 &cpu3_intc 7>;
+    clocks = <&hfclk>;
   };
 
   uart0: serial@10013000 {
@@ -75,6 +137,7 @@
     interrupt-parent = <&plic0>;
     interrupts = <33>;
     clocks = <&hfclk>;
+    clock-frequency = <PERIPHCLK_FREQ>;
     status = "okay";
   };
 
@@ -84,7 +147,8 @@
     interrupt-parent = <&plic0>;
     interrupts = <34>;
     clocks = <&hfclk>;
-    status = "okay";
+    clock-frequency = <PERIPHCLK_FREQ>;
+    status = "disabled";
   };
 
   qspi0: spi@10014000 {
@@ -102,9 +166,9 @@
       compatible = "gd25q32", "jedec,spi-nor";
       reg = <0>;
       spi-max-frequency = <1000000>;
-      // m25p,fast-read;
-      #spi-tx-bus-width = <1>;
-      #spi-rx-bus-width = <1>;
+      m25p,fast-read;
+      spi-tx-bus-width = <4>;
+      spi-rx-bus-width = <4>;
     };
   };
 
@@ -142,6 +206,6 @@
     interrupt-controller;
     #interrupt-cells = <2>;
     clocks = <&hfclk>;
-    status = "okay";
+    status = "disabled";
   };
 };
