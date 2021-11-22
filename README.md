@@ -357,7 +357,7 @@ To build *freeloader*, you just need to run `make freeloader`
 ### Upload Freeloader to FPGA Evaluation Board
 
 If you have connected your board to your Linux development environment, and setuped JTAG drivers,
-then you can run `make upload_freeloader` to upload the *freeloader/freeloader.elf* to your board.
+then you can run `make upload_freeloader` to upload the *work/<SOC>/freeloader/freeloader.elf* to your board.
 
 You can also use `riscv-nuclei-elf-gdb` and `openocd` to download this program by yourself, for
 simple steps, please see [Known issues and FAQs](#Known-issues-and-FAQs).
@@ -416,17 +416,17 @@ OpenSBI v0.9
 
 Platform Name             : Nuclei Demo SoC
 Platform Features         : timer,mfdeleg
-Platform HART Count       : 1
+Platform HART Count       : 4
 Firmware Base             : 0xa0000000
-Firmware Size             : 84 KB
+Firmware Size             : 120 KB
 Runtime SBI Version       : 0.2
 
 Domain0 Name              : root
 Domain0 Boot HART         : 0
-Domain0 HARTs             : 0*
+Domain0 HARTs             : 0*,1*,2*,3*
 Domain0 Region00          : 0x00000000a0000000-0x00000000a001ffff ()
 Domain0 Region01          : 0x0000000000000000-0xffffffffffffffff (R,W,X)
-Domain0 Next Address      : 0x00000000a0400000
+Domain0 Next Address      : 0x00000000a0200000
 Domain0 Next Arg1         : 0x00000000a8000000
 Domain0 Next Mode         : S-mode
 Domain0 SysReset          : yes
@@ -444,146 +444,168 @@ Boot HART MIDELEG         : 0x0000000000000222
 Boot HART MEDELEG         : 0x000000000000b109
 
 
-U-Boot 2021.01-00012-gccba5cffc5 (Mar 19 2021 - 10:33:37 +0800)
+U-Boot 2021.01-00018-g689711afb6 (Nov 20 2021 - 08:44:44 +0800)
 
 CPU:   rv64imac
 Model: nuclei,demo-soc
 DRAM:  256 MiB
 Board: Initialized
-MMC:   spi@10034000:mmc@0: 0
-In:    console
-Out:   console
-Err:   console
+MMC:   Nuclei SPI version 0x0
+spi@10034000:mmc@0: 0
+In:    serial@10013000
+Out:   serial@10013000
+Err:   serial@10013000
 Net:   No ethernet found.
 Hit any key to stop autoboot:  0
 switch to partitions #0, OK
 mmc0 is current device
 Scanning mmc 0:1...
 Found U-Boot script /boot.scr
-314 bytes read in 67 ms (3.9 KiB/s)
-## Executing script at a8100000
+314 bytes read in 176 ms (1000 Bytes/s)
+## Executing script at a0200000
 Loading kernel
-2431019 bytes read in 16997 ms (139.6 KiB/s)
+3969714 bytes read in 35517 ms (108.4 KiB/s)
 Loading ramdisk
-2975296 bytes read in 20729 ms (139.6 KiB/s)
+3588543 bytes read in 32133 ms (108.4 KiB/s)
 Loading dtb
-2760 bytes read in 86 ms (31.3 KiB/s)
+3861 bytes read in 208 ms (17.6 KiB/s)
 Starts booting from SD
 ## Booting kernel from Legacy Image at a1000000 ...
    Image Name:   Linux
    Image Type:   RISC-V Linux Kernel Image (lz4 compressed)
-   Data Size:    2430955 Bytes = 2.3 MiB
+   Data Size:    3969650 Bytes = 3.8 MiB
    Load Address: a0400000
    Entry Point:  a0400000
    Verifying Checksum ... OK
 ## Loading init Ramdisk from Legacy Image at a8300000 ...
    Image Name:   Initrd
    Image Type:   RISC-V Linux RAMDisk Image (lz4 compressed)
-   Data Size:    2975232 Bytes = 2.8 MiB
+   Data Size:    3588479 Bytes = 3.4 MiB
    Load Address: 00000000
    Entry Point:  00000000
    Verifying Checksum ... OK
 ## Flattened Device Tree blob at a8000000
    Booting using the fdt blob at 0xa8000000
    Uncompressing Kernel Image
-   Using Device Tree in place at 00000000a8000000, end 00000000a8003ac7
+   Using Device Tree in place at 00000000a8000000, end 00000000a8003f14
 
 Starting kernel ...
 
-[    0.000000] Linux version 5.10.0+ (xl_ci@softserver) (riscv-nuclei-linux-gnu-gcc (GCC) 9.2.0, GNU ld (GNU Binutils) 2.32) #1 Fri Mar 19 10:34:42 CST 2021
+[    0.000000] Linux version 5.10.0+ (hqfang@whss1.corp.nucleisys.com) (riscv-nuclei-linux-gnu-gcc (GCC) 9.2.0, GNU ld (GNU Binutils) 2.32) #10 SMP Mon Nov 22 18:32:26 CST 2021
 [    0.000000] OF: fdt: Ignoring memory range 0xa0000000 - 0xa0400000
 [    0.000000] earlycon: sbi0 at I/O port 0x0 (options '')
 [    0.000000] printk: bootconsole [sbi0] enabled
 [    0.000000] efi: UEFI not found.
-[    0.000000] Initial ramdisk at: 0x(____ptrval____) (2977792 bytes)
+[    0.000000] Initial ramdisk at: 0x(____ptrval____) (3592192 bytes)
 [    0.000000] Zone ranges:
-[    0.000000]   DMA32    [mem 0x00000000a0400000-0x00000000afffffff]
+[    0.000000]   DMA32    [mem 0x00000000a0400000-0x00000000adffffff]
 [    0.000000]   Normal   empty
 [    0.000000] Movable zone start for each node
 [    0.000000] Early memory node ranges
-[    0.000000]   node   0: [mem 0x00000000a0400000-0x00000000afffffff]
-[    0.000000] Initmem setup node 0 [mem 0x00000000a0400000-0x00000000afffffff]
-[    0.000000] software IO TLB: mapped [mem 0x00000000abc89000-0x00000000afc89000] (64MB)
+[    0.000000]   node   0: [mem 0x00000000a0400000-0x00000000adffffff]
+[    0.000000] Initmem setup node 0 [mem 0x00000000a0400000-0x00000000adffffff]
+[    0.000000] software IO TLB: mapped [mem 0x00000000a9cf7000-0x00000000adcf7000] (64MB)
 [    0.000000] SBI specification v0.2 detected
 [    0.000000] SBI implementation ID=0x1 Version=0x9
 [    0.000000] SBI v0.2 TIME extension detected
 [    0.000000] SBI v0.2 IPI extension detected
 [    0.000000] SBI v0.2 RFENCE extension detected
+[    0.000000] SBI v0.2 HSM extension detected
 [    0.000000] riscv: ISA extensions acim
 [    0.000000] riscv: ELF capabilities acim
-[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 63630
+[    0.000000] percpu: Embedded 16 pages/cpu s25112 r8192 d32232 u65536
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 55550
 [    0.000000] Kernel command line: earlycon=sbi console=ttyNUC0
 [    0.000000] Dentry cache hash table entries: 32768 (order: 6, 262144 bytes, linear)
 [    0.000000] Inode-cache hash table entries: 16384 (order: 5, 131072 bytes, linear)
 [    0.000000] Sorting __ex_table...
 [    0.000000] mem auto-init: stack:off, heap alloc:off, heap free:off
-[    0.000000] Memory: 174076K/258048K available (2696K kernel code, 4044K rwdata, 2048K rodata, 128K init, 280K bss, 83972K reserved, 0K cma-reserved)
-[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+[    0.000000] Memory: 138748K/225280K available (4630K kernel code, 4236K rwdata, 2048K rodata, 188K init, 328K bss, 86532K reserved, 0K cma-reserved)
+[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=4, Nodes=1
+[    0.000000] rcu: Hierarchical RCU implementation.
+[    0.000000] rcu:     RCU restricting CPUs from NR_CPUS=8 to nr_cpu_ids=4.
+[    0.000000] rcu: RCU calculated value of scheduler-enlistment delay is 10 jiffies.
+[    0.000000] rcu: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=4
 [    0.000000] NR_IRQS: 64, nr_irqs: 64, preallocated irqs: 0
 [    0.000000] riscv-intc: 64 local interrupts mapped
-[    0.000000] plic: interrupt-controller@8000000: mapped 53 interrupts with 1 handlers for 2 contexts.
-[    0.000000] random: get_random_bytes called from 0xffffffe000002910 with crng_init=0
+[    0.000000] plic: interrupt-controller@8000000: mapped 53 interrupts with 4 handlers for 8 contexts.
+[    0.000000] random: get_random_bytes called from 0xffffffe000002964 with crng_init=0
 [    0.000000] riscv_timer_init_dt: Registering clocksource cpuid [0] hartid [0]
 [    0.000000] clocksource: riscv_clocksource: mask: 0xffffffffffffffff max_cycles: 0x1ef4687b1, max_idle_ns: 112843571739654 ns
-[    0.000549] sched_clock: 64 bits at 32kHz, resolution 30517ns, wraps every 70368744171142ns
-[    0.012512] Calibrating delay loop (skipped), value calculated using timer frequency.. 0.06 BogoMIPS (lpj=327)
-[    0.024505] pid_max: default: 32768 minimum: 301
-[    0.042907] Mount-cache hash table entries: 512 (order: 0, 4096 bytes, linear)
-[    0.052398] Mountpoint-cache hash table entries: 512 (order: 0, 4096 bytes, linear)
-[    0.156005] EFI services will not be available.
-[    0.177459] devtmpfs: initialized
-[    0.282592] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
-[    0.294403] futex hash table entries: 256 (order: 0, 6144 bytes, linear)
-[    0.306640] pinctrl core: initialized pinctrl subsystem
-[    0.335601] NET: Registered protocol family 16
-[    1.011871] clocksource: Switched to clocksource riscv_clocksource
-[    1.104187] NET: Registered protocol family 2
-[    1.156402] tcp_listen_portaddr_hash hash table entries: 256 (order: 0, 4096 bytes, linear)
-[    1.167785] TCP established hash table entries: 2048 (order: 2, 16384 bytes, linear)
-[    1.180389] TCP bind hash table entries: 2048 (order: 2, 16384 bytes, linear)
-[    1.193115] TCP: Hash tables configured (established 2048 bind 2048)
-[    1.213287] UDP hash table entries: 256 (order: 1, 8192 bytes, linear)
-[    1.223144] UDP-Lite hash table entries: 256 (order: 1, 8192 bytes, linear)
-[    1.243774] NET: Registered protocol family 1
-[    1.292449] RPC: Registered named UNIX socket transport module.
-[    1.298797] RPC: Registered udp transport module.
-[    1.304748] RPC: Registered tcp transport module.
-[    1.309814] RPC: Registered tcp NFSv4.1 backchannel transport module.
-[    1.335418] Trying to unpack rootfs image as initramfs...
-[   14.888092] Freeing initrd memory: 2900K
-[   14.930847] workingset: timestamp_bits=62 max_order=16 bucket_order=0
-[   15.429321] io scheduler mq-deadline registered
-[   15.435272] io scheduler kyber registered
-[   19.279907] 10013000.serial: ttyNUC0 at MMIO 0x10013000 (irq = 1, base_baud = 0) is a Nuclei UART/USART
-[   19.291564] printk: console [ttyNUC0] enabled
-[   19.291564] printk: console [ttyNUC0] enabled
-[   19.301544] printk: bootconsole [sbi0] disabled
-[   19.301544] printk: bootconsole [sbi0] disabled
-[   19.339843] 10023000.serial: ttyNUC1 at MMIO 0x10023000 (irq = 2, base_baud = 0) is a Nuclei UART/USART
-[   20.226654] brd: module loaded
-[   20.825378] loop: module loaded
-[   20.849182] nuclei_spi 10014000.spi: mapped; irq=3, cs=1
-[   20.905487] nuclei_spi 10034000.spi: mapped; irq=4, cs=1
-[   21.026824] mmc_spi spi1.0: SD/MMC host mmc0, no DMA, no WP, no poweroff, cd polling
-[   21.066528] NET: Registered protocol family 17
-[   21.144989] Freeing unused kernel memory: 128K
-[   21.159332] Run /init as init process
-[   21.414581] mmc0: host does not support reading read-only switch, assuming write-enable
-[   21.424438] mmc0: new SDHC card on SPI
-[   21.556915] mmcblk0: mmc0:0000 SA08G 7.21 GiB
-[   21.858367]  mmcblk0: p1
+[    0.000579] sched_clock: 64 bits at 32kHz, resolution 30517ns, wraps every 70368744171142ns
+[    0.014678] Calibrating delay loop (skipped), value calculated using timer frequency.. 0.06 BogoMIPS (lpj=327)
+[    0.027160] pid_max: default: 32768 minimum: 301
+[    0.049194] Mount-cache hash table entries: 512 (order: 0, 4096 bytes, linear)
+[    0.058044] Mountpoint-cache hash table entries: 512 (order: 0, 4096 bytes, linear)
+[    0.228302] rcu: Hierarchical SRCU implementation.
+[    0.256011] EFI services will not be available.
+[    0.290679] smp: Bringing up secondary CPUs ...
+[    1.470336] CPU1: failed to come online
+[    2.653228] CPU2: failed to come online
+[    3.837249] CPU3: failed to come online
+[    3.845764] smp: Brought up 1 node, 1 CPU
+[    3.887939] devtmpfs: initialized
+[    4.040771] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+[    4.053253] futex hash table entries: 1024 (order: 4, 65536 bytes, linear)
+[    4.076171] pinctrl core: initialized pinctrl subsystem
+[    4.113983] NET: Registered protocol family 16
+[    5.347015] clocksource: Switched to clocksource riscv_clocksource
+[    5.471710] NET: Registered protocol family 2
+[    5.541687] tcp_listen_portaddr_hash hash table entries: 256 (order: 0, 4096 bytes, linear)
+[    5.553710] TCP established hash table entries: 2048 (order: 2, 16384 bytes, linear)
+[    5.568603] TCP bind hash table entries: 2048 (order: 3, 32768 bytes, linear)
+[    5.583312] TCP: Hash tables configured (established 2048 bind 2048)
+[    5.607330] UDP hash table entries: 256 (order: 1, 8192 bytes, linear)
+[    5.617980] UDP-Lite hash table entries: 256 (order: 1, 8192 bytes, linear)
+[    5.642791] NET: Registered protocol family 1
+[    5.702148] RPC: Registered named UNIX socket transport module.
+[    5.709930] RPC: Registered udp transport module.
+[    5.716430] RPC: Registered tcp transport module.
+[    5.721679] RPC: Registered tcp NFSv4.1 backchannel transport module.
+[    5.756439] Trying to unpack rootfs image as initramfs...
+[   24.337127] Freeing initrd memory: 3500K
+[   24.405731] workingset: timestamp_bits=62 max_order=16 bucket_order=0
+[   25.108306] jffs2: version 2.2. (NAND) ? 2001-2006 Red Hat, Inc.
+[   25.171173] JFS: nTxBlock = 1111, nTxLock = 8890
+[   30.998046] NET: Registered protocol family 38
+[   31.003845] io scheduler mq-deadline registered
+[   31.010955] io scheduler kyber registered
+[   35.939666] 10013000.serial: ttyNUC0 at MMIO 0x10013000 (irq = 1, base_baud = 0) is a Nuclei UART/USART
+[   35.952178] printk: console [ttyNUC0] enabled
+[   35.952178] printk: console [ttyNUC0] enabled
+[   35.962707] printk: bootconsole [sbi0] disabled
+[   35.962707] printk: bootconsole [sbi0] disabled
+[   37.080108] brd: module loaded
+[   37.796142] loop: module loaded
+[   37.829589] nuclei_spi 10014000.spi: mapped; irq=2, cs=1
+[   37.911041] spi-nor spi0.0: gd25q32 (4096 Kbytes)
+[   38.168762] random: fast init done
+[   40.963745] ftl_cs: FTL header not found.
+[   41.049835] nuclei_spi 10034000.spi: mapped; irq=4, cs=1
+[   41.171173] libphy: Fixed MDIO Bus: probed
+[   41.290649] mmc_spi spi1.0: SD/MMC host mmc0, no DMA, no WP, no poweroff, cd polling
+[   41.335723] ipip: IPv4 and MPLS over IPv4 tunneling driver
+[   41.440307] NET: Registered protocol family 10
+[   41.578979] Segment Routing with IPv6
+[   41.590179] sit: IPv6, IPv4 and MPLS over IPv4 tunneling driver
+[   41.658477] NET: Registered protocol family 17
+[   41.801025] Freeing unused kernel memory: 188K
+[   41.809509] Run /init as init process
+[   42.180999] mmc0: host does not support reading read-only switch, assuming write-enable
+[   42.191345] mmc0: new SDHC card on SPI
+[   42.358581] mmcblk0: mmc0:0000 SD08G 7.52 GiB
+[   42.733947]  mmcblk0: p1 p2 p3 p4
 Starting syslogd: OK
 Starting klogd: OK
 Running sysctl: OK
 Starting mdev... OK
 modprobe: can't change directory to '/lib/modules': No such file or directory
-Saving random seed: [   93.607543] random: dd: uninitialized urandom read (512 bytes read)
+Saving random seed: [  143.897155] random: dd: uninitialized urandom read (512 bytes read)
 OK
 
-Welcome to Nuclei System Techology
+Welcome to Nuclei System Technology
 nucleisys login: root
 Password:
-#
 # cat /proc/cpuinfo
 processor       : 0
 hart            : 0
@@ -591,12 +613,8 @@ isa             : rv64imac
 mmu             : sv39
 
 # uname -a
-Linux nucleisys 5.10.0+ #1 Fri Mar 19 10:34:42 CST 2021 riscv64 GNU/Linux
-# ls /[ 1154.794952] random: fast init done
-
-bin      init     linuxrc  opt      run      tmp
-dev      lib      media    proc     sbin     usr
-etc      lib64    mnt      root     sys      var
+Linux nucleisys 5.10.0+ #10 SMP Mon Nov 22 18:32:26 CST 2021 riscv64 GNU/Linux
+#
 ~~~
 
 ## Application Development
@@ -888,7 +906,7 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
 * The best way to learn this project is taking a look at the [Makefile](Makefile) of this project to learn about
   what is really done in each make target.
 
-* Download *freeloader/freeloader.elf* using Nuclei SDK.
+* Download *work/<SOC>/freeloader/freeloader.elf* using Nuclei SDK.
 
   If you don't want to build the nuclei sdk, you can also download the boot images generated by [github action](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions).
 
