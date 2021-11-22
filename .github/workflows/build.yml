@@ -77,8 +77,8 @@ jobs:
         with:
           name: bootimages_${{ matrix.core }}_${{ matrix.boot_mode }}
           path: |
-            work/boot.zip
-            freeloader/freeloader.elf
+            work/demosoc/boot.zip
+            work/demosoc/freeloader/freeloader.elf
 
       - name: Upload cached packages
         if: matrix.core == 'ux600' && matrix.boot_mode == 'sd'
