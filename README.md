@@ -348,6 +348,8 @@ run linux on it, click [Nuclei DDR200T Board](https://nucleisys.com/developboard
 
 ### Build Freeloader
 
+> Make sure you have network access to outside world, buildroot will download required packages in build steps.
+
 *freeloader* is a first stage bootloader which contains *opensbi*, *uboot* and *dtb* binaries,
 when bootup, it will enable I/D cache and load *opensbi*, *uboot* and *dtb* from onboard
 norflash to DDR, and then goto entry of *opensbi*.
