@@ -783,16 +783,30 @@ For our current development demo SoC, we used the following resources:
 
 To basically port this SDK to match your target, you can make a copy of `conf/demosoc` such as `conf/nsoc`:
 
-* *freeloader.mk*: change the variable defined in this mk to match your design, if you will not using amp mode, please set AMP_START_CORE to max hart id, for example, if you have four core, change it to 4.
-* *build.mk*: Change **UIMAGE_AE_CMD** to match your DDR base, if you are using AMP, **CORE1_APP_BIN**, **CORE2_APP_BIN** and **CORE3_APP_BIN**
-  need to be configured, CORE1-CORE3 each memory is 8MB, and application base address is offset 0xE000000 at DDR base.
-* *opensbi/*: Change the opensbi support code for your soc.
+* *freeloader.mk*: change the variable defined in this mk to match your design
+  * If you want to use SMP linux, you need to set **ENABLE_SMP** and **ENABLE_L2** to 1
+  * If you only have 1 core, please make sure **ENABLE_SMP** and **ENABLE_L2** is 0
+  * If you will not using amp mode, please set AMP_START_CORE to max hart id,
+    for example, if you have four core, change it to 4.
+
+* *build.mk*:
+  * Change **UIMAGE_AE_CMD** to match your DDR base, used by Makefile to generate rootfs for uboot.
+  * if you are using AMP, **CORE1_APP_BIN**, **CORE2_APP_BIN** and **CORE3_APP_BIN**
+    need to be configured, CORE1-CORE3 each memory is 8MB, and application base
+    address is offset 0xE000000 at DDR base.
+  * **CORE1_APP_BIN** start offset is **DDR_BASE** + **0xE000000**
+  * **CORE2_APP_BIN** start offset is **DDR_BASE** + **0xE000000** + **8M**
+  * **CORE3_APP_BIN** start offset is **DDR_BASE** + **0xE000000** + **8M*2**
+
+* *opensbi/*: Change the opensbi support code for your soc, all the files need to be modified.
+
 * *conf/nuclei_rv64imac.dts*, *conf/nuclei_rv64imafdc.dts* and *openocd.cfg*: Change these files to match your SoC design.
+
 * *conf/uboot.cmd*: Change to match your memory map.
+
 * *conf/uboot_rv64imac_sd_config*, *conf/uboot_rv64imac_flash_config*, *conf/uboot_rv64imafdc_sd_config* and *conf/uboot_rv64imafdc_flash_config*:
   change **CONFIG_SYS_TEXT_BASE** and **CONFIG_BOOTCOMMAND** to match your uboot system text address and boot command address.
-* *Makefile*: Change *$(uboot_mkimage)* command line run for *$(boot_uimage_lz4)* target, make sure the **-a 0x40400000 -e 0x40400000** matched with your DDR base.
-  The entry of rv64 linux offset to the start of ram is 0x400000, see *linux/arch/riscv/kernel/head.S*.
+
 * If you have a lot of changes in uboot or linux, please directly change code in it.
 
 > If you have enabled TEE feature(sPMP module included), you need to configure spmp csr registers
