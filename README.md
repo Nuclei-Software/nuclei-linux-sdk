@@ -73,6 +73,7 @@ which openocd
 
   ~~~shell
   cd nuclei-linux-sdk
+  # this is important, since submodule may has submodule
   git submodule update --recursive --init
   ~~~
 
@@ -106,7 +107,7 @@ Then you run the following command to update this repo:
 ~~~shell
 # Pull lastest source code and rebase your local commits onto it
 git pull --rebase origin dev_nuclei
-# Update git submodules
+# Update git submodules and submodule's submodule
 git submodule update --init --recursive
 # Check workspace status to see whether it is clean
 git status
