@@ -1,4 +1,5 @@
 UIMAGE_AE_CMD := -a 0xA0400000 -e 0xA0400000
+# eg. $(confdir)/amp/cx.bin
 CORE1_APP_BIN :=
 CORE2_APP_BIN :=
 CORE3_APP_BIN :=
