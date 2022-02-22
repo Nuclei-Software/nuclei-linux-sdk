@@ -120,6 +120,9 @@ boot_uimage_lz4 := $(boot_wrkdir)/uImage.lz4
 boot_uinitrd_lz4 := $(boot_wrkdir)/uInitrd.lz4
 boot_kernel_dtb := $(boot_wrkdir)/kernel.dtb
 
+# qemu related disk image
+qemu_disk := $(wrkdir)/disk.img
+
 # Files need to backup
 BACKUPMSG := $(wrkdir)/README.txt
 RUNLOG := $(wrkdir)/run.log
@@ -136,6 +139,9 @@ xlspike := xl_spike
 
 # openocd is prebuilt and installed to PATH
 openocd := openocd
+
+# qemu is prebuild and installed to PATH
+qemu := qemu-system-riscv64
 
 ## Makefile Variable GDBREMOTE
 # You can change GDBREMOTE to other gdb remotes
@@ -492,6 +498,22 @@ opensbi_sim: $(opensbi_payload)
 sim: $(opensbi_payload)
 	$(xlspike) --isa=$(ISA) $(opensbi_payload)
 endif
+
+.PHONY: gendisk run_qemu
+
+gendisk: $(qemu_disk)
+	@echo "QEMU SDCard Disk Image is generated to $(qemu_disk)"
+
+$(qemu_disk): $(boot_zip)
+	cd $(boot_wrkdir) && dd if=/dev/zero of=$(qemu_disk) bs=1G count=1
+	cd $(boot_wrkdir) && mformat -i $(qemu_disk) ::
+	cd $(boot_wrkdir) && mcopy -i $(qemu_disk) boot.scr kernel.dtb uImage.lz4 uInitrd.lz4 :: || rm -f $(qemu_disk)
+
+# workaround for demosoc: need to change TIMERCLK_FREQ for conf/demosoc/*.dts to 10000000
+# limited feature for simulation demosoc is supported, don't expect full feature of demosoc
+run_qemu: $(qemu_disk) $(freeloader_elf)
+	@echo "Run on qemu for simulation"
+	$(qemu) $(QEMU_MACHINE_OPTS) -bios $(freeloader_elf) -nographic -drive file=$(qemu_disk),if=sd,format=raw
 
 .PHONY: backup snapshot
 # backup your build
