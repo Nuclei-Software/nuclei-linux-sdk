@@ -152,7 +152,7 @@ We support four configurations for **CORE**, choose the right core according to 
 You can choose different SoC by modify `SOC ?= demosoc` line in `Makefile`.
 
 * `demosoc`: The evaluation SoC from nuclei
-* you can add your SoC support by adding configuration in `conf/` folder
+* you can add your SoC support by adding configuration in `conf/<SOC>` folder
 
 You can choose different boot mode by modify the `BOOT_MODE ?= sd` line in `Makefile`.
 
@@ -169,9 +169,9 @@ Please modify the `Makefile` to your correct core configuration before build any
 ## Booting Linux on Nuclei xl-spike
 
 **Note**: `xl_spike` tool should be installed and added into **PATH** in advance.
-Contact with our sales via email **contact@nucleisys.com** to get `xl-spike` tools.
+Contact with our sales via email **contact@nucleisys.com** to get `xl_spike` tools.
 
-> This feature will be **deprecated** in future.
+> This feature is **deprecated** now.
 
 ### Run on xl_spike 
 
@@ -184,7 +184,7 @@ and run opensbi with linux payload on xlspike by running `make sim`.
 Here is sample output running in xl_spike:
 
 ~~~
-xl_spike --isa=rv64imac /home/hqfang/workspace/software/nuclei-linux-sdk/work/opensbi/platform/nuclei/demosoc/firmware/fw_payload.elf
+xl_spike --isa=rv64imac /home/hqfang/workspace/software/nuclei-linux-sdk/work/demosoc/opensbi/platform/nuclei/demosoc/firmware/fw_payload.elf
 rv64 file
 call xl_spike_t construct function
 warning: tohost and fromhost symbols not in ELF; can't communicate with target
@@ -373,15 +373,15 @@ If you have run `make sim` command before, please make sure you run `make preboo
 build environment for generate boot images.
 
 If the freeloader is flashed to the board, then you can prepare the SDCard boot materials,
-you can run `make bootimages` to generate the boot images to *work/boot*, and an zip file
-called *work/boot.zip* , you can extract this *boot.zip* to your SDCard or copy all the files
-located in *work/boot/*, make sure the files need to be put **right in the root of SDCard**,
+you can run `make bootimages` to generate the boot images to *work/<SOC>/boot*, and an zip file
+called *work/<SOC>/boot.zip* , you can extract this *boot.zip* to your SDCard or copy all the files
+located in *work/<SOC>/boot*, make sure the files need to be put **right in the root of SDCard**,
 then you can insert this SDCard to your SDCard slot(J57) beside the TFT LCD.
 
 The contents of *work/boot* or *work/boot.zip* are as below:
 
 * **kernel.dtb**  : device tree binary file
-* **boot.scr**    : boot script used by uboot, generated from [./conf/uboot.cmd](conf/uboot.cmd)
+* **boot.scr**    : boot script used by uboot, generated from [./conf/demosoc/uboot.cmd](conf/demosoc/uboot.cmd)
 * **uImage.lz4**  : lz4 archived kernel image
 * **uInitrd.lz4** : lz4 archived rootfs image
 
@@ -655,8 +655,8 @@ You can customize linux kernel configuration using command `make linux-menuconfi
 * *conf/demosoc/linux_rv64imafdc_defconfig*: The linux kernel configuration for  RISC-V rv64imafdc ARCH.
 * *conf/demosoc/nuclei_rv64imac.dts*: Device tree for RISC-V rv64imac ARCH used in hardware
 * *conf/demosoc/nuclei_rv64imafdc.dts*: Device tree for RISC-V rv64imafdc ARCH used in hardware
-* *conf/demosoc/nuclei_rv64imac_sim.dts*: Device tree for RISC-V rv64imac ARCH used in simulation
-* *conf/demosoc/nuclei_rv64imafdc_sim.dts*: Device tree for RISC-V rv64imafdc ARCH used in simulation
+* *conf/demosoc/nuclei_rv64imac_sim.dts*: Device tree for RISC-V rv64imac ARCH used in xlspike simulation
+* *conf/demosoc/nuclei_rv64imafdc_sim.dts*: Device tree for RISC-V rv64imafdc ARCH used in xlspike simulation
 
 ### Customize uboot configuration
 
@@ -720,7 +720,7 @@ For example, I would like to compile new `dhrystone` application and run it in l
 
 6. Generate new boot images with `dhrystone_opt` application added using command `make bootimages`
 
-7. Download the generated `work/boot.zip` and extract it right under the SDCard root.
+7. Download the generated `work/<SOC>/boot.zip` and extract it right under the SDCard root.
 
 8. If you have already flashed `freeloader` using openocd, then just insert the SDCard, and reboot the
    board, when board is power on, and linux kernel is up, you can run the application `dhrystone_opt` in
@@ -793,20 +793,25 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
 
 * *build.mk*:
   * Change **UIMAGE_AE_CMD** to match your DDR base, used by Makefile to generate rootfs for uboot.
-  * if you are using AMP, **CORE1_APP_BIN**, **CORE2_APP_BIN** and **CORE3_APP_BIN**
-    need to be configured, CORE1-CORE3 each memory is 8MB, and application base
-    address is offset 0xE000000 at DDR base.
-  * **CORE1_APP_BIN** start offset is **DDR_BASE** + **0xE000000**
-  * **CORE2_APP_BIN** start offset is **DDR_BASE** + **0xE000000** + **8M**
-  * **CORE3_APP_BIN** start offset is **DDR_BASE** + **0xE000000** + **8M*2**
+  * if you are using AMP, **CORE1_APP_BIN**, **CORE2_APP_BIN**, **CORE3_APP_BIN**, **CORE4_APP_BIN**,
+    **CORE5_APP_BIN**, **CORE6_APP_BIN** and **CORE7_APP_BIN** need to be configured, CORE1-CORE7 each memory is 4MB
+    and application base address is offset 0xE000000 at DDR base.
+    > Here each core memory is changed from 8M to 4M, due to only 32MB is reserved for amp binaries, and now we support 8 cores.
+  * **CORE1_APP_BIN** start offset is **DDR_BASE** + **0xE000000**, such as `$(confdir)/amp/c1.bin`
+  * **CORE2_APP_BIN** start offset is **DDR_BASE** + **0xE000000** + **4M**, such as `$(confdir)/amp/c2.bin`
+  * **CORE3_APP_BIN** start offset is **DDR_BASE** + **0xE000000** + **4M*2**, such as `$(confdir)/amp/c3.bin`
+  * **CORE4_APP_BIN** start offset is **DDR_BASE** + **0xE000000** + **4M*3**, such as `$(confdir)/amp/c4.bin`
+  * **CORE5_APP_BIN** start offset is **DDR_BASE** + **0xE000000** + **4M*4**, such as `$(confdir)/amp/c5.bin`
+  * **CORE6_APP_BIN** start offset is **DDR_BASE** + **0xE000000** + **4M*5**, such as `$(confdir)/amp/c6.bin`
+  * **CORE7_APP_BIN** start offset is **DDR_BASE** + **0xE000000** + **4M*6**, such as `$(confdir)/amp/c7.bin`
 
 * *opensbi/*: Change the opensbi support code for your soc, all the files need to be modified.
 
-* *conf/nuclei_rv64imac.dts*, *conf/nuclei_rv64imafdc.dts* and *openocd.cfg*: Change these files to match your SoC design.
+* *nuclei_rv64imac.dts*, */nuclei_rv64imafdc.dts* and *openocd.cfg*: Change these files to match your SoC design.
 
-* *conf/uboot.cmd*: Change to match your memory map.
+* *uboot.cmd*: Change to match your memory map.
 
-* *conf/uboot_rv64imac_sd_config*, *conf/uboot_rv64imac_flash_config*, *conf/uboot_rv64imafdc_sd_config* and *conf/uboot_rv64imafdc_flash_config*:
+* *uboot_rv64imac_sd_config*, *uboot_rv64imac_flash_config*, *uboot_rv64imafdc_sd_config* and *uboot_rv64imafdc_flash_config*:
   change **CONFIG_SYS_TEXT_BASE** and **CONFIG_BOOTCOMMAND** to match your uboot system text address and boot command address.
 
 * If you have a lot of changes in uboot or linux, please directly change code in it.
@@ -821,7 +826,8 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
   show timeout issue, this is caused by xl_spike timer is not standard type, but the boot images for FPGA evaluation
   board can boot successfully and works well.
 
-  If you want to execute using `xl_spike` without the login, you can edit the *work/buildroot_initramfs_sysroot/etc/inittab* file(started from `# now run any rc scripts`) as below, and save it:
+  If you want to execute using `xl_spike` without the login, you can edit the *work/<SOC>/buildroot_initramfs_sysroot/etc/inittab*
+  file(started from `# now run any rc scripts`) as below, and save it:
 
   ~~~
   # now run any rc scripts
@@ -880,8 +886,8 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
      ~~~
    
   2. If SDCard is recognized correctly, please type `fatls mmc 0`, and check whether the following files
-     are listed as below, if you can get the following files in your sdcard, please reformat your sdcard to `Fat32` format, and copy the generated files in *work/boot/* to the root of sdcard, and re-insert the
-     sdcard to SD slot, and retry from step 1.
+     are listed as below, if you can get the following files in your sdcard, please reformat your sdcard to `Fat32` format,
+     and copy the generated files in *work/<SOC>/boot/* to the root of sdcard, and re-insert the sdcard to SD slot, and retry from step 1.
 
      **Note:** Please make sure your SDCard is safely injected in your OS, and SDCard is formated to `Fat32`.
 
@@ -896,7 +902,7 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
      ~~~
 
   3. If the above steps are all correct, then you can run `boot` command to boot linux, or type commands
-     located in [./conf/uboot.cmd](conf/uboot.cmd).
+     located in [./conf/demosoc/uboot.cmd](conf/demosoc/uboot.cmd).
 
 * The linux kernel and rootfs size is too big, is there any way to reduce it to speed up boot speed?
 
@@ -926,7 +932,7 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
 
   If you don't want to build the nuclei sdk, you can also download the boot images generated by [github action](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions).
 
-  For example, for `dev_nuclei_next` branch, you can find the previous built artifacts in https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/runs/667358598.
+  For example, for `dev_nuclei_next` branch, you can find the previous built artifacts in https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/runs/1528963788.
 
   Then you can extra the downloaded `bootimages_ux600.zip` and extract `freeloader/freeloader.elf` to your disk,
   such as `D:/freeloader.elf`.
@@ -937,7 +943,7 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
   ~~~
   D:\workspace\Sourcecode\nuclei-sdk>setup.bat
   Setup Nuclei SDK Tool Environment
-  NUCLEI_TOOL_ROOT=D:\Software\NucleiStudio_IDE_202009\NucleiStudio\toolchain
+  NUCLEI_TOOL_ROOT=D:\Software\NucleiStudio_IDE_202201\NucleiStudio\toolchain
   
   D:\workspace\Sourcecode\nuclei-sdk>make clean
   make -C application/baremetal/helloworld clean
