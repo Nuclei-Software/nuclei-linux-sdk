@@ -42,7 +42,7 @@ If you want to run linux on Nuclei Demo SoC, you will need UX600 or UX900 RISC-V
 
 - Status: Working
 - Build dependencies
-  - packages: `build-essential git python3 python3-pip autotools-dev make cmake texinfo bison minicom flex liblz4-tool libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler libncursesw5-dev libncursesw5`
+  - packages: `build-essential git python3 python3-pip autotools-dev make cmake texinfo bison minicom flex liblz4-tool libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler libncursesw5-dev libncursesw5 mtools`
   - python pips: `git-archive-all`
 - Get prebuilt openocd from [Nuclei Development Tools](https://nucleisys.com/download.php#tools)
 - Setup openocd and add it into **PATH**
