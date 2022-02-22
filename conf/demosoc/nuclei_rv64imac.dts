@@ -80,6 +80,62 @@
         compatible = "riscv,cpu-intc";
       };
     };
+    cpu4: cpu@4 {
+      device_type = "cpu";
+      reg = <4>;
+      status = "okay";
+      compatible = "riscv";
+      riscv,isa = "rv64imac";
+      mmu-type = "riscv,sv39";
+      clock-frequency = <CPUCLK_FREQ>;
+      cpu4_intc: interrupt-controller {
+        #interrupt-cells = <1>;
+        interrupt-controller;
+        compatible = "riscv,cpu-intc";
+      };
+    };
+    cpu5: cpu@5 {
+      device_type = "cpu";
+      reg = <5>;
+      status = "okay";
+      compatible = "riscv";
+      riscv,isa = "rv64imac";
+      mmu-type = "riscv,sv39";
+      clock-frequency = <CPUCLK_FREQ>;
+      cpu5_intc: interrupt-controller {
+        #interrupt-cells = <1>;
+        interrupt-controller;
+        compatible = "riscv,cpu-intc";
+      };
+    };
+    cpu6: cpu@6 {
+      device_type = "cpu";
+      reg = <6>;
+      status = "okay";
+      compatible = "riscv";
+      riscv,isa = "rv64imac";
+      mmu-type = "riscv,sv39";
+      clock-frequency = <CPUCLK_FREQ>;
+      cpu6_intc: interrupt-controller {
+        #interrupt-cells = <1>;
+        interrupt-controller;
+        compatible = "riscv,cpu-intc";
+      };
+    };
+    cpu7: cpu@7 {
+      device_type = "cpu";
+      reg = <7>;
+      status = "okay";
+      compatible = "riscv";
+      riscv,isa = "rv64imac";
+      mmu-type = "riscv,sv39";
+      clock-frequency = <CPUCLK_FREQ>;
+      cpu7_intc: interrupt-controller {
+        #interrupt-cells = <1>;
+        interrupt-controller;
+        compatible = "riscv,cpu-intc";
+      };
+    };
   };
 
   memory@A0000000 {
@@ -115,7 +171,11 @@
           <&cpu0_intc 11 &cpu0_intc 9
            &cpu1_intc 11 &cpu1_intc 9
            &cpu2_intc 11 &cpu2_intc 9
-           &cpu3_intc 11 &cpu3_intc 9>;
+           &cpu3_intc 11 &cpu3_intc 9
+           &cpu4_intc 11 &cpu4_intc 9
+           &cpu5_intc 11 &cpu5_intc 9
+           &cpu6_intc 11 &cpu6_intc 9
+           &cpu7_intc 11 &cpu7_intc 9>;
     reg = <0x0 0x8000000 0x0 0x4000000>;
   };
 
@@ -127,7 +187,11 @@
           <&cpu0_intc 3 &cpu0_intc 7
            &cpu1_intc 3 &cpu1_intc 7
            &cpu2_intc 3 &cpu2_intc 7
-           &cpu3_intc 3 &cpu3_intc 7>;
+           &cpu3_intc 3 &cpu3_intc 7
+           &cpu4_intc 3 &cpu4_intc 7
+           &cpu5_intc 3 &cpu5_intc 7
+           &cpu6_intc 3 &cpu6_intc 7
+           &cpu7_intc 3 &cpu7_intc 7>;
     clocks = <&hfclk>;
   };
 

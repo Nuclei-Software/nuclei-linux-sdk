@@ -80,6 +80,62 @@
         compatible = "riscv,cpu-intc";
       };
     };
+    cpu4: cpu@4 {
+      device_type = "cpu";
+      reg = <4>;
+      status = "okay";
+      compatible = "riscv";
+      riscv,isa = "rv64imafdc";
+      mmu-type = "riscv,sv39";
+      clock-frequency = <CPUCLK_FREQ>;
+      cpu4_intc: interrupt-controller {
+        #interrupt-cells = <1>;
+        interrupt-controller;
+        compatible = "riscv,cpu-intc";
+      };
+    };
+    cpu5: cpu@5 {
+      device_type = "cpu";
+      reg = <5>;
+      status = "okay";
+      compatible = "riscv";
+      riscv,isa = "rv64imafdc";
+      mmu-type = "riscv,sv39";
+      clock-frequency = <CPUCLK_FREQ>;
+      cpu5_intc: interrupt-controller {
+        #interrupt-cells = <1>;
+        interrupt-controller;
+        compatible = "riscv,cpu-intc";
+      };
+    };
+    cpu6: cpu@6 {
+      device_type = "cpu";
+      reg = <6>;
+      status = "okay";
+      compatible = "riscv";
+      riscv,isa = "rv64imafdc";
+      mmu-type = "riscv,sv39";
+      clock-frequency = <CPUCLK_FREQ>;
+      cpu6_intc: interrupt-controller {
+        #interrupt-cells = <1>;
+        interrupt-controller;
+        compatible = "riscv,cpu-intc";
+      };
+    };
+    cpu7: cpu@7 {
+      device_type = "cpu";
+      reg = <7>;
+      status = "okay";
+      compatible = "riscv";
+      riscv,isa = "rv64imafdc";
+      mmu-type = "riscv,sv39";
+      clock-frequency = <CPUCLK_FREQ>;
+      cpu7_intc: interrupt-controller {
+        #interrupt-cells = <1>;
+        interrupt-controller;
+        compatible = "riscv,cpu-intc";
+      };
+    };
   };
 
   memory@A0000000 {
