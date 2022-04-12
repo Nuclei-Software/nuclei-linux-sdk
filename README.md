@@ -337,7 +337,7 @@ If you want to remove the login, and directly enter to bash, please check [**Kno
 **Note**: `qemu-system-riscv64` tool should be installed and added into **PATH** in advance.
 
 In release 2022.01 version of Nuclei QEMU, the Nuclei System Timer implementation has some issue, you need to change the
-**TIMERCLK_FREQ** in `conf/demosoc/*.dts` from 32768 to 100000 before you run on qemu.
+**TIMERCLK_FREQ** in `conf/demosoc/*.dts` from 32768 to 1000000 before you run on qemu.
 
 If you don't change it, you will met the following issue when run on qemu.
 
