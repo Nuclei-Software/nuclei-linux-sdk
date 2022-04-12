@@ -154,7 +154,7 @@ We support four configurations for **CORE**, choose the right core according to 
 You can choose different SoC by modify `SOC ?= demosoc` line in `Makefile`.
 
 * `demosoc`: The evaluation SoC from nuclei
-* you can add your SoC support by adding configuration in `conf/<SOC>` folder
+* you can add your SoC support by adding configuration in `conf/$SOC` folder
 
 You can choose different boot mode by modify the `BOOT_MODE ?= sd` line in `Makefile`.
 
@@ -639,7 +639,7 @@ To build *freeloader*, you just need to run `make freeloader`
 ### Upload Freeloader to FPGA Evaluation Board
 
 If you have connected your board to your Linux development environment, and setuped JTAG drivers,
-then you can run `make upload_freeloader` to upload the *work/<SOC>/freeloader/freeloader.elf* to your board.
+then you can run `make upload_freeloader` to upload the *work/$SOC/freeloader/freeloader.elf* to your board.
 
 You can also use `riscv-nuclei-elf-gdb` and `openocd` to download this program by yourself, for
 simple steps, please see [Known issues and FAQs](#Known-issues-and-FAQs).
@@ -653,9 +653,9 @@ If you have run `make sim` command before, please make sure you run `make preboo
 build environment for generate boot images.
 
 If the freeloader is flashed to the board, then you can prepare the SDCard boot materials,
-you can run `make bootimages` to generate the boot images to *work/<SOC>/boot*, and an zip file
-called *work/<SOC>/boot.zip* , you can extract this *boot.zip* to your SDCard or copy all the files
-located in *work/<SOC>/boot*, make sure the files need to be put **right in the root of SDCard**,
+you can run `make bootimages` to generate the boot images to *work/$SOC/boot*, and an zip file
+called *work/$SOC/boot.zip* , you can extract this *boot.zip* to your SDCard or copy all the files
+located in *work/$SOC/boot*, make sure the files need to be put **right in the root of SDCard**,
 then you can insert this SDCard to your SDCard slot(J57) beside the TFT LCD.
 
 The contents of *work/boot* or *work/boot.zip* are as below:
@@ -964,10 +964,10 @@ For example, I would like to compile new `dhrystone` application and run it in l
 
 0. Make sure you have built boot images, using `make bootimages`
 
-1. Copy the old `dhrystone` source code from `work/<SOC>/buildroot_initramfs/build/dhrystone-2` to
-   `work/<SOC>/buildroot_initramfs/build/dhrystone-3`
+1. Copy the old `dhrystone` source code from `work/$SOC/buildroot_initramfs/build/dhrystone-2` to
+   `work/$SOC/buildroot_initramfs/build/dhrystone-3`
 
-2. cd to `work/<SOC>/buildroot_initramfs/build/dhrystone-3`, and modify `Makefile` as below:
+2. cd to `work/$SOC/buildroot_initramfs/build/dhrystone-3`, and modify `Makefile` as below:
 
    ~~~makefile
    # Make sure you use the compiler in this path below
@@ -1000,7 +1000,7 @@ For example, I would like to compile new `dhrystone` application and run it in l
 
 6. Generate new boot images with `dhrystone_opt` application added using command `make bootimages`
 
-7. Download the generated `work/<SOC>/boot.zip` and extract it right under the SDCard root.
+7. Download the generated `work/$SOC/boot.zip` and extract it right under the SDCard root.
 
 8. If you have already flashed `freeloader` using openocd, then just insert the SDCard, and reboot the
    board, when board is power on, and linux kernel is up, you can run the application `dhrystone_opt` in
@@ -1087,7 +1087,13 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
 
 * *opensbi/*: Change the opensbi support code for your soc, all the files need to be modified.
 
-* *nuclei_rv64imac.dts*, */nuclei_rv64imafdc.dts* and *openocd.cfg*: Change these files to match your SoC design.
+* *nuclei_rv64imac.dts*, *nuclei_rv64imafdc.dts* and *openocd.cfg*: Change these files to match your SoC design.
+  - External interrupts connected to plic interrupt number started from 1, 0 is reserved.
+    For example, in demosoc, interrupt id of UART0 is 32, then plic interrupt number is 33,
+    and if elic also present, the eclic interrupt number will be 32+19=51
+  - If you want to boot linux using hvc console(console via sbi console, useful when uart driver in linux is not ready),
+    you can change `bootargs` to make `console=/dev/hvc0`, then it will use sbi console to print message
+  - If you UART driver is ready, then you can change the console to your real uart device name.
 
 * *uboot.cmd*: Change to match your memory map.
 
@@ -1096,6 +1102,7 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
 
 * If you have a lot of changes in uboot or linux, please directly change code in it.
 
+> From commit 6507c68 on, the spmp will be bypassed(done in code as below) when tee is present(checked mcfg_info csr).
 > If you have enabled TEE feature(sPMP module included), you need to configure spmp csr registers
 > as this commit https://github.com/Nuclei-Software/opensbi/commit/1d28050d01b93b6afe590487324b663c65a2c429 .
 > Then you will be able to boot up linux kernel, otherwise the init process will fail.
@@ -1106,7 +1113,7 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
   show timeout issue, this is caused by xl_spike timer is not standard type, but the boot images for FPGA evaluation
   board can boot successfully and works well.
 
-  If you want to execute using `xl_spike` without the login, you can edit the *work/<SOC>/buildroot_initramfs_sysroot/etc/inittab*
+  If you want to execute using `xl_spike` without the login, you can edit the *work/$SOC/buildroot_initramfs_sysroot/etc/inittab*
   file(started from `# now run any rc scripts`) as below, and save it:
 
   ~~~
@@ -1167,7 +1174,7 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
    
   2. If SDCard is recognized correctly, please type `fatls mmc 0`, and check whether the following files
      are listed as below, if you can get the following files in your sdcard, please reformat your sdcard to `Fat32` format,
-     and copy the generated files in *work/<SOC>/boot/* to the root of sdcard, and re-insert the sdcard to SD slot, and retry from step 1.
+     and copy the generated files in *work/$SOC/boot/* to the root of sdcard, and re-insert the sdcard to SD slot, and retry from step 1.
 
      **Note:** Please make sure your SDCard is safely injected in your OS, and SDCard is formated to `Fat32`.
 
@@ -1208,7 +1215,7 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
 * The best way to learn this project is taking a look at the [Makefile](Makefile) of this project to learn about
   what is really done in each make target.
 
-* Download *work/<SOC>/freeloader/freeloader.elf* using Nuclei SDK.
+* Download *work/$SOC/freeloader/freeloader.elf* using Nuclei SDK.
 
   If you don't want to build the nuclei sdk, you can also download the boot images generated by [github action](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions).
 
