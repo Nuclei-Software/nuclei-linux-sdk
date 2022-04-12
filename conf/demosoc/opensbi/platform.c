@@ -84,6 +84,13 @@ static int nuclei_final_init(bool cold_boot)
     fdt = sbi_scratch_thishart_arg1_ptr();
     nuclei_modify_dt(fdt);
 
+    // Check mcfg_info.tee to see whether tee present
+    if (csr_read(0xfc2) & 0x1) {
+        // Enable U-Mode to access all regions by setting spmpcfg0 and spmpaddr0
+        csr_write(0x1a0, 0x1f);
+        csr_write(0x1b0, 0xffffffff);
+    }
+
     return 0;
 }
 
