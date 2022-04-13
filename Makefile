@@ -506,7 +506,7 @@ gendisk: $(qemu_disk)
 
 $(qemu_disk): $(boot_zip)
 	cd $(boot_wrkdir) && dd if=/dev/zero of=$(qemu_disk) bs=1G count=1
-	cd $(boot_wrkdir) && mformat -i $(qemu_disk) ::
+	cd $(boot_wrkdir) && mformat -F -h 64 -s 32 -t 1023 :: -i $(qemu_disk)
 	cd $(boot_wrkdir) && mcopy -i $(qemu_disk) boot.scr kernel.dtb uImage.lz4 uInitrd.lz4 :: || rm -f $(qemu_disk)
 
 # workaround for demosoc: need to change TIMERCLK_FREQ for conf/demosoc/*.dts to 10000000
