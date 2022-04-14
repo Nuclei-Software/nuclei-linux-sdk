@@ -14,7 +14,7 @@ CORE ?= ux600
 ## flash: boot from flash only, flash will contain images placed in sdcard of sd boot mode
 BOOT_MODE ?= sd
 ## QEMU Disk Size in MBytes
-## DISK_SIZE should >= 32
+## DISK_SIZE should >= 64
 DISK_SIZE ?= 1024
 
 # Include Nuclei RISC-V Core Makefile
@@ -509,7 +509,8 @@ gendisk: $(qemu_disk)
 
 $(qemu_disk): $(boot_zip)
 	cd $(boot_wrkdir) && dd if=/dev/zero of=$(qemu_disk) bs=$(DISK_SIZE)M count=1
-	cd $(boot_wrkdir) && mformat -F -h 64 -s 32 -t $$(($(DISK_SIZE)-1)) :: -i $(qemu_disk)
+	echo "Please make sure mformat version is >= 4.0.24, current version $(shell mformat --version)"
+	cd $(boot_wrkdir) && mformat -F -h 64 -s 32 -t $$(($(DISK_SIZE)-1)) :: -i $(qemu_disk) || rm -f $(qemu_disk)
 	cd $(boot_wrkdir) && mcopy -i $(qemu_disk) boot.scr kernel.dtb uImage.lz4 uInitrd.lz4 :: || rm -f $(qemu_disk)
 
 # workaround for demosoc: need to change TIMERCLK_FREQ for conf/demosoc/*.dts to 10000000
