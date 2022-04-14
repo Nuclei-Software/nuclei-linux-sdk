@@ -13,6 +13,9 @@ CORE ?= ux600
 ## sd: boot from flash + sdcard, extra SDCard is required(kernel, rootfs, dtb placed in it)
 ## flash: boot from flash only, flash will contain images placed in sdcard of sd boot mode
 BOOT_MODE ?= sd
+## QEMU Disk Size in MBytes
+## DISK_SIZE should >= 32
+DISK_SIZE ?= 1024
 
 # Include Nuclei RISC-V Core Makefile
 include Makefile.core
@@ -505,8 +508,8 @@ gendisk: $(qemu_disk)
 	@echo "QEMU SDCard Disk Image is generated to $(qemu_disk)"
 
 $(qemu_disk): $(boot_zip)
-	cd $(boot_wrkdir) && dd if=/dev/zero of=$(qemu_disk) bs=1G count=1
-	cd $(boot_wrkdir) && mformat -F -h 64 -s 32 -t 1023 :: -i $(qemu_disk)
+	cd $(boot_wrkdir) && dd if=/dev/zero of=$(qemu_disk) bs=$(DISK_SIZE)M count=1
+	cd $(boot_wrkdir) && mformat -F -h 64 -s 32 -t $$(($(DISK_SIZE)-1)) :: -i $(qemu_disk)
 	cd $(boot_wrkdir) && mcopy -i $(qemu_disk) boot.scr kernel.dtb uImage.lz4 uInitrd.lz4 :: || rm -f $(qemu_disk)
 
 # workaround for demosoc: need to change TIMERCLK_FREQ for conf/demosoc/*.dts to 10000000
