@@ -77,7 +77,7 @@ jobs:
           echo "Generate QEMU Disk"
           echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 1000000"
           sed -i "s/32768/1000000/" conf/demosoc/*.dts
-          make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} gendisk
+          make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} DISK_SIZE=128 gendisk
           RUNQEMUSH=work/demosoc/run_qemu.sh
           echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -smp 8 -m 256M -bios freeloader/freeloader.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
           chmod +x $RUNQEMUSH
@@ -86,6 +86,14 @@ jobs:
         uses: actions/upload-artifact@v2.2.0
         with:
           name: bootimages_${{ matrix.core }}_${{ matrix.boot_mode }}
+          path: |
+            work/demosoc/boot.zip
+            work/demosoc/freeloader/freeloader.elf
+
+      - name: Upload qemu images for ${{ matrix.core }} - ${{ matrix.boot_mode }}
+        uses: actions/upload-artifact@v2.2.0
+        with:
+          name: qemu_images_${{ matrix.core }}_${{ matrix.boot_mode }}
           path: |
             work/demosoc/boot.zip
             work/demosoc/freeloader/freeloader.elf
