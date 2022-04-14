@@ -76,17 +76,20 @@ which openocd qemu-system-riscv64
 ### Clone Repo
 
 * Checkout this repository using `git`.
-  
+
   - If you have good network access to github, you can clone this repo using command
     `git clone https://github.com/Nuclei-Software/nuclei-linux-sdk`
   - Otherwise, you can try with our mirror maintained in gitee using command
-    `git clone https://gitee.com/Nuclei-Software/nuclei-linux-sdk`     
+    `git clone https://gitee.com/Nuclei-Software/nuclei-linux-sdk`
+  - If https is not stable, you can try ssh, please search about git clone ssh/https difference
 
 * Then you will need to checkout all of the linked submodules using:
 
   ~~~shell
   cd nuclei-linux-sdk
   git submodule update --recursive --init
+  # if you want to clone less source code to speed up or make clone stable, please add extra --depth=1
+  # git submodule update --init --depth=1
   ~~~
 
 * To make sure you have checked out clean source code, you need to run `git status` command,
@@ -100,8 +103,9 @@ which openocd qemu-system-riscv64
   ~~~
 
 * If you have trouble in get clean working tree, you can try command
-  `git submodule update --recursive --init` again, you might need to
+  `git submodule update --recursive --init --depth=1` again, you might need to
   retry several times depending on your network access speed.
+* If you still have issues, please check FAQ sections at the bottom of this README.md
 
 This will take some time and require around 2GB of disk space. Some modules may
 fail because certain dependencies don't have the best git hosting. The only
@@ -1108,6 +1112,33 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
 > Then you will be able to boot up linux kernel, otherwise the init process will fail.
 
 ## Known issues and FAQs
+
+* Clone source code from github or gitee failed with issue `the remote end hung up unexpectedly`.
+
+  This Nuclei Linux SDK repo is a very big repo with many submodules, just simple clone is not enough, you always need to
+  do submodule init and update, sometimes due to connection issue or http clone not stable issue, please switch to use ssh
+  protocol used in git clone, see similar issue posted in stackoverflow, see https://stackoverflow.com/questions/6842687/the-remote-end-hung-up-unexpectedly-while-git-cloning
+
+  Or you can try shaddow submodule update:
+
+  ~~~shell
+  ## clone repo from github
+  git clone https://github.com/Nuclei-Software/nuclei-linux-sdk.git
+  ## if github is not working please use gitee
+  # git clone https://gitee.com/Nuclei-Software/nuclei-linux-sdk.git
+  ## if https is not ok, please switch to ssh method, but you need to follow guidance in github or gitee
+  ## github: https://docs.github.com/cn/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
+  ## gitee: https://gitee.com/help/articles/4181
+  cd nuclei-linux-sdk
+  git submodule update --init --depth=1
+  ## please check sample output here: https://github.com/Nuclei-Software/nuclei-linux-sdk/wiki/Sample-Outputs#sample-output-for-git-clone
+  ~~~
+
+  Or you just want to get latest source code without any git histories, you can also open our repo's github action link in github
+  https://github.com/Nuclei-Software/nuclei-linux-sdk/actions , make sure your github is logged in, and then click on any successful
+  action of your desired branch, and find the *nuclei_linux_sdk_source* in the **Artifacts** at the bottom of page, and click the
+  *nuclei_linux_sdk_source* and download it.
+
 
 * For Nuclei Demo SoC, if you run simulation using xl_spike, it can run to login prompt, but when you login, it will
   show timeout issue, this is caused by xl_spike timer is not standard type, but the boot images for FPGA evaluation
