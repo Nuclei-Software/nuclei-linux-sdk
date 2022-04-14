@@ -30,7 +30,8 @@ If you want to run linux on Nuclei Demo SoC, you will need UX600 or UX900 RISC-V
 >   git fetch -a
 >   git checkout dev_nuclei_keystone
 >   git submodule init
->   git submodule update
+>   # --depth 1 is used to clone less source code
+>   git submodule update --depth 1
 >   # make sure the workspace is clean and your are on branch dev_nuclei_keystone now 
 >   git status
 >   ~~~
@@ -87,8 +88,11 @@ which openocd qemu-system-riscv64
 
   ~~~shell
   cd nuclei-linux-sdk
+  # the following command might fail due to network connection issue
+  # you can clone less code with --depth=1
   git submodule update --recursive --init
   # if you want to clone less source code to speed up or make clone stable, please add extra --depth=1
+  # --depth=1 is used to do shallow clone, see https://git-scm.com/docs/git-submodule#Documentation/git-submodule.txt---depth
   # git submodule update --init --depth=1
   ~~~
 
@@ -662,7 +666,7 @@ called *work/$SOC/boot.zip* , you can extract this *boot.zip* to your SDCard or 
 located in *work/$SOC/boot*, make sure the files need to be put **right in the root of SDCard**,
 then you can insert this SDCard to your SDCard slot(J57) beside the TFT LCD.
 
-The contents of *work/boot* or *work/boot.zip* are as below:
+The contents of *work/$SOC/boot* or *work/$SOC/boot.zip* are as below:
 
 * **kernel.dtb**  : device tree binary file
 * **boot.scr**    : boot script used by uboot, generated from [./conf/demosoc/uboot.cmd](conf/demosoc/uboot.cmd)
@@ -1119,7 +1123,7 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
   do submodule init and update, sometimes due to connection issue or http clone not stable issue, please switch to use ssh
   protocol used in git clone, see similar issue posted in stackoverflow, see https://stackoverflow.com/questions/6842687/the-remote-end-hung-up-unexpectedly-while-git-cloning
 
-  Or you can try shaddow submodule update:
+  Or you can try shallow submodule update:
 
   ~~~shell
   ## clone repo from github
