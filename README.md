@@ -39,7 +39,7 @@ If you want to run linux on Nuclei Demo SoC, you will need UX600 or UX900 RISC-V
 
 ## Tested Configurations
 
-### Ubuntu 18.04 x86_64 host
+### Ubuntu 20.04 x86_64 host
 
 - Status: Working
 - Build dependencies
@@ -47,6 +47,7 @@ If you want to run linux on Nuclei Demo SoC, you will need UX600 or UX900 RISC-V
   - python pips: `git-archive-all`
 - Get prebuilt openocd from [Nuclei Development Tools](https://nucleisys.com/download.php#tools)
 - Setup openocd and add it into **PATH**
+- mtools version >= 4.0.24
 
 ## Build Instructions
 
