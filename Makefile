@@ -8,6 +8,11 @@ SOC ?= demosoc
 ## ux600/ux900: rv64imac, lp64
 ## ux600fd/ux900fd: rv64imafdc, lp64d
 CORE ?= ux600
+
+## Makefile Variable ARCH_EXT
+## ARCH_EXT can be b/p/v, eg. bp, bpv, pv, v
+ARCH_EXT ?=
+
 ## Makefile Variable BOOT_MODE
 ## BOOT_MODE Supported:
 ## sd: boot from flash + sdcard, extra SDCard is required(kernel, rootfs, dtb placed in it)
@@ -412,7 +417,8 @@ else
 $(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb) $(boot_zip) $(amp_bins)
 endif
 	mkdir -p  $(freeloader_wrkdir)
-	$(MAKE) -C $(freeloader_srcdir) O=$(freeloader_wrkdir) ARCH=$(ISA) ABI=$(ABI) BOOT_MODE=$(BOOT_MODE) CROSS_COMPILE=$(CROSS_COMPILE) \
+	$(MAKE) -C $(freeloader_srcdir) O=$(freeloader_wrkdir) ARCH=$(ISA) ABI=$(ABI) ARCH_EXT=$(ARCH_EXT) \
+		BOOT_MODE=$(BOOT_MODE) CROSS_COMPILE=$(CROSS_COMPILE) \
 		OPENSBI_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(platform_dtb) \
 		KERNEL_BIN=$(boot_uimage_lz4) INITRD_BIN=$(boot_uinitrd_lz4) CONFIG_MK=$(freeloader_confmk)  \
 		CORE1_APP_BIN=$(CORE1_APP_BIN) CORE2_APP_BIN=$(CORE2_APP_BIN) CORE3_APP_BIN=$(CORE3_APP_BIN) \
