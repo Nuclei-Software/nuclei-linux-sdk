@@ -18,6 +18,7 @@ cache:
 
 ## Job template for build linux sdk
 .build_linux_sdk_template: &build_linux_sdk_job_def
+    interruptible: true
     only:
         changes:
           - conf/*
@@ -96,6 +97,7 @@ cache:
 
 ## Job template for run linux in xlspike
 .run_linux_sdk_xlspike_template: &run_linux_sdk_xlspike_job_def
+    interruptible: true
     only:
         changes:
           - conf/*
@@ -118,6 +120,7 @@ cache:
 
 ## Job template for run linux in qemu
 .run_linux_sdk_qemu_template: &run_linux_sdk_qemu_job_def
+    interruptible: true
     only:
         changes:
           - conf/*
