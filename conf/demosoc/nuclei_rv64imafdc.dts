@@ -176,7 +176,7 @@
            &cpu5_intc 11 &cpu5_intc 9
            &cpu6_intc 11 &cpu6_intc 9
            &cpu7_intc 11 &cpu7_intc 9>;
-    reg = <0x0 0x1c000000 0x0 0x4000000>;
+    reg = <0x0 0x8000000 0x0 0x4000000>;
   };
 
   clint0: clint@2001000 {
