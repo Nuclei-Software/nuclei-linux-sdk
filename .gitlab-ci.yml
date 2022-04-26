@@ -4,7 +4,7 @@ variables:
     GIT_STRATEGY: fetch
 
 before_script:
-    - module load common
+    - source /home/share/devtools/env.sh
 
 stages:
     - build_ux600
@@ -75,7 +75,7 @@ cache:
         - xz -f -z build_opensbi_payload.log
 
 ## Job template for run linux in xlspike
-.run_linux_sdk_template: &run_linux_sdk_job_def
+.run_linux_sdk_xlspike_template: &run_linux_sdk_xlspike_job_def
     only:
         changes:
           - conf/*
@@ -92,8 +92,31 @@ cache:
         - echo ">>Run using xlspike for $CORE - $BOOT_MODE"
         - |
             timeout --foreground -s SIGKILL 8m xl_spike work/${SOC}/opensbi/platform/nuclei/${SOC}/firmware/fw_payload.elf > >(tee run_xlspike.log) || {
-                if cat run_xlspike.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi; 
-                if cat run_xlspike.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi; 
+                if cat run_xlspike.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
+                if cat run_xlspike.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
+            }
+
+## Job template for run linux in qemu
+.run_linux_sdk_qemu_template: &run_linux_sdk_qemu_job_def
+    only:
+        changes:
+          - conf/*
+          - Makefile
+          - .gitlab-ci.yml
+          - buildroot
+          - freeloader
+          - linux
+          - u-boot
+    tags:
+        - env::native
+        - host::xls01
+    script:
+        - echo ">>Run using qemu for $CORE - $BOOT_MODE"
+        - make preboot
+        - |
+            timeout --foreground -s SIGKILL 5m make run_qemu > >(tee run_qemu.log) || {
+                if cat run_qemu.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
+                if cat run_qemu.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
             }
 
 ## Job for build sdk
@@ -116,10 +139,9 @@ build_ux600_sd:
         BOOT_MODE: "sd"
     <<: *build_linux_sdk_job_def
 
-
 ## Job for run sim
 # Run For UX600 Core, without FPU, flash boot mode
-run_ux600_flash:
+run_ux600_flash_xlspike:
     stage: run_ux600
     dependencies:
         - build_ux600_flash
@@ -127,11 +149,11 @@ run_ux600_flash:
         SOC: "demosoc"
         CORE: "ux600"
         BOOT_MODE: "flash"
-    <<: *run_linux_sdk_job_def
+    <<: *run_linux_sdk_xlspike_job_def
 
 ## Job for run sim
 # Run For UX600 Core, without FPU, sd boot mode
-run_ux600_sd:
+run_ux600_sd_xlspike:
     stage: run_ux600
     dependencies:
         - build_ux600_sd
@@ -139,8 +161,31 @@ run_ux600_sd:
         SOC: "demosoc"
         CORE: "ux600"
         BOOT_MODE: "sd"
-    <<: *run_linux_sdk_job_def
+    <<: *run_linux_sdk_xlspike_job_def
 
+## Job for run qemu
+# Run For UX600 Core, without FPU, flash boot mode
+run_ux600_flash_qemu:
+    stage: run_ux600
+    dependencies:
+        - build_ux600_flash
+    variables:
+        SOC: "demosoc"
+        CORE: "ux600"
+        BOOT_MODE: "flash"
+    <<: *run_linux_sdk_qemu_job_def
+
+## Job for run qemu
+# Run For UX600 Core, without FPU, sd boot mode
+run_ux600_sd_qemu:
+    stage: run_ux600
+    dependencies:
+        - build_ux600_sd
+    variables:
+        SOC: "demosoc"
+        CORE: "ux600"
+        BOOT_MODE: "sd"
+    <<: *run_linux_sdk_qemu_job_def
 
 ## Job for build sdk
 # Build For UX600FD Core, with FPU, flash boot mode
@@ -167,7 +212,7 @@ build_ux600fd_sd:
 ## Job for run sim
 # Run For UX600FD Core, with FPU, flash boot mode
 # This ux600fd init process will fail
-run_ux600fd_flash:
+run_ux600fd_flash_xlspike:
     stage: run_ux600fd
     allow_failure: true
     dependencies:
@@ -176,12 +221,12 @@ run_ux600fd_flash:
         SOC: "demosoc"
         CORE: "ux600fd"
         BOOT_MODE: "flash"
-    <<: *run_linux_sdk_job_def
+    <<: *run_linux_sdk_xlspike_job_def
 
 ## Job for run sim
 # Run For UX600FD Core, with FPU, sd boot mode
 # This ux600fd init process will fail
-run_ux600fd_sd:
+run_ux600fd_sd_xlspike:
     stage: run_ux600fd
     allow_failure: true
     dependencies:
@@ -190,4 +235,32 @@ run_ux600fd_sd:
         SOC: "demosoc"
         CORE: "ux600fd"
         BOOT_MODE: "sd"
-    <<: *run_linux_sdk_job_def
+    <<: *run_linux_sdk_xlspike_job_def
+
+## Job for run qemu
+# Run For UX600FD Core, with FPU, flash boot mode
+# This ux600fd init process will fail
+run_ux600fd_flash_qemu:
+    stage: run_ux600fd
+    allow_failure: true
+    dependencies:
+        - build_ux600fd_flash
+    variables:
+        SOC: "demosoc"
+        CORE: "ux600fd"
+        BOOT_MODE: "flash"
+    <<: *run_linux_sdk_qemu_job_def
+
+## Job for run qemu
+# Run For UX600FD Core, with FPU, sd boot mode
+# This ux600fd init process will fail
+run_ux600fd_sd_qemu:
+    stage: run_ux600fd
+    allow_failure: true
+    dependencies:
+        - build_ux600fd_sd
+    variables:
+        SOC: "demosoc"
+        CORE: "ux600fd"
+        BOOT_MODE: "sd"
+    <<: *run_linux_sdk_qemu_job_def
