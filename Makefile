@@ -523,7 +523,7 @@ $(qemu_disk): $(boot_zip)
 # limited feature for simulation demosoc is supported, don't expect full feature of demosoc
 run_qemu: $(qemu_disk) $(freeloader_elf)
 	@echo "Run on qemu for simulation"
-	$(qemu) $(QEMU_MACHINE_OPTS) -bios $(freeloader_elf) -nographic -drive file=$(qemu_disk),if=sd,format=raw
+	$(qemu) $(QEMU_MACHINE_OPTS) -cpu nuclei-$(CORE),ext=$(ARCH_EXT) -bios $(freeloader_elf) -nographic -drive file=$(qemu_disk),if=sd,format=raw
 
 .PHONY: backup snapshot
 # backup your build
