@@ -33,6 +33,9 @@ cache:
             - work/${SOC}/boot.zip
             - work/${SOC}/opensbi/platform/nuclei/
             - work/${SOC}/freeloader/freeloader.elf
+            - work/${SOC}/run_qemu.sh
+            - work/${SOC}/disk.img
+            - work/${SOC}/freeloader_qemu.elf
             - build_*.log.*
         expire_in: 2 day
     tags:
@@ -66,6 +69,23 @@ cache:
                 exit 1
             }
         - xz -f -z build_bootimages.log
+        - echo ">>Build and generate qemu images for $CORE - $BOOT_MODE"
+        - |
+            echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 1000000"
+            sed -i "s/32768/1000000/" conf/$SOC/*.dts
+            make -j DISK_SIZE=128 gendisk > >(tee build_qemu_disk.log) || {
+                xz -f -z build_qemu_disk.log
+                exit 1
+            }
+            echo ">>> Reset workaround and source code"
+            git reset --hard
+        - xz -f -z build_qemu_disk.log
+        - |
+            QEMU_FREELOADER=work/$SOC/freeloader_qemu.elf
+            cp work/$SOC/freeloader/freeloader.elf $QEMU_FREELOADER
+            RUNQEMUSH=work/$SOC/run_qemu.sh
+            echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -cpu nuclei-$CORE,ext=$ARCH_EXT -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive     file=disk.img,if=sd,format=raw" > $RUNQEMUSH
+            chmod +x $RUNQEMUSH
         - echo ">>Build simulation target for $CORE - $BOOT_MODE"
         - |
             make presim && make -j opensbi_sim > >(tee build_opensbi_payload.log) || {
@@ -112,9 +132,9 @@ cache:
         - host::xls01
     script:
         - echo ">>Run using qemu for $CORE - $BOOT_MODE"
-        - make preboot
         - |
-            timeout --foreground -s SIGKILL 5m make run_qemu > >(tee run_qemu.log) || {
+            cd work/$SOC
+            timeout --foreground -s SIGKILL 5m bash run_qemu.sh > >(tee run_qemu.log) || {
                 if cat run_qemu.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
                 if cat run_qemu.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
             }
@@ -126,6 +146,7 @@ build_ux600_flash:
     variables:
         SOC: "demosoc"
         CORE: "ux600"
+        ARCH_EXT: ""
         BOOT_MODE: "flash"
     <<: *build_linux_sdk_job_def
 
@@ -136,6 +157,7 @@ build_ux600_sd:
     variables:
         SOC: "demosoc"
         CORE: "ux600"
+        ARCH_EXT: ""
         BOOT_MODE: "sd"
     <<: *build_linux_sdk_job_def
 
@@ -195,6 +217,7 @@ build_ux600fd_flash:
     variables:
         SOC: "demosoc"
         CORE: "ux600fd"
+        ARCH_EXT: ""
         BOOT_MODE: "flash"
     <<: *build_linux_sdk_job_def
 
@@ -206,6 +229,7 @@ build_ux600fd_sd:
     variables:
         SOC: "demosoc"
         CORE: "ux600fd"
+        ARCH_EXT: ""
         BOOT_MODE: "sd"
     <<: *build_linux_sdk_job_def
 
