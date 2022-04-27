@@ -96,6 +96,8 @@ jobs:
       # Run on qemu
       - name: Run and test on qemu for ${{ matrix.core }} - ${{ matrix.boot_mode }}
         run: |
+          QEMU_PATH=$(pwd)/prebuilt_tools/linux_qemu/bin
+          export PATH=${QEMU_PATH}:$PATH
           cd work/demosoc
           # $(cat run_qemu.sh) is workaround for directly run bash run_qemu.sh
           # If do kill it will just kill bash process, the qemu process is not killed
