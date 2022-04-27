@@ -74,6 +74,9 @@ cache:
         - |
             echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 1000000"
             sed -i "s/32768/1000000/" conf/$SOC/*.dts
+            make freeloader
+            QEMU_FREELOADER=work/$SOC/freeloader_qemu.elf
+            cp work/$SOC/freeloader/freeloader.elf $QEMU_FREELOADER
             make -j DISK_SIZE=128 gendisk > >(tee build_qemu_disk.log) || {
                 xz -f -z build_qemu_disk.log
                 exit 1
@@ -82,10 +85,8 @@ cache:
             git reset --hard
         - xz -f -z build_qemu_disk.log
         - |
-            QEMU_FREELOADER=work/$SOC/freeloader_qemu.elf
-            cp work/$SOC/freeloader/freeloader.elf $QEMU_FREELOADER
             RUNQEMUSH=work/$SOC/run_qemu.sh
-            echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -cpu nuclei-$CORE,ext=$ARCH_EXT -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive     file=disk.img,if=sd,format=raw" > $RUNQEMUSH
+            echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -cpu nuclei-ux900fd,ext=$ARCH_EXT -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive     file=disk.img,if=sd,format=raw" > $RUNQEMUSH
             chmod +x $RUNQEMUSH
         - echo ">>Build simulation target for $CORE - $BOOT_MODE"
         - |
@@ -113,7 +114,7 @@ cache:
     script:
         - echo ">>Run using xlspike for $CORE - $BOOT_MODE"
         - |
-            timeout --foreground -s SIGKILL 8m xl_spike work/${SOC}/opensbi/platform/nuclei/${SOC}/firmware/fw_payload.elf > >(tee run_xlspike.log) || {
+            timeout --foreground -s SIGKILL 12m xl_spike work/${SOC}/opensbi/platform/nuclei/${SOC}/firmware/fw_payload.elf > >(tee run_xlspike.log) || {
                 if cat run_xlspike.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
                 if cat run_xlspike.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
             }
@@ -137,7 +138,7 @@ cache:
         - echo ">>Run using qemu for $CORE - $BOOT_MODE"
         - |
             cd work/$SOC
-            timeout --foreground -s SIGKILL 5m bash run_qemu.sh > >(tee run_qemu.log) || {
+            timeout --foreground -s SIGKILL 6m bash run_qemu.sh > >(tee run_qemu.log) || {
                 if cat run_qemu.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
                 if cat run_qemu.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
             }
