@@ -70,28 +70,24 @@ jobs:
           mkdir -p prebuilt_tools
           tar -xzf buildroot/dl/nuclei-qemu-2022.04-linux-x64.tar.gz -C prebuilt_tools
 
-      # Build Freeloader
-      - name: Build freeloader for ${{ matrix.core }} - ${{ matrix.boot_mode }}
-        run: |
-          make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} freeloader
-
       # Build bootimages
       - name: Build bootimages for ${{ matrix.core }} - ${{ matrix.boot_mode }}
         run: |
-          echo "Generate boot images"
-          make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} bootimages
           echo "Generate QEMU Disk"
           echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 1000000"
           sed -i "s/32768/1000000/" conf/demosoc/*.dts
           make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} freeloader
           cp work/demosoc/freeloader/freeloader.elf work/demosoc/freeloader_qemu.elf
+          make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} bootimages
           make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} DISK_SIZE=128 gendisk
           RUNQEMUSH=work/demosoc/run_qemu.sh
           echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
           chmod +x $RUNQEMUSH
-          echo ">>> Reset workaround and source code, and rebuilt freeloader"
+          echo ">>> Reset workaround and source code"
           git reset --hard
+          echo "Generate freeloader and boot images"
           make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} freeloader
+          make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} bootimages
 
       # Run on qemu
       - name: Run and test on qemu for ${{ matrix.core }} - ${{ matrix.boot_mode }}
@@ -102,7 +98,7 @@ jobs:
           # $(cat run_qemu.sh) is workaround for directly run bash run_qemu.sh
           # If do kill it will just kill bash process, the qemu process is not killed
           # SIGTERM is better for kill qemu
-          timeout --foreground -s SIGTERM 8m $(cat run_qemu.sh) > >(tee run_qemu.log) || {
+          timeout --foreground -s SIGTERM 4m $(cat run_qemu.sh) > >(tee run_qemu.log) || {
               if cat run_qemu.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
               if cat run_qemu.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
           }
