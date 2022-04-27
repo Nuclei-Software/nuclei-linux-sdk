@@ -81,8 +81,9 @@ cache:
                 xz -f -z build_qemu_disk.log
                 exit 1
             }
-            echo ">>> Reset workaround and source code"
+            echo ">>> Reset workaround and source code, and rebuilt freeloader"
             git reset --hard
+            make freeloader
         - xz -f -z build_qemu_disk.log
         - |
             RUNQEMUSH=work/$SOC/run_qemu.sh
