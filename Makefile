@@ -427,8 +427,7 @@ endif
 upload_freeloader: $(freeloader_elf)
 	$(target_gdb) $< -ex "set remotetimeout 240" \
 	-ex "target remote $(GDBREMOTE)" \
-	--batch -ex "monitor reset halt" -ex "monitor halt" \
-	-ex "monitor flash protect 0 0 last off" -ex "load" \
+	--batch -ex "monitor reset halt" -ex "load" \
 	-ex "monitor resume" -ex "quit"
 
 # Please make sure freeloader, linux and uboot are generated
@@ -443,8 +442,7 @@ debug_freeloader:
 upload_sbipayload: $(opensbi_payload)
 	$(target_gdb) $< -ex "set remotetimeout 240" \
 	-ex "target remote $(GDBREMOTE)" \
-	--batch -ex "monitor reset halt" -ex "monitor halt" \
-	-ex "monitor flash protect 0 0 last off" -ex "load" \
+	--batch -ex "monitor reset halt" -ex "load" \
 	-ex "monitor resume" -ex "quit"
 
 # Internal used, please make sure freeloader and linux are generated
