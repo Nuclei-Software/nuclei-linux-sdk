@@ -162,7 +162,8 @@ We support four configurations for **CORE**, choose the right core according to 
 
 You can choose different SoC by modify `SOC ?= demosoc` line in `Makefile`.
 
-* `demosoc`: The evaluation SoC from nuclei
+* `demosoc`: The demostration SoC from nuclei
+* `evalsoc`: The next generation of the `demosoc`, we call it `demosoc`, when your cpu has `iregion` feature, please use this one
 * you can add your SoC support by adding configuration in `conf/$SOC` folder
 
 You can choose different boot mode by modify the `BOOT_MODE ?= sd` line in `Makefile`.
@@ -634,8 +635,26 @@ To learn about Nuclei RISC-V Linux Capable Core, please check:
 * [UX600 Series 64-Bit High Performance Application Processor](https://nucleisys.com/product.php?site=ux600)
 * [900 Series 32/64-Bit High Performance Processor](https://nucleisys.com/product.php?site=900)
 
-Nuclei FPGA Evaluation Board, DDR200T version is correct hardware to
+Nuclei FPGA Evaluation Board, DDR200T/KU060/VCU118 version is correct hardware to
 run linux on it, click [Nuclei DDR200T Board](https://nucleisys.com/developboard.php#ddr200t) to learn about more.
+
+### Apply changes for your SoC
+
+Before compiling this source code, please make sure you have done the following changes.
+
+Now we have two version of SoC for customer to evaluate our RISC-V CPU IP, if the bitstream you get from us
+has the `iregion` feature, you should use `evalsoc`, otherwise choose `demosoc`.
+
+If there is double float fpu in the bitstream supported, you should choose `ux600fd` or `ux900fd`.
+
+If the cpu frequency is not 16MHz, you should change **CPUCLK_FREQ** in `nuclei_rv64imafdc.dts` and `nuclei_rv64imac.dts`
+to match the correct frequency.
+
+For example, you have get a bitstream which is our ux900 series cpu ip, with double float fpu, and cpu frequency is 100MHz.
+
+You should change `SOC` to `evalsoc`, `CORE` to `ux900fd` in [Makefile](Makefile).
+
+And change **CPUCLK_FREQ** in the `nuclei_rv64imafdc.dts` and `nuclei_rv64imac.dts` in `conf/$SOC/`(`conf/evalsoc` for this case).
 
 ### Build Freeloader
 
