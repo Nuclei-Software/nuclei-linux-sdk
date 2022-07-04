@@ -29,7 +29,7 @@ cache:
           - linux
           - u-boot
     artifacts:
-        name: "bootimages-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
+        name: "bootimages-${SOC}-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
         paths:
             - work/${SOC}/boot.zip
             - work/${SOC}/opensbi/platform/nuclei/
@@ -45,7 +45,7 @@ cache:
     script:
         - echo ">>Clean previous build workspace"
         - make clean
-        - echo ">>Show help message for $CORE - $BOOT_MODE"
+        - echo ">>Show help message for $SOC - $CORE - $BOOT_MODE"
         - make help
         - echo ">>Build buildroot_initramfs_sysroot for $CORE"
         - |
@@ -56,22 +56,22 @@ cache:
                 exit 1
             }
         - xz -f -z build_sysroot.log
-        - echo ">>Build freeloader for $CORE - $BOOT_MODE"
+        - echo ">>Build freeloader for $SOC - $CORE - $BOOT_MODE"
         - |
             make freeloader > >(tee build_freeloader.log) || {
                 xz -f -z build_freeloader.log
                 exit 1
             }
         - xz -f -z build_freeloader.log
-        - echo ">>Build and generate boot images for $CORE - $BOOT_MODE"
+        - echo ">>Build and generate boot images for $SOC - $CORE - $BOOT_MODE"
         - |
             make preboot && make -j bootimages > >(tee build_bootimages.log) || {
                 xz -f -z build_bootimages.log
                 exit 1
             }
         - xz -f -z build_bootimages.log
-        - echo ">>Build and generate qemu images for $CORE - $BOOT_MODE"
         - |
+            echo ">>Build and generate qemu images for $SOC - $CORE - $BOOT_MODE"
             echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 1000000"
             sed -i "s/32768/1000000/" conf/$SOC/*.dts
             make freeloader
@@ -85,18 +85,23 @@ cache:
             git reset --hard
             make freeloader
             make bootimages
-        - xz -f -z build_qemu_disk.log
+            xz -f -z build_qemu_disk.log
         - |
             RUNQEMUSH=work/$SOC/run_qemu.sh
-            echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -cpu nuclei-ux900fd,ext=$ARCH_EXT -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive     file=disk.img,if=sd,format=raw" > $RUNQEMUSH
+            echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -cpu nuclei-ux900fd,ext=$ARCH_EXT -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
             chmod +x $RUNQEMUSH
         - echo ">>Build simulation target for $CORE - $BOOT_MODE"
         - |
+            if [ "x$SOC" != "xdemosoc" ] ; then
+                echo ">>Will not build xlspike simulation images"
+                exit 0
+            fi
+            echo ">>Build simulation target for $SOC - $CORE - $BOOT_MODE"
             make presim && make -j opensbi_sim > >(tee build_opensbi_payload.log) || {
                 xz -f -z build_opensbi_payload.log
                 exit 1
             }
-        - xz -f -z build_opensbi_payload.log
+            xz -f -z build_opensbi_payload.log
 
 ## Job template for run linux in xlspike
 .run_linux_sdk_xlspike_template: &run_linux_sdk_xlspike_job_def
@@ -114,8 +119,11 @@ cache:
         - env::native
         - host::xls01
     script:
-        - echo ">>Run using xlspike for $CORE - $BOOT_MODE"
         - |
+            if [ "x$SOC" != "xdemosoc" ] ; then
+                echo ">>Will not run xlspike simulation for $SOC"
+                exit 0
+            fi
             timeout --foreground -s SIGKILL 12m xl_spike work/${SOC}/opensbi/platform/nuclei/${SOC}/firmware/fw_payload.elf > >(tee run_xlspike.log) || {
                 if cat run_xlspike.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
                 if cat run_xlspike.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
@@ -137,8 +145,12 @@ cache:
         - env::native
         - host::xls01
     script:
-        - echo ">>Run using qemu for $CORE - $BOOT_MODE"
+        - echo ">>Run using qemu for $SOC - $CORE - $BOOT_MODE"
         - |
+            if [ "x$SOC" != "xdemosoc" ] ; then
+                echo ">>Will not run qemu simulation for $SOC"
+                exit 0
+            fi
             cd work/$SOC
             # $(cat run_qemu.sh) is workaround for directly run bash run_qemu.sh
             # If do kill it will just kill bash process, the qemu process is not killed
@@ -157,6 +169,9 @@ build_ux600_flash:
         CORE: "ux600"
         ARCH_EXT: ""
         BOOT_MODE: "flash"
+    parallel:
+        matrix:
+            - SOC: ["demosoc", "evalsoc"]
     <<: *build_linux_sdk_job_def
 
 ## Job for build sdk
@@ -168,6 +183,9 @@ build_ux600_sd:
         CORE: "ux600"
         ARCH_EXT: ""
         BOOT_MODE: "sd"
+    parallel:
+        matrix:
+            - SOC: ["demosoc", "evalsoc"]
     <<: *build_linux_sdk_job_def
 
 ## Job for run sim
@@ -228,6 +246,9 @@ build_ux600fd_flash:
         CORE: "ux600fd"
         ARCH_EXT: ""
         BOOT_MODE: "flash"
+    parallel:
+        matrix:
+            - SOC: ["demosoc", "evalsoc"]
     <<: *build_linux_sdk_job_def
 
 ## Job for build sdk
@@ -240,6 +261,9 @@ build_ux600fd_sd:
         CORE: "ux600fd"
         ARCH_EXT: ""
         BOOT_MODE: "sd"
+    parallel:
+        matrix:
+            - SOC: ["demosoc", "evalsoc"]
     <<: *build_linux_sdk_job_def
 
 ## Job for run sim
