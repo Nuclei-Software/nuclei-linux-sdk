@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
+        soc: [demosoc, evalsoc]
         core: [ux600, ux600fd]
         boot_mode: [sd, flash]
 
@@ -42,7 +43,7 @@ jobs:
           mv source.tar.gz $base/
 
       - name: Upload source
-        if: matrix.core == 'ux600' && matrix.boot_mode == 'sd'
+        if: matrix.core == 'ux600' && matrix.boot_mode == 'sd' && matrix.soc == 'demosoc'
         uses: actions/upload-artifact@v2.2.0
         with:
           name: nuclei_linux_sdk_source
@@ -71,30 +72,33 @@ jobs:
           tar -xzf buildroot/dl/nuclei-qemu-2022.04-linux-x64.tar.gz -C prebuilt_tools
 
       # Build bootimages
-      - name: Build bootimages for ${{ matrix.core }} - ${{ matrix.boot_mode }}
+      - name: Build bootimages for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
         run: |
+          export SOC=${{ matrix.soc }} CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }}
           echo "Generate QEMU Disk"
           echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 4000000"
-          sed -i "s/32768/4000000/" conf/demosoc/*.dts
-          make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} freeloader
-          cp work/demosoc/freeloader/freeloader.elf work/demosoc/freeloader_qemu.elf
-          make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} bootimages
-          make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} DISK_SIZE=128 gendisk
-          RUNQEMUSH=work/demosoc/run_qemu.sh
+          sed -i "s/32768/4000000/" conf/$SOC/*.dts
+          make freeloader
+          cp work/$SOC/freeloader/freeloader.elf work/$SOC/freeloader_qemu.elf
+          make bootimages
+          make DISK_SIZE=128 gendisk
+          RUNQEMUSH=work/$SOC/run_qemu.sh
           echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
           chmod +x $RUNQEMUSH
           echo ">>> Reset workaround and source code"
           git reset --hard
           echo "Generate freeloader and boot images"
-          make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} freeloader
-          make CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }} bootimages
+          make freeloader
+          make bootimages
 
       # Run on qemu
-      - name: Run and test on qemu for ${{ matrix.core }} - ${{ matrix.boot_mode }}
+      - name: Run and test on qemu for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
+        if: matrix.soc == 'demosoc'
         run: |
           QEMU_PATH=$(pwd)/prebuilt_tools/linux_qemu/bin
           export PATH=${QEMU_PATH}:$PATH
-          cd work/demosoc
+          export SOC=${{ matrix.soc }} CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }}
+          cd work/$SOC
           # $(cat run_qemu.sh) is workaround for directly run bash run_qemu.sh
           # If do kill it will just kill bash process, the qemu process is not killed
           # SIGTERM is better for kill qemu
@@ -103,27 +107,28 @@ jobs:
               if cat run_qemu.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
           }
       
-      - name: Upload bootimages for ${{ matrix.core }} - ${{ matrix.boot_mode }}
+      - name: Upload bootimages for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
         uses: actions/upload-artifact@v2.2.0
         with:
-          name: bootimages_${{ matrix.core }}_${{ matrix.boot_mode }}
+          name: bootimages_${{ matrix.soc }}_${{ matrix.core }}_${{ matrix.boot_mode }}
           path: |
-            work/demosoc/boot.zip
-            work/demosoc/freeloader/freeloader.elf
+            work/${{ matrix.soc }}/boot.zip
+            work/${{ matrix.soc }}/freeloader/freeloader.elf
 
-      - name: Upload qemu images for ${{ matrix.core }} - ${{ matrix.boot_mode }}
+      - name: Upload qemu images for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
+        if: matrix.soc == 'demosoc'
         uses: actions/upload-artifact@v2.2.0
         with:
-          name: qemu_images_${{ matrix.core }}_${{ matrix.boot_mode }}
+          name: qemu_images_${{ matrix.soc }}_${{ matrix.core }}_${{ matrix.boot_mode }}
           path: |
-            work/demosoc/boot.zip
-            work/demosoc/freeloader/freeloader.elf
-            work/demosoc/freeloader_qemu.elf
-            work/demosoc/disk.img
-            work/demosoc/run_qemu.sh
+            work/${{ matrix.soc }}/boot.zip
+            work/${{ matrix.soc }}/freeloader/freeloader.elf
+            work/${{ matrix.soc }}/freeloader_qemu.elf
+            work/${{ matrix.soc }}/disk.img
+            work/${{ matrix.soc }}/run_qemu.sh
 
       - name: Upload cached packages
-        if: matrix.core == 'ux600' && matrix.boot_mode == 'sd'
+        if: matrix.core == 'ux600' && matrix.boot_mode == 'sd' && matrix.soc == 'demosoc'
         uses: actions/upload-artifact@v2.2.0
         with:
           name: build_caching
