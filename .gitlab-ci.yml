@@ -90,7 +90,6 @@ cache:
             RUNQEMUSH=work/$SOC/run_qemu.sh
             echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -cpu nuclei-ux900fd,ext=$ARCH_EXT -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
             chmod +x $RUNQEMUSH
-        - echo ">>Build simulation target for $CORE - $BOOT_MODE"
         - |
             if [ "x$SOC" != "xdemosoc" ] ; then
                 echo ">>Will not build xlspike simulation images"
