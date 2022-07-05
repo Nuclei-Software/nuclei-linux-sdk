@@ -213,6 +213,9 @@ endif
 
 $(target_gcc): buildroot_initramfs_sysroot
 
+$(wrkdir):
+	mkdir -p $@
+
 $(buildroot_initramfs_wrkdir)/.config: $(buildroot_srcdir)
 	rm -rf $(dir $@)
 	mkdir -p $(dir $@)
