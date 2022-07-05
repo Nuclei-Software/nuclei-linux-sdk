@@ -78,6 +78,7 @@ jobs:
           echo "Generate QEMU Disk"
           echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 4000000"
           sed -i "s/32768/4000000/" conf/$SOC/*.dts
+          make genstamp
           make freeloader
           cp work/$SOC/freeloader/freeloader.elf work/$SOC/freeloader_qemu.elf
           make bootimages
@@ -88,8 +89,7 @@ jobs:
           echo ">>> Reset workaround and source code"
           git reset --hard
           echo "Generate freeloader and boot images"
-          make freeloader
-          make bootimages
+          make genboot
 
       # Run on qemu
       - name: Run and test on qemu for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
@@ -114,6 +114,7 @@ jobs:
           path: |
             work/${{ matrix.soc }}/boot.zip
             work/${{ matrix.soc }}/freeloader/freeloader.elf
+            work/${{ matrix.soc }}/buildstamp.txt
 
       - name: Upload qemu images for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
         if: matrix.soc == 'demosoc'
@@ -124,6 +125,7 @@ jobs:
             work/${{ matrix.soc }}/boot.zip
             work/${{ matrix.soc }}/freeloader/freeloader.elf
             work/${{ matrix.soc }}/freeloader_qemu.elf
+            work/${{ matrix.soc }}/buildstamp.txt
             work/${{ matrix.soc }}/disk.img
             work/${{ matrix.soc }}/run_qemu.sh
 

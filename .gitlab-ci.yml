@@ -37,6 +37,7 @@ cache:
             - work/${SOC}/run_qemu.sh
             - work/${SOC}/disk.img
             - work/${SOC}/freeloader_qemu.elf
+            - work/${SOC}/buildstamp.txt
             - build_*.log.*
         expire_in: 2 day
     tags:
@@ -83,8 +84,7 @@ cache:
             }
             echo ">>> Reset workaround and source code, and rebuilt freeloader and boot images"
             git reset --hard
-            make freeloader
-            make bootimages
+            make genboot
             xz -f -z build_qemu_disk.log
         - |
             RUNQEMUSH=work/$SOC/run_qemu.sh
