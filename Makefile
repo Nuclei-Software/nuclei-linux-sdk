@@ -131,6 +131,9 @@ boot_kernel_dtb := $(boot_wrkdir)/kernel.dtb
 # qemu related disk image
 qemu_disk := $(wrkdir)/disk.img
 
+buildstamp_txt := $(wrkdir)/buildstamp.txt
+fullboot_zip := $(wrkdir)/bootimages.zip
+
 # Files need to backup
 BACKUPMSG := $(wrkdir)/README.txt
 RUNLOG := $(wrkdir)/run.log
@@ -523,7 +526,7 @@ run_qemu: $(qemu_disk) $(freeloader_elf)
 	@echo "Run on qemu for simulation"
 	$(qemu) $(QEMU_MACHINE_OPTS) -cpu nuclei-$(CORE),ext=$(ARCH_EXT) -bios $(freeloader_elf) -nographic -drive file=$(qemu_disk),if=sd,format=raw
 
-.PHONY: backup snapshot
+.PHONY: backup snapshot genstamp genboot
 # backup your build
 backup: $(wrkdir)
 	mkdir -p $(backupdir)
@@ -552,3 +555,20 @@ snapshot:
 	@echo "Archive linux sdk source code snapshot to $(sourcezip_snap)"
 	@mkdir -p $(snapshotdir)
 	git-archive-all --prefix=nuclei-linux-sdk $(sourcezip_snap)
+
+# generate build stamp
+genstamp: $(wrkdir)
+	@echo "Record build date and build git information into $(buildstamp_txt)"
+	@echo "Build Date : $(shell date)" > $(buildstamp_txt)
+	@echo "Repo Git Information:" >> $(buildstamp_txt)
+	git log --oneline -1 >> $(buildstamp_txt)
+	git describe  --always --abbrev=10 --dirty >> $(buildstamp_txt)
+	git submodule >> $(buildstamp_txt)
+	@echo "Repo Workspace Information:" >> $(buildstamp_txt)
+	git status -b -s >> $(buildstamp_txt)
+
+# generate boot images and freeloader zip
+genboot: genstamp freeloader bootimages
+	@rm -f $(fullboot_zip)
+	cd $(wrkdir) && zip -q -r -j $(fullboot_zip) $(boot_zip) $(freeloader_elf) $(buildstamp_txt)
+	@echo "SDCard boot images and freeloader elf are generated into $(fullboot_zip)"
