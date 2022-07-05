@@ -563,6 +563,7 @@ snapshot:
 genstamp: $(wrkdir)
 	@echo "Record build date and build git information into $(buildstamp_txt)"
 	@echo "Build Date : $(shell date)" > $(buildstamp_txt)
+	@echo "Build Configuration: SOC=$(SOC) CORE=$(CORE) ARCH_EXT=$(ARCH_EXT) BOOT_MODE=$(BOOT_MODE)" >> $(buildstamp_txt)
 	@echo "Repo Git Information:" >> $(buildstamp_txt)
 	git log --oneline -1 >> $(buildstamp_txt)
 	git describe  --always --abbrev=10 --dirty >> $(buildstamp_txt)
