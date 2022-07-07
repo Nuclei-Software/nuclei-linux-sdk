@@ -243,7 +243,7 @@ build_ux600fd_flash:
     variables:
         SOC: "demosoc"
         CORE: "ux600fd"
-        ARCH_EXT: ""
+        ARCH_EXT: "v"
         BOOT_MODE: "flash"
     parallel:
         matrix:
@@ -258,7 +258,7 @@ build_ux600fd_sd:
     variables:
         SOC: "demosoc"
         CORE: "ux600fd"
-        ARCH_EXT: ""
+        ARCH_EXT: "v"
         BOOT_MODE: "sd"
     parallel:
         matrix:
@@ -276,6 +276,7 @@ run_ux600fd_flash_xlspike:
     variables:
         SOC: "demosoc"
         CORE: "ux600fd"
+        ARCH_EXT: "v"
         BOOT_MODE: "flash"
     <<: *run_linux_sdk_xlspike_job_def
 
@@ -290,6 +291,7 @@ run_ux600fd_sd_xlspike:
     variables:
         SOC: "demosoc"
         CORE: "ux600fd"
+        ARCH_EXT: "v"
         BOOT_MODE: "sd"
     <<: *run_linux_sdk_xlspike_job_def
 
@@ -304,6 +306,7 @@ run_ux600fd_flash_qemu:
     variables:
         SOC: "demosoc"
         CORE: "ux600fd"
+        ARCH_EXT: "v"
         BOOT_MODE: "flash"
     <<: *run_linux_sdk_qemu_job_def
 
@@ -318,5 +321,6 @@ run_ux600fd_sd_qemu:
     variables:
         SOC: "demosoc"
         CORE: "ux600fd"
+        ARCH_EXT: "v"
         BOOT_MODE: "sd"
     <<: *run_linux_sdk_qemu_job_def
