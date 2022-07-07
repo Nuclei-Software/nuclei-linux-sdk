@@ -75,6 +75,10 @@ jobs:
       - name: Build bootimages for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
         run: |
           export SOC=${{ matrix.soc }} CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }}
+          export ARCH_EXT=
+          if [[ "$CORE" == *"fd" ]] ; then
+              export ARCH_EXT=v
+          fi
           echo "Generate QEMU Disk"
           echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 4000000"
           sed -i "s/32768/4000000/" conf/$SOC/*.dts
@@ -84,7 +88,7 @@ jobs:
           make bootimages
           make DISK_SIZE=128 gendisk
           RUNQEMUSH=work/$SOC/run_qemu.sh
-          echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
+          echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -cpu nuclei-ux900fd,ext=$ARCH_EXT -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
           chmod +x $RUNQEMUSH
           echo ">>> Reset workaround and source code"
           git reset --hard
