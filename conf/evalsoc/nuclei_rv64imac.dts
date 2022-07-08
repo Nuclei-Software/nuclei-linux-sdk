@@ -250,7 +250,7 @@
     mmc@0 {
       compatible = "mmc-spi-slot";
       reg = <0>;
-      spi-max-frequency = <8000000>;
+      spi-max-frequency = <5000000>;
       voltage-ranges = <3300 3300>;
       disable-wp;
       spi-tx-bus-width = <1>;
