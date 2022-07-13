@@ -1356,6 +1356,15 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
   make[1]: Leaving directory 'D:/workspace/Sourcecode/nuclei-sdk/application/baremetal/helloworld'
   ~~~
 
+* buildroot_initramfs/host/bin/riscv-nuclei-linux-gnu-gdb: error while loading shared libraries: libgmp.so.3: cannot open shared object file: No such file or directory
+
+  Workaround is as below, make sure the required packages are installed.
+
+  ~~~shell
+  cd /usr/lib/x86_64-linux-gnu
+  ls -l libgmp*
+  sudo ln -s libgmp.so libgmp.so.3
+  ~~~
 
 ## Reference
 
