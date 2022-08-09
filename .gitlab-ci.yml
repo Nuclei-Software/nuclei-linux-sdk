@@ -74,7 +74,11 @@ cache:
         - |
             echo ">>Build and generate qemu images for $SOC - $CORE - $BOOT_MODE"
             echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 1000000"
-            sed -i "s/32768/1000000/" conf/$SOC/*.dts
+            if [ "x${SOC}" == "xdemosoc" ] ; then
+                sed -i "s/32768/1000000/" conf/$SOC/*.dts
+            else
+                export TIMER_HZ=1000000
+            fi
             make freeloader
             QEMU_FREELOADER=work/$SOC/freeloader_qemu.elf
             cp work/$SOC/freeloader/freeloader.elf $QEMU_FREELOADER
@@ -86,6 +90,7 @@ cache:
             git reset --hard
             make genboot
             xz -f -z build_qemu_disk.log
+            unset TIMER_HZ
         - |
             RUNQEMUSH=work/$SOC/run_qemu.sh
             echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -cpu nuclei-ux900fd,ext=$ARCH_EXT -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
