@@ -143,7 +143,19 @@ FILES2BACKUP := $(boot_zip) $(uboot_elf) $(freeloader_elf) $(vmlinux) $(linux_im
 	$(addsuffix /.config, $(uboot_wrkdir) $(linux_wrkdir) $(buildroot_initramfs_wrkdir)) \
 	$(RUNLOG) $(BACKUPMSG)
 
-FILES2BACKUP := $(subst $(realpath $(srcdir))/,, $(realpath $(FILES2BACKUP))) 
+FILES2BACKUP := $(subst $(realpath $(srcdir))/,, $(realpath $(FILES2BACKUP)))
+
+# Freq defines for dts preprocessing
+DTS_DEFINES :=
+ifneq ($(TIMER_HZ),)
+DTS_DEFINES += -DTIMERCLK_FREQ=$(TIMER_HZ)
+endif
+ifneq ($(CPU_HZ),)
+DTS_DEFINES += -DCPUCLK_FREQ=$(CPU_HZ)
+endif
+ifneq ($(PERIPH_HZ),)
+DTS_DEFINES += -DPERIPHCLK_FREQ=$(PERIPH_HZ)
+endif
 
 # xlspike is prebuilt and installed to PATH
 xlspike := xl_spike
@@ -294,18 +306,28 @@ $(vmlinux_sim_bin): $(vmlinux_sim)
 	PATH=$(RVPATH) $(target)-objcopy -O binary $< $@
 endif
 
-.PHONY: linux-menuconfig
+.PHONY: linux-menuconfig gen-dts gen-simdts
 linux-menuconfig: $(linux_wrkdir)/.config
 	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv CROSS_COMPILE=$(CROSS_COMPILE) menuconfig
 	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv CROSS_COMPILE=$(CROSS_COMPILE) savedefconfig
 	cp $(dir $<)/defconfig $(linux_defconfig)
 
-$(platform_dtb) : $(platform_dts) $(target_gcc)
-	$(target_gcc) -E -nostdinc -undef -x assembler-with-cpp $(platform_dts) -o $(platform_preproc_dts)
+$(platform_preproc_dts): gen-dts
+	echo "Platform preprocessed dts located in $(platform_preproc_dts), processed with defines $(DTS_DEFINES)"
+
+gen-dts: $(platform_dts) $(target_gcc)
+	$(target_gcc) -E -nostdinc -undef -x assembler-with-cpp $(DTS_DEFINES) $(platform_dts) -o $(platform_preproc_dts)
+
+$(platform_preproc_sim_dts): gen-simdts
+	echo "Platform sim preprocessed dts located in $(platform_preproc_sim_dts), processed with defines $(DTS_DEFINES)"
+
+gen-simdts: $(platform_sim_dts) $(target_gcc)
+	$(target_gcc) -E -nostdinc -undef -x assembler-with-cpp $(DTS_DEFINES) $(platform_sim_dts) -o $(platform_preproc_sim_dts)
+
+$(platform_dtb) : $(platform_preproc_dts) $(target_gcc)
 	dtc -O dtb -o $(platform_dtb) $(platform_preproc_dts)
 
-$(platform_sim_dtb) : $(platform_sim_dts) $(target_gcc)
-	$(target_gcc) -E -nostdinc -undef -x assembler-with-cpp $(platform_sim_dts) -o $(platform_preproc_sim_dts)
+$(platform_sim_dtb) : $(platform_preproc_sim_dts) $(target_gcc)
 	dtc -O dtb -o $(platform_sim_dtb) $(platform_preproc_sim_dts)
 
 .PHONY: opensbi opensbi_cp_plat
@@ -360,8 +382,7 @@ $(boot_uinitrd_lz4): $(initramfs)
 	lz4 $(initramfs) $(initramfs).lz4 -f -9 -l
 	$(uboot_mkimage) -A riscv -T ramdisk -C lz4 -n Initrd -d $(initramfs).lz4 $(boot_uinitrd_lz4)
 
-$(boot_kernel_dtb): $(platform_dts)
-	$(target_gcc) -E -nostdinc -undef -x assembler-with-cpp $(platform_dts) -o $(platform_preproc_dts)
+$(boot_kernel_dtb): $(platform_preproc_dts)
 	dtc -O dtb -o $(boot_kernel_dtb) $(platform_preproc_dts)
 
 $(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_lz4) $(boot_kernel_dtb)
