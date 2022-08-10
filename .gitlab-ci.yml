@@ -36,7 +36,7 @@ cache:
             - work/${SOC}/freeloader/freeloader.elf
             - work/${SOC}/run_qemu.sh
             - work/${SOC}/disk.img
-            - work/${SOC}/freeloader_qemu.elf
+            - work/${SOC}/freeloader_*.elf
             - work/${SOC}/buildstamp.txt
             - build_*.log.*
         expire_in: 2 day
@@ -59,11 +59,23 @@ cache:
         - xz -f -z build_sysroot.log
         - echo ">>Build freeloader for $SOC - $CORE - $BOOT_MODE"
         - |
+            echo ">>>Build freeloader for default MHz"
             make freeloader > >(tee build_freeloader.log) || {
                 xz -f -z build_freeloader.log
                 exit 1
             }
+            cp work/${SOC}/freeloader/freeloader.elf work/${SOC}/freeloader_default.elf
+            echo ">>>Build freeloader for 100MHz"
+            export CPU_HZ=100000000
+            make freeloader > >(tee build_freeloader.log) || {
+                xz -f -z build_freeloader_100MHz.log
+                exit 1
+            }
+            cp work/${SOC}/freeloader/freeloader.elf work/${SOC}/freeloader_100MHz.elf
+            mv work/${SOC}/freeloader_default.elf work/${SOC}/freeloader/freeloader.elf
+            unset CPU_HZ
         - xz -f -z build_freeloader.log
+        - xz -f -z build_freeloader_100MHz.log
         - echo ">>Build and generate boot images for $SOC - $CORE - $BOOT_MODE"
         - |
             make preboot && make -j bootimages > >(tee build_bootimages.log) || {
@@ -74,11 +86,8 @@ cache:
         - |
             echo ">>Build and generate qemu images for $SOC - $CORE - $BOOT_MODE"
             echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 1000000"
-            if [ "x${SOC}" == "xdemosoc" ] ; then
-                sed -i "s/32768/1000000/" conf/$SOC/*.dts
-            else
-                export TIMER_HZ=1000000
-            fi
+            #sed -i "s/32768/1000000/" conf/$SOC/*.dts
+            export TIMER_HZ=1000000
             make freeloader
             QEMU_FREELOADER=work/$SOC/freeloader_qemu.elf
             cp work/$SOC/freeloader/freeloader.elf $QEMU_FREELOADER
