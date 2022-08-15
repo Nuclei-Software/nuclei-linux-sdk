@@ -67,7 +67,7 @@ cache:
             cp work/${SOC}/freeloader/freeloader.elf work/${SOC}/freeloader_default.elf
             echo ">>>Build freeloader for 100MHz"
             export CPU_HZ=100000000
-            make freeloader > >(tee build_freeloader.log) || {
+            make freeloader > >(tee build_freeloader_100MHz.log) || {
                 xz -f -z build_freeloader_100MHz.log
                 exit 1
             }
