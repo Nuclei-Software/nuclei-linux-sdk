@@ -9,7 +9,7 @@
   #size-cells = <2>;
   compatible = "nuclei,evalsoc";
   model = "nuclei,evalsoc";
-  
+
   chosen {
     bootargs = "earlycon=sbi";
     stdout-path = "serial0";
