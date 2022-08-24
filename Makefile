@@ -156,6 +156,9 @@ endif
 ifneq ($(PERIPH_HZ),)
 DTS_DEFINES += -DPERIPHCLK_FREQ=$(PERIPH_HZ)
 endif
+ifneq ($(SIMULATION),)
+DTS_DEFINES += -DSIMULATION=$(SIMULATION)
+endif
 
 # xlspike is prebuilt and installed to PATH
 xlspike := xl_spike
