@@ -77,7 +77,8 @@ jobs:
           export SOC=${{ matrix.soc }} CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }}
           echo "Generate QEMU Disk"
           echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 4000000"
-          sed -i "s/32768/4000000/" conf/$SOC/*.dts
+          #sed -i "s/32768/4000000/" conf/$SOC/*.dts
+          export TIMER_HZ=4000000
           make genstamp
           make freeloader
           cp work/$SOC/freeloader/freeloader.elf work/$SOC/freeloader_qemu.elf
@@ -86,6 +87,7 @@ jobs:
           RUNQEMUSH=work/$SOC/run_qemu.sh
           echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
           chmod +x $RUNQEMUSH
+          unset TIMER_HZ
           echo ">>> Reset workaround and source code"
           git reset --hard
           echo "Generate freeloader and boot images"
@@ -106,7 +108,7 @@ jobs:
               if cat run_qemu.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
               if cat run_qemu.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
           }
-      
+
       - name: Upload bootimages for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
         uses: actions/upload-artifact@v2.2.0
         with:
