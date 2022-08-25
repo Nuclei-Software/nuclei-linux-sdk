@@ -173,6 +173,18 @@ You can choose different boot mode by modify the `BOOT_MODE ?= sd` line in `Make
 
 Please modify the `Makefile` to your correct core configuration before build any source code.
 
+For each SoC, in `conf/$SOC/`, it contains a `build.mk` you can specify qemu, timer/cpu/peripheral hz.
+
+* **TIMER_HZ**: implementation dependent, you can change timer frequency to different value to overwrite the one in dts.
+* **CPU_HZ**: implementation dependent, you can change cpu frequency to different value to overwrite the one in dts.
+* **PERIPH_HZ**: implementation dependent, you can change peripheral frequency to different value to overwrite the one in dts.
+* **SIMULATION**: implementation dependent, if SIMULATION=1, only the peripherals can be simulated in rtl will be present in dts, for demosoc/evalsoc, only uart will be present, qspi will not.
+
+> `TIMER_HZ/CPU_HZ/PERIPH_HZ` are all implementation dependent, it required your SoC dts implement this feature, currently
+> demosoc/evalsoc all support this.
+
+For each SoC, in `conf/$SOC`, it also contains a `freeloader.mk`, it is used to configure freeloader feature to set cpu configuration when bring up, such as configure cache, tlb, smp feature, for details, please refer to freeloader source code.
+
 * **Deprecated**: If you want to compile and run using simulator *xl-spike*, please
   check steps mentioned in [Booting Linux on Nuclei xl-spike](#Booting-Linux-on-Nuclei-xl-spike)
 * If you want to compile and run using FPGA evaluation board, please
@@ -350,6 +362,8 @@ In release 2022.01 version of Nuclei QEMU, the Nuclei System Timer implementatio
 **TIMERCLK_FREQ** in `conf/demosoc/*.dts` from 32768 to 1000000 before you run on qemu.
 
 > Sometimes 1000000 may still face issue below, change it to larger value, such as 4000000
+> Now you can change the timer frequency directly using TIMER_HZ=1000000 via make command such as
+> `make CORE=ux900fd SOC=evalsoc TIMER_HZ=1000000 run_qemu`
 
 If you don't change it, you will met the following issue when run on qemu.
 
@@ -690,10 +704,10 @@ then you can insert this SDCard to your SDCard slot(J57) beside the TFT LCD.
 
 The contents of *work/$SOC/boot* or *work/$SOC/boot.zip* are as below:
 
-* **kernel.dtb**  : device tree binary file
-* **boot.scr**    : boot script used by uboot, generated from [./conf/demosoc/uboot.cmd](conf/demosoc/uboot.cmd)
-* **uImage.lz4**  : lz4 archived kernel image
-* **uInitrd.lz4** : lz4 archived rootfs image
+* **kernel.dtb**  : optional, device tree binary file, this dtb is optional now, since freeloader.elf already contains dtb, we can use dtb inside freeloader.elf, and if you want to use a different device tree for linux kernel, you can change this dtb, and place it in sdcard, otherwise this dtb is not a required file for sdcard.
+* **boot.scr**    : required, boot script used by uboot, generated from [./conf/demosoc/uboot.cmd](conf/demosoc/uboot.cmd)
+* **uImage.lz4**  : required, lz4 archived kernel image
+* **uInitrd.lz4** : required, lz4 archived rootfs image
 
 > SDCard is recommended to use SDHC format.
 > SDCard need to be formatted to `FAT32` format, with only 1 partition.
