@@ -12,4 +12,4 @@ CORE7_APP_BIN :=
 # Freq Settings
 TIMER_HZ ?=
 CPU_HZ ?=
-PERIPH_HZ ?= $(CPU_HZ)
+PERIPH_HZ ?=
