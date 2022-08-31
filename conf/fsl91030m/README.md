@@ -2,6 +2,21 @@
 
 ## Linux SDK编译
 
+### 设置环境获取代码
+
+按照主文档获取最新的Linux SDK代码，并且切换到 `feature/fsl` 分支
+
+~~~shell
+# Assume you are already in Nuclei Linux SDK git workspace
+git fetch origin
+git checkout feature/fsl
+git submodule update
+# 请确保git代码均以checkout对应的代码
+git status
+~~~
+
+执行 `git submodule`查看对应的子仓库和github上的commit能否对应上。
+
 ### 编译命令
 
 典型的SD卡启动编译命令如下：
