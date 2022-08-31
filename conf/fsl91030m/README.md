@@ -10,6 +10,7 @@
 # Assume you are already in Nuclei Linux SDK git workspace
 git fetch origin
 git checkout feature/fsl
+git submodule init
 git submodule update
 # 请确保git代码均已checkout对应的代码
 git status
@@ -37,7 +38,7 @@ git status
 
 - BOOT_MODE ：sd 卡或者flash，sd表示kernel和rootfs存放在sd卡上，启动时会从sd卡读取kernel，rootfs完成系统启动.
   flash表示kernel，rootfs存放在norflash上，启动时从norflash 读取kernel，rootfs完成系统启动。
-  如编译过程需要改BOOT_MODE 参数，要先cleanuboot， 然后继续编译。
+  如编译过程需要改BOOT_MODE 参数，先要执行``make SOC=fsl91030m CORE=ux600fd BOOT_MODE=flash cleanuboot``，然后继续编译。
 
 关于详细的使用说明请参见[Linux SDK主文档](../../README.md)
 
@@ -50,14 +51,14 @@ git status
 ~~~shell
 .
 ├── boot
-│   ├── boot.scr
-│   ├── uImage.lz4
-│   └── uInitrd.lz4
+│   ├── boot.scr
+│   ├── uImage.lz4
+│   └── uInitrd.lz4
 ├── boot.zip
 ├── buildroot_initramfs
 ├── buildroot_initramfs_sysroot
 ├── freeloader
-│   ├── freeloader.elf
+│   ├── freeloader.elf
 ├── initramfs.cpio.gz
 ├── initramfs.cpio.gz.lz4
 ├── linux
@@ -116,7 +117,7 @@ GDBREMOTE 是运行openocd主机的ip地址和端口号
 
 运行前需要把FSL91030M开发板上靠近网口的pin1 朝内拨，否则无法启动！！！
 
-如BOOT_MODE=sd 卡方式编译，则需要拷贝SDK_DIR/work/fsl91030m/boot下的三个文件boot.scr，uImage.lz4, uInitrd.lz4 到TF卡(fat32格式)，TF卡插入板子，上电就可以启动。
+如BOOT_MODE=sd 卡方式编译，则需要拷贝``SDK_DIR/work/fsl91030m/boot``下的三个文件``boot.scr，uImage.lz4, uInitrd.lz4`` 到TF卡(fat32格式)，TF卡插入板子，上电就可以启动。
 
 如BOOT_MODE=flash方式编译，上电就可以启动系统，flash启动会比较慢点，需要等待一下才能看到串口打印。蜂鸟调试器自带串口，使用此串口可看到启动信息。
 
