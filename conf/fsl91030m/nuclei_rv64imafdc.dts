@@ -130,7 +130,7 @@
     flash@1 {
       compatible = "jedec,spi-nor";
       reg = <1>;
-      spi-max-frequency = <1000000>;
+      spi-max-frequency = <100000000>;
       m25p,fast-read;
       spi-tx-bus-width = <1>;
       spi-rx-bus-width = <1>;
@@ -151,7 +151,7 @@
     mmc@1 {
       compatible = "mmc-spi-slot";
       reg = <1>;
-      spi-max-frequency = <20000000>;
+      spi-max-frequency = <25000000>;
       voltage-ranges = <3300 3300>;
       disable-wp;
     };
