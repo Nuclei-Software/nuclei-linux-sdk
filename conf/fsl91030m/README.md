@@ -146,6 +146,7 @@ GDBREMOTE 是运行openocd主机的ip地址和端口号
 
 1. 在windows电脑上搭建tftp 服务器（以tftpd服务器说明）
    下载tftpd32 服务器软件，将要运行的应用程序放在tftpd32.exe的同一个目录下, 双击运行tftp32.exe，选择tftp服务器的网络接口。
+
    ![tftpd_server](resource/tftpd_server.png)
    ![tftpd_server_dir](resource/tftpd_server_dir.png)
 
@@ -197,8 +198,9 @@ Transfer a file from/to tftp server
 # tftp -g -l helloworld -r hello_world 192.168.40.52
 ~~~
 
--l 参数表示下载到板子文件名，可以和-r 参数文件名字不同，-r 表示tftp服务器上文件名，必须是tftp 服务器根目录下的文件。
-192.168.40.52 是运行tftp 服务器的pc IP地址，开发板的ip地址 192.168.40.209通过dhcp 从路由器获得，ping 服务器地址的结果可以看到网络是通的，tftp 命令使用前需要确保网络是通的。
+`-l` 参数表示下载到板子文件名，可以和`-r` 参数文件名字不同，`-r` 表示tftp服务器上文件名，必须是tftp 服务器根目录下的文件。
+192.168.40.52 是运行tftp 服务器的pc IP地址，开发板的ip地址 192.168.40.209通过dhcp 从路由器获得，ping 服务器地址的结果可以看到网络是通的，
+tftp 命令使用前需要确保网络是通的。
 
 ## 注意事项
 
