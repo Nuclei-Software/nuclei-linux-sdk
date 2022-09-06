@@ -254,6 +254,7 @@ buildroot_busybox-menuconfig: $(buildroot_initramfs_wrkdir)/.config $(buildroot_
 $(buildroot_initramfs_sysroot_stamp): $(buildroot_initramfs_tar)
 	mkdir -p $(buildroot_initramfs_sysroot)
 	tar -xpf $< -C $(buildroot_initramfs_sysroot) --exclude ./dev --exclude ./usr/share/locale
+	cp -af $(confdir)/xy1000_net.ko $(buildroot_initramfs_sysroot)/usr/bin/
 	touch $@
 
 .PHONY: initrd linux
@@ -430,6 +431,7 @@ prepare4m: buildroot_initramfs_sysroot
 	sed -i '/sbin\/getty/cconsole::respawn:/bin/sh' $(buildroot_initramfs_sysroot)/etc/inittab
 	#sed -i '/init\.d/d' $(buildroot_initramfs_sysroot)/etc/inittab
 	rm -rf $(buildroot_initramfs_sysroot)/lib/*
+	cp -af $(confdir)/xy1000_net.ko $(buildroot_initramfs_sysroot)/usr/bin/
 	$(MAKE) CORE=$(CORE) cleanboot bootimages
 
 freeloader4m: prepare4m $(freeloader_elf)

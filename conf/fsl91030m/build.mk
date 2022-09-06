@@ -1,4 +1,4 @@
-UIMAGE_AE_CMD := -a 0x40400000 -e 0x40400000
+UIMAGE_AE_CMD := -a 0x41400000 -e 0x41400000
 QEMU_MACHINE_OPTS := -M nuclei_u,download=flashxip -smp 8 -m 256M
 # eg. $(confdir)/amp/cx.bin
 CORE1_APP_BIN :=

@@ -124,7 +124,81 @@ GDBREMOTE 是运行openocd主机的ip地址和端口号
 > - 串口波特率配置为 115200bps, Data 8bit, Parity None, Stop Bits 1bit, No Flow Control
 > - Linux登录用户名/密码为：root/nuclei
 
+如使用网络，需先加载网口驱动xy1000_net.ko，默认在根文件系统的/usr/bin 位置，加载驱动命令：
+~~~shell
+# ls /usr/bin/xy1000_net.ko -l
+-rwxr--r--    1 root     root       1072832 Sep  5  2022 /usr/bin/xy1000_net.ko
+# insmod /usr/bin/xy1000_net.ko
+[   66.382792] xy1000_net: loading out-of-tree module taints kernel.
+[   66.399975] xy1000_net driver 20220628
+[   66.403129] addr_res 0x67800000, size 0x1000
+[   66.407675] pkt dma tx_end_irq 6
+[   66.410481] pkt dma rx_end_irq 8
+[   66.413676] pkt dma rx_req_irq 10
+~~~
+
+
 **注意：运行前pin1 朝内拨。**
+
+## 下载Linux 应用到开发板
+
+此开发板可通过网络下载可执行程序到板上运行，下面以tftp下载方式说明如何下载：
+
+1. 在windows电脑上搭建tftp 服务器（以tftpd服务器说明）
+   下载tftpd32 服务器软件，将要运行的应用程序放在tftpd32.exe的同一个目录下, 双击运行tftp32.exe，选择tftp服务器的网络接口。
+   ![tftpd_server](resource/tftpd_server.png)
+   ![tftpd_server_dir](resource/tftpd_server_dir.png)
+
+2. 开发板上使用tftp 命令下载文件
+
+~~~shell
+# udhcpc
+udhcpc: started, v1.32.0
+udhcpc: sending discover
+udhcpc: sending select for 192.168.40.209
+udhcpc: lease of 192.168.40.209 obtained, lease time 7200
+deleting routers
+adding dns 192.168.55.101
+adding dns 192.168.55.102
+adding dns 192.168.55.105
+# ifconfig
+eth0      Link encap:Ethernet  HWaddr 00:02:AA:BB:CC:38
+          inet addr:192.168.40.209  Bcast:192.168.40.255  Mask:255.255.255.0
+          inet6 addr: fe80::202:aaff:febb:cc38/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:2127 errors:377 dropped:1068 overruns:0 frame:0
+          TX packets:95 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:452972 (442.3 KiB)  TX bytes:8902 (8.6 KiB)
+
+# ping 192.168.40.52
+PING 192.168.40.52 (192.168.40.52): 56 data bytes
+64 bytes from 192.168.40.52: seq=0 ttl=128 time=1.618 ms
+64 bytes from 192.168.40.52: seq=1 ttl=128 time=1.802 ms
+^C
+--- 192.168.40.52 ping statistics ---
+2 packets transmitted, 2 packets received, 0% packet loss
+round-trip min/avg/max = 1.618/1.710/1.802 ms
+
+# tftp
+
+BusyBox v1.32.0 (2022-09-01 10:31:27 CST) multi-call binary.
+
+Usage: tftp [OPTIONS] HOST [PORT]
+
+Transfer a file from/to tftp server
+
+    -l FILE    Local FILE
+    -r FILE    Remote FILE
+    -g    Get file
+    -p    Put file
+    -b SIZE    Transfer blocks of SIZE octets
+
+# tftp -g -l helloworld -r hello_world 192.168.40.52
+~~~
+
+-l 参数表示下载到板子文件名，可以和-r 参数文件名字不同，-r 表示tftp服务器上文件名，必须是tftp 服务器根目录下的文件。
+192.168.40.52 是运行tftp 服务器的pc IP地址，开发板的ip地址 192.168.40.209通过dhcp 从路由器获得，ping 服务器地址的结果可以看到网络是通的，tftp 命令使用前需要确保网络是通的。
 
 ## 注意事项
 

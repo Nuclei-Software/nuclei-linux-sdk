@@ -19,7 +19,7 @@ platform-runcmd = xl_spike \
   $(build_dir)/platform/nuclei/fsl91030m/firmware/fw_payload.elf
 
 # Blobs to build
-FW_TEXT_START ?= 0x40000000
+FW_TEXT_START ?= 0x41000000
 FW_DYNAMIC=y
 FW_JUMP=y
 

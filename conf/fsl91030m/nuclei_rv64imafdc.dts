@@ -13,8 +13,8 @@
 / {
   #address-cells = <2>;
   #size-cells = <2>;
-  compatible = "nuclei,fsl91030m";
-  model = "nuclei,fsl91030m";
+  compatible = "fsl,fsl91030m";
+  model = "fsl,fsl91030m";
 
   chosen {
       bootargs = "earlycon=sbi console=ttyNUC0";
@@ -46,9 +46,9 @@
     }; 
   };
 
-  memory@40000000 {
+  memory@41000000 {
     device_type = "memory";
-    reg = <0x0 0x40000000 0x0 0x10000000>;
+    reg = <0x0 0x41000000 0x0 0x0f000000>;
   };
 
   soc {
