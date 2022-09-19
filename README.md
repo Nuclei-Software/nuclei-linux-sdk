@@ -363,7 +363,9 @@ In release 2022.01 version of Nuclei QEMU, the Nuclei System Timer implementatio
 
 > Sometimes 1000000 may still face issue below, change it to larger value, such as 4000000
 > Now you can change the timer frequency directly using TIMER_HZ=1000000 via make command such as
-> `make CORE=ux900fd SOC=evalsoc TIMER_HZ=1000000 run_qemu`
+> `make CORE=ux900fd SOC=demosoc TIMER_HZ=1000000 run_qemu`
+
+> Currently only **demosoc** is supported by Nuclei QEMU, please take care.
 
 If you don't change it, you will met the following issue when run on qemu.
 
