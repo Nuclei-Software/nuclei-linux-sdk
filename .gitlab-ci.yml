@@ -205,13 +205,14 @@ release_sources:
     interruptible: true
     stage: build_ux600
     needs:
-        - job: build_ux600_sd
+        - job: build_ux600_flash
     tags:
         - env::native
         - host::xls01
     script:
+        - activate_swdev
         - make snapshot
-        - snapshot_zip=($(ls -t1 GENERATED/snapshot_*.zip))
+        - snapshot_zip=($(ls -t1 GENERATED/snapshot/snapshot_*.zip))
         - cp -f ${snapshot_zip} linuxsdk_${CI_COMMIT_REF_NAME//\//\_}_${CI_COMMIT_SHA::8}.zip
     artifacts:
         name: "nuclei_linuxsdk-job${CI_JOB_ID}_${CI_COMMIT_SHA::8}"
