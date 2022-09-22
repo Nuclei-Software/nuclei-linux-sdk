@@ -201,6 +201,25 @@ build_ux600_sd:
             - SOC: ["demosoc", "evalsoc"]
     <<: *build_linux_sdk_job_def
 
+release_sources:
+    interruptible: true
+    stage: build_ux600
+    needs:
+        - job: build_ux600_sd
+    tags:
+        - env::native
+        - host::xls01
+    script:
+        - make snapshot
+        - snapshot_zip=($(ls -t1 GENERATED/snapshot_*.zip))
+        - cp -f ${snapshot_zip} linuxsdk_${CI_COMMIT_REF_NAME//\//\_}_${CI_COMMIT_SHA::8}.zip
+    artifacts:
+        name: "nuclei_linuxsdk-job${CI_JOB_ID}_${CI_COMMIT_SHA::8}"
+        paths:
+            - buildroot/dl
+            - linuxsdk_*.zip
+        expire_in: 2 day
+
 ## Job for run sim
 # Run For UX600 Core, without FPU, flash boot mode
 run_ux600_flash_xlspike:
