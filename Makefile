@@ -53,9 +53,6 @@ gengitdesver := $(shell which git >/dev/null && git describe --always --abbrev=1
 backupdir_snap := $(backupdir)/prebuilt_$(SOC)_$(shell date -u +"%Y%m%d-%H%M%S").zip
 sourcezip_snap := $(snapshotdir)/snapshot_$(gentimestamp)_$(gengitdesver).zip
 
-# Include SoC related Makefile
-include $(confdir)/build.mk
-
 buildroot_srcdir := $(srcdir)/buildroot
 buildroot_initramfs_wrkdir := $(wrkdir)/buildroot_initramfs
 
@@ -103,8 +100,6 @@ opensbi_jumpelf := $(opensbi_wrkdir)/platform/nuclei/$(SOC)/firmware/fw_jump.elf
 
 opensbi_plat_deps := $(wildcard $(addprefix $(opensbi_plat_confdir)/, *.mk *.c *.h))
 
-amp_bins = $(CORE1_APP_BIN) $(CORE2_APP_BIN) $(CORE3_APP_BIN) 
-
 freeloader_srcdir := $(srcdir)/freeloader
 freeloader_wrkdir := $(wrkdir)/freeloader
 freeloader_confmk := $(confdir)/freeloader.mk
@@ -144,6 +139,11 @@ FILES2BACKUP := $(boot_zip) $(uboot_elf) $(freeloader_elf) $(vmlinux) $(linux_im
 	$(RUNLOG) $(BACKUPMSG)
 
 FILES2BACKUP := $(subst $(realpath $(srcdir))/,, $(realpath $(FILES2BACKUP)))
+
+# Include SoC related Makefile
+include $(confdir)/build.mk
+
+amp_bins = $(CORE1_APP_BIN) $(CORE2_APP_BIN) $(CORE3_APP_BIN) $(CORE4_APP_BIN) $(CORE5_APP_BIN) $(CORE6_APP_BIN) $(CORE7_APP_BIN)
 
 # Freq defines for dts preprocessing
 DTS_DEFINES :=
@@ -281,6 +281,7 @@ linux: $(linux_srcdir) $(linux_wrkdir)/.config
 		vmlinux Image
 
 $(initramfs): $(buildroot_initramfs_sysroot) $(linux_image)
+	$(INITRAMFS_PRECMD)
 	cd $(linux_wrkdir) && \
 		$(linux_gen_initramfs) \
 		-o $@ -u $(shell id -u) -g $(shell id -g) \
