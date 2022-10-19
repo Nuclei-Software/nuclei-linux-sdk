@@ -179,7 +179,7 @@
     interrupt-controller;
     #interrupt-cells = <2>;
     clocks = <&hfclk>;
-    status = "disabled";
+    status = "okay";
   };
 
   i2c0: ocores@10018000 {
@@ -189,7 +189,10 @@
     interrupt-parent = <&plic0>;
     interrupts = <4>;
     reg = <0x0 0x10018000 0x0 0x1000>;
-    clock-frequency = <25000000>;
+    reg-shift = <0>;
+    reg-io-width = <1>;
+    clocks = <&hfclk2>;
+    status = "okay";
   };
 
   wdt: watchdog@68000000 {
