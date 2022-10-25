@@ -57,6 +57,28 @@ cache:
                 exit 1
             }
         - xz -f -z build_sysroot.log
+        - echo ">>Build multiple CPU_HZ freeloader for $SOC - $CORE - $BOOT_MODE"
+        - |
+            export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
+            export SELVAR="CPU_HZ"
+            export VARLIST="16000000,100000000"
+            bash .github/build_multiple_freeloader.sh > >(tee build_cpuhz_freeloader.log) || {
+                xz -f -z build_cpuhz_freeloader.log
+                exit 1
+            }
+            unset MAKEOPTS SELVAR VARLIST
+        - xz -f -z build_cpuhz_freeloader.log
+        - echo ">>Build simulation freeloader for $SOC - $CORE - $BOOT_MODE"
+        - |
+            export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
+            export SELVAR="SIMULATION"
+            export VARLIST="1"
+            bash .github/build_multiple_freeloader.sh > >(tee build_simu_freeloader.log) || {
+                xz -f -z build_simu_freeloader.log
+                exit 1
+            }
+            unset MAKEOPTS SELVAR VARLIST
+        - xz -f -z build_simu_freeloader.log
         - echo ">>Build freeloader for $SOC - $CORE - $BOOT_MODE"
         - |
             echo ">>>Build freeloader for default MHz"
@@ -64,18 +86,7 @@ cache:
                 xz -f -z build_freeloader.log
                 exit 1
             }
-            cp work/${SOC}/freeloader/freeloader.elf work/${SOC}/freeloader_default.elf
-            echo ">>>Build freeloader for 100MHz"
-            export CPU_HZ=100000000
-            make freeloader > >(tee build_freeloader_100MHz.log) || {
-                xz -f -z build_freeloader_100MHz.log
-                exit 1
-            }
-            cp work/${SOC}/freeloader/freeloader.elf work/${SOC}/freeloader_100MHz.elf
-            mv work/${SOC}/freeloader_default.elf work/${SOC}/freeloader/freeloader.elf
-            unset CPU_HZ
         - xz -f -z build_freeloader.log
-        - xz -f -z build_freeloader_100MHz.log
         - echo ">>Build and generate boot images for $SOC - $CORE - $BOOT_MODE"
         - |
             make preboot && make -j bootimages > >(tee build_bootimages.log) || {
