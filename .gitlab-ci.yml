@@ -31,13 +31,7 @@ cache:
     artifacts:
         name: "bootimages-${SOC}-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
         paths:
-            - work/${SOC}/boot.zip
-            - work/${SOC}/opensbi/platform/nuclei/
-            - work/${SOC}/freeloader/freeloader.elf
-            - work/${SOC}/run_qemu.sh
-            - work/${SOC}/disk.img
-            - work/${SOC}/freeloader_*.elf
-            - work/${SOC}/buildstamp.txt
+            - work/${SOC}/
             - build_*.log.*
         expire_in: 2 day
     tags:
@@ -125,6 +119,7 @@ cache:
                 xz -f -z build_opensbi_payload.log
                 exit 1
             }
+            cp -f work/${SOC}/opensbi/platform/nuclei/${SOC}/firmware/fw_payload.elf work/${SOC}/fw_payload_xlspike.elf
             xz -f -z build_opensbi_payload.log
 
 ## Job template for run linux in xlspike
@@ -148,7 +143,7 @@ cache:
                 echo ">>Will not run xlspike simulation for $SOC"
                 exit 0
             fi
-            timeout --foreground -s SIGKILL 12m xl_spike work/${SOC}/opensbi/platform/nuclei/${SOC}/firmware/fw_payload.elf > >(tee run_xlspike.log) || {
+            timeout --foreground -s SIGKILL 12m xl_spike work/${SOC}/fw_payload_xlspike.elf > >(tee run_xlspike.log) || {
                 if cat run_xlspike.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
                 if cat run_xlspike.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
             }
@@ -211,6 +206,76 @@ build_ux600_sd:
         matrix:
             - SOC: ["demosoc", "evalsoc"]
     <<: *build_linux_sdk_job_def
+
+# Manual job for ux600 sd
+build_ux600_sd_manual:
+    interruptible: true
+    stage: build_ux600
+    when: manual
+    needs:
+        - job: build_ux600_sd
+    variables:
+        SOC: "demosoc"
+        CORE: "ux600"
+        ARCH_EXT: ""
+        BOOT_MODE: "sd"
+    only:
+        changes:
+          - conf/*
+          - Makefile
+          - .gitlab-ci.yml
+          - buildroot
+          - freeloader
+          - linux
+          - u-boot
+    artifacts:
+        name: "bootimages-${SOC}-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
+        paths:
+            - work/${SOC}/freeloader/freeloader.elf
+            - work/${SOC}/boot.zip
+        expire_in: 2 day
+    tags:
+        - env::native
+        - host::xls01
+    script:
+        - make preboot
+        - make freeloader
+        - make bootimages
+
+# Manual job for ux600 flash
+build_ux600_flash_manual:
+    interruptible: true
+    stage: build_ux600
+    when: manual
+    needs:
+        - job: build_ux600_flash
+    variables:
+        SOC: "demosoc"
+        CORE: "ux600"
+        ARCH_EXT: ""
+        BOOT_MODE: "flash"
+    only:
+        changes:
+          - conf/*
+          - Makefile
+          - .gitlab-ci.yml
+          - buildroot
+          - freeloader
+          - linux
+          - u-boot
+    artifacts:
+        name: "bootimages-${SOC}-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
+        paths:
+            - work/${SOC}/freeloader/freeloader.elf
+            - work/${SOC}/boot.zip
+        expire_in: 2 day
+    tags:
+        - env::native
+        - host::xls01
+    script:
+        - make preboot
+        - make freeloader
+        - make bootimages
 
 release_sources:
     interruptible: true
@@ -309,6 +374,76 @@ build_ux600fd_sd:
         matrix:
             - SOC: ["demosoc", "evalsoc"]
     <<: *build_linux_sdk_job_def
+
+# Manual job for ux600fd sd
+build_ux600fd_sd_manual:
+    interruptible: true
+    stage: build_ux600fd
+    when: manual
+    needs:
+        - job: build_ux600fd_sd
+    variables:
+        SOC: "demosoc"
+        CORE: "ux600fd"
+        ARCH_EXT: ""
+        BOOT_MODE: "sd"
+    only:
+        changes:
+          - conf/*
+          - Makefile
+          - .gitlab-ci.yml
+          - buildroot
+          - freeloader
+          - linux
+          - u-boot
+    artifacts:
+        name: "bootimages-${SOC}-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
+        paths:
+            - work/${SOC}/freeloader/freeloader.elf
+            - work/${SOC}/boot.zip
+        expire_in: 2 day
+    tags:
+        - env::native
+        - host::xls01
+    script:
+        - make preboot
+        - make freeloader
+        - make bootimages
+
+# Manual job for ux600fd flash
+build_ux600fd_flash_manual:
+    interruptible: true
+    stage: build_ux600fd
+    when: manual
+    needs:
+        - job: build_ux600fd_flash
+    variables:
+        SOC: "demosoc"
+        CORE: "ux600fd"
+        ARCH_EXT: ""
+        BOOT_MODE: "flash"
+    only:
+        changes:
+          - conf/*
+          - Makefile
+          - .gitlab-ci.yml
+          - buildroot
+          - freeloader
+          - linux
+          - u-boot
+    artifacts:
+        name: "bootimages-${SOC}-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
+        paths:
+            - work/${SOC}/freeloader/freeloader.elf
+            - work/${SOC}/boot.zip
+        expire_in: 2 day
+    tags:
+        - env::native
+        - host::xls01
+    script:
+        - make preboot
+        - make freeloader
+        - make bootimages
 
 ## Job for run sim
 # Run For UX600FD Core, with FPU, flash boot mode
