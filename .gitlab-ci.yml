@@ -2,6 +2,7 @@ variables:
     GIT_SUBMODULE_STRATEGY: recursive
     GET_SOURCES_ATTEMPTS: 5
     GIT_STRATEGY: fetch
+    FF_USE_FASTZIP: true
 
 before_script:
     - source /home/share/devtools/env.sh
