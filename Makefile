@@ -235,7 +235,7 @@ $(buildroot_initramfs_wrkdir)/.config:
 	rm -rf $(dir $@)
 	mkdir -p $(dir $@)
 	cp $(buildroot_initramfs_config) $@
-	$(MAKE) -C $< RISCV=$(RISCV) O=$(buildroot_initramfs_wrkdir) olddefconfig
+	$(MAKE) -C ${buildroot_srcdir} RISCV=$(RISCV) O=$(buildroot_initramfs_wrkdir) olddefconfig
 
 # buildroot_initramfs provides gcc
 $(buildroot_initramfs_tar): $(buildroot_srcdir) $(buildroot_initramfs_wrkdir)/.config $(buildroot_initramfs_config)
