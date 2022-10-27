@@ -258,7 +258,7 @@ $(buildroot_initramfs_sysroot_stamp): $(buildroot_initramfs_tar)
 
 .PHONY: initrd linux
 
-$(linux_wrkdir)/.config: $(linux_defconfig) $(linux_srcdir) $(target_gcc)
+$(linux_wrkdir)/.config: $(linux_defconfig) $(target_gcc)
 	mkdir -p $(dir $@)
 	cp -p $< $@
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) ARCH=riscv CROSS_COMPILE=$(CROSS_COMPILE) olddefconfig
@@ -402,7 +402,7 @@ uboot-menuconfig: $(uboot_wrkdir)/.config $(uboot_srcdir)
 	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) savedefconfig
 	cp $(dir $<)/defconfig $(uboot_config)
 
-$(uboot_wrkdir)/.config: $(uboot_srcdir) $(target_gcc)
+$(uboot_wrkdir)/.config: $(target_gcc) $(uboot_config)
 	mkdir -p $(uboot_wrkdir)
 	cp $(uboot_config) $@
 	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) olddefconfig
