@@ -1,18 +1,17 @@
 #!/bin/env bash
 
+SOC=${SOC:-demosoc}
+CORE=${CORE:-ux900}
+BOOT_MODE=${BOOT_MODE:-sd}
 SELVAR=${SELVAR:-CPU_HZ}
 VARLIST=${VARLIST:-"16000000,100000000"}
 GITSHA=${GITSHA:-$(git describe --always)}
 MAKEOPTS=${MAKEOPTS:-""}
 DRYRUN=${DRYRUN:-0}
 
-SOC=demosoc
-CORE=ux900
-BOOT_MODE=sd
-
 # eval MAKEOPTS to overwrite variable of SOC/CORE/BOOT_MODE
 if [ "x$MAKEOPTS" !=  "x" ] ; then
-    eval $MAKEOPTS
+    eval export $MAKEOPTS
 fi
 
 echo "Git commit is $GITSHA"
