@@ -208,7 +208,7 @@ cache:
         - env::native
         - host::xls01
     script:
-        - export MAKEOPTS=${MAKEOPTS}
+        - export MAKEOPTS="${MAKEOPTS}"
         - make preboot
         - bash .github/build_sdk.sh
 

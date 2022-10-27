@@ -14,6 +14,7 @@ BOOTROOT=/home/share/devtools/linuxsdk/boot
 
 # eval MAKEOPTS to overwrite variable of SOC/CORE/BOOT_MODE
 if [ "x$MAKEOPTS" !=  "x" ] ; then
+    echo "MAKEOPTS=$MAKEOPTS"
     eval export $MAKEOPTS
 fi
 
