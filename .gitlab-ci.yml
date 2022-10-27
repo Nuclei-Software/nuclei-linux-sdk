@@ -123,7 +123,7 @@ cache:
             cp -f work/${SOC}/opensbi/platform/nuclei/${SOC}/firmware/fw_payload.elf work/${SOC}/fw_payload_xlspike.elf
             xz -f -z build_opensbi_payload.log
         - |
-            genbootzip=work/$(SOC)/genboot_artifacts_${CI_COMMIT_SHA::8}.zip
+            genbootzip=work/${SOC}/genboot_artifacts_${CI_COMMIT_SHA::8}.zip
             echo "Zip all generated boot images and freeloader elfs to ${genbootzip}"
             rm -f ${genbootzip}
             zip -r ${genbootzip} work/${SOC}/boot.zip work/${SOC}/freeloader/freeloader.elf work/${SOC}/run_qemu.sh work/${SOC}/disk.img work/${SOC}/freeloader_*.elf work/${SOC}/buildstamp.txt work/${SOC}/fw_payload_xlspike.elf
