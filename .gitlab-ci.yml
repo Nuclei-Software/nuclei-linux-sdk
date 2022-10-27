@@ -111,17 +111,16 @@ cache:
             echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -cpu nuclei-ux900fd,ext=$ARCH_EXT -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
             chmod +x $RUNQEMUSH
         - |
-            if [ "x$SOC" != "xdemosoc" ] ; then
-                echo ">>Will not build xlspike simulation images"
-                exit 0
-            fi
-            echo ">>Build simulation target for $SOC - $CORE - $BOOT_MODE"
-            make presim && make -j opensbi_sim > >(tee build_opensbi_payload.log) || {
+            if [ "x$SOC" == "xdemosoc" ] ; then
+                echo ">>Will build xlspike simulation images only for demosoc"
+                echo ">>Build simulation target for $SOC - $CORE - $BOOT_MODE"
+                make presim && make -j opensbi_sim > >(tee build_opensbi_payload.log) || {
+                    xz -f -z build_opensbi_payload.log
+                    exit 1
+                }
+                cp -f work/${SOC}/opensbi/platform/nuclei/${SOC}/firmware/fw_payload.elf work/${SOC}/fw_payload_xlspike.elf
                 xz -f -z build_opensbi_payload.log
-                exit 1
-            }
-            cp -f work/${SOC}/opensbi/platform/nuclei/${SOC}/firmware/fw_payload.elf work/${SOC}/fw_payload_xlspike.elf
-            xz -f -z build_opensbi_payload.log
+            fi
         - |
             genbootzip=work/${SOC}/genboot_artifacts_${CI_COMMIT_SHA::8}.zip
             echo "Zip all generated boot images and freeloader elfs to ${genbootzip}"
