@@ -12,6 +12,7 @@ stages:
     - build_ux600fd
     - run_ux600
     - run_ux600fd
+    - build_manual
 
 cache:
     paths:
@@ -207,9 +208,9 @@ cache:
         - env::native
         - host::xls01
     script:
+        - export MAKEOPTS=${MAKEOPTS}
         - make preboot
-        - make bootimages
-        - make freeloader
+        - bash .github/build_sdk.sh
 
 ## Job for build sdk
 # Build For UX600 Core, without FPU, flash boot mode
@@ -241,7 +242,7 @@ build_ux600_sd:
 
 # Manual job for ux600 sd
 build_ux600_sd_manual:
-    stage: build_ux600
+    stage: build_manual
     needs:
         - job: build_ux600_sd
     variables:
@@ -253,7 +254,7 @@ build_ux600_sd_manual:
 
 # Manual job for ux600 flash
 build_ux600_flash_manual:
-    stage: build_ux600
+    stage: build_manual
     needs:
         - job: build_ux600_flash
     variables:
@@ -363,7 +364,7 @@ build_ux600fd_sd:
 
 # Manual job for ux600fd sd
 build_ux600fd_sd_manual:
-    stage: build_ux600fd
+    stage: build_manual
     needs:
         - job: build_ux600fd_sd
     variables:
@@ -375,7 +376,7 @@ build_ux600fd_sd_manual:
 
 # Manual job for ux600fd flash
 build_ux600fd_flash_manual:
-    stage: build_ux600fd
+    stage: build_manual
     needs:
         - job: build_ux600fd_flash
     variables:
