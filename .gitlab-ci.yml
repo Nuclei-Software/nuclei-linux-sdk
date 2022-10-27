@@ -246,7 +246,7 @@ build_ux600_sd_manual:
     needs:
         - job: build_ux600_sd
     variables:
-        SOC: "demosoc"
+        SOC: "evalsoc"
         CORE: "ux600"
         ARCH_EXT: ""
         BOOT_MODE: "sd"
@@ -258,7 +258,7 @@ build_ux600_flash_manual:
     needs:
         - job: build_ux600_flash
     variables:
-        SOC: "demosoc"
+        SOC: "evalsoc"
         CORE: "ux600"
         ARCH_EXT: ""
         BOOT_MODE: "flash"
@@ -368,7 +368,7 @@ build_ux600fd_sd_manual:
     needs:
         - job: build_ux600fd_sd
     variables:
-        SOC: "demosoc"
+        SOC: "evalsoc"
         CORE: "ux600fd"
         ARCH_EXT: ""
         BOOT_MODE: "sd"
@@ -380,7 +380,7 @@ build_ux600fd_flash_manual:
     needs:
         - job: build_ux600fd_flash
     variables:
-        SOC: "demosoc"
+        SOC: "evalsoc"
         CORE: "ux600fd"
         ARCH_EXT: ""
         BOOT_MODE: "flash"
