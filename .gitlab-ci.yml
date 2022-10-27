@@ -2,7 +2,7 @@ variables:
     GIT_SUBMODULE_STRATEGY: recursive
     GET_SOURCES_ATTEMPTS: 5
     GIT_STRATEGY: fetch
-    FF_USE_FASTZIP: true
+    FF_USE_FASTZIP: "true"
 
 before_script:
     - source /home/share/devtools/env.sh
@@ -122,6 +122,11 @@ cache:
             }
             cp -f work/${SOC}/opensbi/platform/nuclei/${SOC}/firmware/fw_payload.elf work/${SOC}/fw_payload_xlspike.elf
             xz -f -z build_opensbi_payload.log
+        - |
+            genbootzip=work/$(SOC)/genboot_artifacts_${CI_COMMIT_SHA::8}.zip
+            echo "Zip all generated boot images and freeloader elfs to ${genbootzip}"
+            rm -f ${genbootzip}
+            zip -r ${genbootzip} work/${SOC}/boot.zip work/${SOC}/freeloader/freeloader.elf work/${SOC}/run_qemu.sh work/${SOC}/disk.img work/${SOC}/freeloader_*.elf work/${SOC}/buildstamp.txt work/${SOC}/fw_payload_xlspike.elf
 
 ## Job template for run linux in xlspike
 .run_linux_sdk_xlspike_template: &run_linux_sdk_xlspike_job_def
