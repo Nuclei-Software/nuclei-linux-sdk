@@ -9,14 +9,33 @@ DOBUILD=${DOBUILD:-1}
 
 GITSHA=${GITSHA:-$(git describe --always)}
 
-FLDROOT=/home/share/devtools/linuxsdk/freeloader
-BOOTROOT=/home/share/devtools/linuxsdk/boot
-SYSENVROOT=/home/share/devtools/linuxsdk/trigger
+SDKSYNCROOT=/home/share/devtools/linuxsdk
+FLDROOT=${SDKSYNCROOT}/local/$(whoami)
+BOOTROOT=${SDKSYNCROOT}/local/$(whoami)
+SYSENVROOT=${SDKSYNCROOT}/trigger
 
 # eval MAKEOPTS to overwrite variable of SOC/CORE/BOOT_MODE
 if [ "x$MAKEOPTS" !=  "x" ] ; then
     echo "MAKEOPTS=$MAKEOPTS"
     eval export $MAKEOPTS
+fi
+
+if [[ "$CI_PIPELINE_ID" =~ ^[0-9]+$ ]] ; then
+    echo "Triggered by gitlab ci runner, pipeline id is $CI_PIPELINE_ID"
+    PIPELINEDIR=${SDKSYNCROOT}/pipelines/${CI_PIPELINE_ID}
+    BOOTROOT=${PIPELINEDIR}
+    FLDROOT=${PIPELINEDIR}
+else
+    echo "Triggered locally via $(whoami)"
+fi
+
+echo "Final generated freeloader will be copy to ${FLDROOT}"
+if [ ! -d ${FLDROOT} ] ; then
+    mkdir -p ${FLDROOT}
+fi
+echo "Final generated bootimages will be copy to ${BOOTROOT}"
+if [ ! -d ${BOOTROOT} ] ; then
+    mkdir -p ${BOOTROOT}
 fi
 
 # get SYSENV, this is a text file contains some variable
@@ -51,9 +70,14 @@ srcbootzip=work/${SOC}/boot.zip
 dstfld=$FLDROOT/freeloader_${GITSHA}_${SOC}_${CORE}_${BOOT_MODE}
 dstbootzip=$BOOTROOT/boot_${GITSHA}_${SOC}_${CORE}_${BOOT_MODE}
 
+if [[ "$CI_JOB_ID" =~ ^[0-9]+$ ]] ; then
+    dstfld=${dstfld}_job${CI_JOB_ID}
+    dstbootzip=${dstbootzip}_job${CI_JOB_ID}
+fi
+
 if [ "x$CPU_HZ" != "x" ] ; then
     dstfld=${dstfld}_${CPU_HZ}Hz
-    dstbootzip=${bootzip}_${CPU_HZ}Hz
+    dstbootzip=${dstbootzip}_${CPU_HZ}Hz
 fi
 
 if [ "x$CACHE_CTRL" != "x" ] ; then
