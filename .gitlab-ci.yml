@@ -222,7 +222,7 @@ cache:
     script:
         - export MAKEOPTS="${MAKEOPTS}"
         - make preboot
-        - bash .github/build_sdk.sh
+        - BUILDBOOTIMAGES=0 bash .github/build_sdk.sh
 
 ## Job for build sdk
 # Build For ux900 Core, without FPU, flash boot mode

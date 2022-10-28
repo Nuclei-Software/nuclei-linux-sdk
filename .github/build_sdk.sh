@@ -7,6 +7,7 @@ MAKEOPTS=${MAKEOPTS:-""}
 DRYRUN=${DRYRUN:-0}
 DOBUILD=${DOBUILD:-1}
 DOSYMLINK=${DOSYMLINK:-1}
+BUILDBOOTIMAGES=${BUILDBOOTIMAGES:-1}
 
 GITSHA=${GITSHA:-$(git describe --always)}
 
@@ -123,7 +124,11 @@ function prepare_workdir() {
 if [ "x$DOBUILD" == "x1" ] ; then
     echo "Build freeloader and boot images"
     prepare_workdir
-    make bootimages
+    if [ "x${BUILDBOOTIMAGES}" == "x1" ] ; then
+        echo "Build boot images now"
+        make bootimages
+    fi
+    echo "Build freeloader now"
     make freeloader
 fi
 
