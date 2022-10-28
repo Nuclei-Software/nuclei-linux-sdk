@@ -6,13 +6,14 @@ BOOT_MODE=${BOOT_MODE:-sd}
 MAKEOPTS=${MAKEOPTS:-""}
 DRYRUN=${DRYRUN:-0}
 DOBUILD=${DOBUILD:-1}
+DOSYMLINK=${DOSYMLINK:-1}
 
 GITSHA=${GITSHA:-$(git describe --always)}
 
 SDKSYNCROOT=/home/share/devtools/linuxsdk
 FLDROOT=${SDKSYNCROOT}/local/$(whoami)
 BOOTROOT=${SDKSYNCROOT}/local/$(whoami)
-SYSENVROOT=${SDKSYNCROOT}/trigger
+SYSENVROOT=${SDKSYNCROOT}/trigger/$(whoami)
 
 # eval MAKEOPTS to overwrite variable of SOC/CORE/BOOT_MODE
 if [ "x$MAKEOPTS" !=  "x" ] ; then
@@ -107,9 +108,21 @@ fi
 dstfld=${dstfld}.elf
 dstbootzip=${dstbootzip}.zip
 
+function prepare_workdir() {
+    local workdir=work/${SOC}
+    local realworkdir=work/${SOC}_${CORE}
+    if [ -L $workdir ] && [ "x$DOSYMLINK" == "x1" ] ; then
+        echo "This is a symbolic path, update the link from $workdir -> $realworkdir, sleep 3s to confirm it"
+        sleep 3
+        rm -f $workdir
+        mkdir -p $realworkdir
+        ln -s $(basename $realworkdir) $workdir
+    fi
+}
 
 if [ "x$DOBUILD" == "x1" ] ; then
     echo "Build freeloader and boot images"
+    prepare_workdir
     make bootimages
     make freeloader
 fi
