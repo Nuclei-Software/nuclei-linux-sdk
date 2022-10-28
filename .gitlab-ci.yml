@@ -16,10 +16,10 @@ before_script:
     - source /home/share/devtools/env.sh
 
 stages:
-    - build_ux600
-    - build_ux600fd
-    - run_ux600
-    - run_ux600fd
+    - build_ux900
+    - build_ux900fd
+    - run_ux900
+    - run_ux900fd
     - build_manual
 
 cache:
@@ -221,12 +221,12 @@ cache:
         - bash .github/build_sdk.sh
 
 ## Job for build sdk
-# Build For UX600 Core, without FPU, flash boot mode
-build_ux600_flash:
-    stage: build_ux600
+# Build For ux900 Core, without FPU, flash boot mode
+build_ux900_flash:
+    stage: build_ux900
     variables:
         SOC: "demosoc"
-        CORE: "ux600"
+        CORE: "ux900"
         ARCH_EXT: ""
         BOOT_MODE: "flash"
     parallel:
@@ -235,12 +235,12 @@ build_ux600_flash:
     <<: *build_linux_sdk_job_def
 
 ## Job for build sdk
-# Build For UX600 Core, without FPU, sd boot mode
-build_ux600_sd:
-    stage: build_ux600
+# Build For ux900 Core, without FPU, sd boot mode
+build_ux900_sd:
+    stage: build_ux900
     variables:
         SOC: "demosoc"
-        CORE: "ux600"
+        CORE: "ux900"
         ARCH_EXT: ""
         BOOT_MODE: "sd"
     parallel:
@@ -248,35 +248,35 @@ build_ux600_sd:
             - SOC: ["demosoc", "evalsoc"]
     <<: *build_linux_sdk_job_def
 
-# Manual job for ux600 sd
-build_ux600_sd_manual:
+# Manual job for ux900 sd
+build_ux900_sd_manual:
     stage: build_manual
     needs:
-        - job: build_ux600_sd
+        - job: build_ux900_sd
     variables:
         SOC: "evalsoc"
-        CORE: "ux600"
+        CORE: "ux900"
         ARCH_EXT: ""
         BOOT_MODE: "sd"
     <<: *build_linux_sdk_manual_job_def
 
-# Manual job for ux600 flash
-build_ux600_flash_manual:
+# Manual job for ux900 flash
+build_ux900_flash_manual:
     stage: build_manual
     needs:
-        - job: build_ux600_flash
+        - job: build_ux900_flash
     variables:
         SOC: "evalsoc"
-        CORE: "ux600"
+        CORE: "ux900"
         ARCH_EXT: ""
         BOOT_MODE: "flash"
     <<: *build_linux_sdk_manual_job_def
 
 release_sources:
     interruptible: true
-    stage: build_ux600
+    stage: build_ux900
     needs:
-        - job: build_ux600_flash
+        - job: build_ux900_flash
     tags:
         - env::native
         - host::xls01
@@ -293,61 +293,61 @@ release_sources:
         expire_in: 2 day
 
 ## Job for run sim
-# Run For UX600 Core, without FPU, flash boot mode
-run_ux600_flash_xlspike:
-    stage: run_ux600
+# Run For ux900 Core, without FPU, flash boot mode
+run_ux900_flash_xlspike:
+    stage: run_ux900
     dependencies:
-        - build_ux600_flash
+        - build_ux900_flash
     variables:
         SOC: "demosoc"
-        CORE: "ux600"
+        CORE: "ux900"
         BOOT_MODE: "flash"
     <<: *run_linux_sdk_xlspike_job_def
 
 ## Job for run sim
-# Run For UX600 Core, without FPU, sd boot mode
-run_ux600_sd_xlspike:
-    stage: run_ux600
+# Run For ux900 Core, without FPU, sd boot mode
+run_ux900_sd_xlspike:
+    stage: run_ux900
     dependencies:
-        - build_ux600_sd
+        - build_ux900_sd
     variables:
         SOC: "demosoc"
-        CORE: "ux600"
+        CORE: "ux900"
         BOOT_MODE: "sd"
     <<: *run_linux_sdk_xlspike_job_def
 
 ## Job for run qemu
-# Run For UX600 Core, without FPU, flash boot mode
-run_ux600_flash_qemu:
-    stage: run_ux600
+# Run For ux900 Core, without FPU, flash boot mode
+run_ux900_flash_qemu:
+    stage: run_ux900
     dependencies:
-        - build_ux600_flash
+        - build_ux900_flash
     variables:
         SOC: "demosoc"
-        CORE: "ux600"
+        CORE: "ux900"
         BOOT_MODE: "flash"
     <<: *run_linux_sdk_qemu_job_def
 
 ## Job for run qemu
-# Run For UX600 Core, without FPU, sd boot mode
-run_ux600_sd_qemu:
-    stage: run_ux600
+# Run For ux900 Core, without FPU, sd boot mode
+run_ux900_sd_qemu:
+    stage: run_ux900
     dependencies:
-        - build_ux600_sd
+        - build_ux900_sd
     variables:
         SOC: "demosoc"
-        CORE: "ux600"
+        CORE: "ux900"
         BOOT_MODE: "sd"
     <<: *run_linux_sdk_qemu_job_def
 
 ## Job for build sdk
-# Build For UX600FD Core, with FPU, flash boot mode
-build_ux600fd_flash:
-    stage: build_ux600fd
+# Build For ux900FD Core, with FPU, flash boot mode
+build_ux900fd_flash:
+    stage: build_ux900fd
     dependencies:
     variables:
         SOC: "demosoc"
-        CORE: "ux600fd"
+        CORE: "ux900fd"
         ARCH_EXT: ""
         BOOT_MODE: "flash"
     parallel:
@@ -356,13 +356,13 @@ build_ux600fd_flash:
     <<: *build_linux_sdk_job_def
 
 ## Job for build sdk
-# Build For UX600FD Core, with FPU, sd boot mode
-build_ux600fd_sd:
-    stage: build_ux600fd
+# Build For ux900FD Core, with FPU, sd boot mode
+build_ux900fd_sd:
+    stage: build_ux900fd
     dependencies:
     variables:
         SOC: "demosoc"
-        CORE: "ux600fd"
+        CORE: "ux900fd"
         ARCH_EXT: ""
         BOOT_MODE: "sd"
     parallel:
@@ -370,82 +370,82 @@ build_ux600fd_sd:
             - SOC: ["demosoc", "evalsoc"]
     <<: *build_linux_sdk_job_def
 
-# Manual job for ux600fd sd
-build_ux600fd_sd_manual:
+# Manual job for ux900fd sd
+build_ux900fd_sd_manual:
     stage: build_manual
     needs:
-        - job: build_ux600fd_sd
+        - job: build_ux900fd_sd
     variables:
         SOC: "evalsoc"
-        CORE: "ux600fd"
+        CORE: "ux900fd"
         ARCH_EXT: ""
         BOOT_MODE: "sd"
     <<: *build_linux_sdk_manual_job_def
 
-# Manual job for ux600fd flash
-build_ux600fd_flash_manual:
+# Manual job for ux900fd flash
+build_ux900fd_flash_manual:
     stage: build_manual
     needs:
-        - job: build_ux600fd_flash
+        - job: build_ux900fd_flash
     variables:
         SOC: "evalsoc"
-        CORE: "ux600fd"
+        CORE: "ux900fd"
         ARCH_EXT: ""
         BOOT_MODE: "flash"
     <<: *build_linux_sdk_manual_job_def
 
 ## Job for run sim
-# Run For UX600FD Core, with FPU, flash boot mode
-# This ux600fd init process will fail
-run_ux600fd_flash_xlspike:
-    stage: run_ux600fd
+# Run For ux900FD Core, with FPU, flash boot mode
+# This ux900fd init process will fail
+run_ux900fd_flash_xlspike:
+    stage: run_ux900fd
     allow_failure: true
     dependencies:
-        - build_ux600fd_flash
+        - build_ux900fd_flash
     variables:
         SOC: "demosoc"
-        CORE: "ux600fd"
+        CORE: "ux900fd"
         BOOT_MODE: "flash"
     <<: *run_linux_sdk_xlspike_job_def
 
 ## Job for run sim
-# Run For UX600FD Core, with FPU, sd boot mode
-# This ux600fd init process will fail
-run_ux600fd_sd_xlspike:
-    stage: run_ux600fd
+# Run For ux900FD Core, with FPU, sd boot mode
+# This ux900fd init process will fail
+run_ux900fd_sd_xlspike:
+    stage: run_ux900fd
     allow_failure: true
     dependencies:
-        - build_ux600fd_sd
+        - build_ux900fd_sd
     variables:
         SOC: "demosoc"
-        CORE: "ux600fd"
+        CORE: "ux900fd"
         BOOT_MODE: "sd"
     <<: *run_linux_sdk_xlspike_job_def
 
 ## Job for run qemu
-# Run For UX600FD Core, with FPU, flash boot mode
-# This ux600fd init process will fail
-run_ux600fd_flash_qemu:
-    stage: run_ux600fd
+# Run For ux900FD Core, with FPU, flash boot mode
+# This ux900fd init process will fail
+run_ux900fd_flash_qemu:
+    stage: run_ux900fd
     allow_failure: true
     dependencies:
-        - build_ux600fd_flash
+        - build_ux900fd_flash
     variables:
         SOC: "demosoc"
-        CORE: "ux600fd"
+        CORE: "ux900fd"
         BOOT_MODE: "flash"
     <<: *run_linux_sdk_qemu_job_def
 
 ## Job for run qemu
-# Run For UX600FD Core, with FPU, sd boot mode
-# This ux600fd init process will fail
-run_ux600fd_sd_qemu:
-    stage: run_ux600fd
+# Run For ux900FD Core, with FPU, sd boot mode
+# This ux900fd init process will fail
+run_ux900fd_sd_qemu:
+    stage: run_ux900fd
     allow_failure: true
     dependencies:
-        - build_ux600fd_sd
+        - build_ux900fd_sd
     variables:
         SOC: "demosoc"
-        CORE: "ux600fd"
+        CORE: "ux900fd"
         BOOT_MODE: "sd"
     <<: *run_linux_sdk_qemu_job_def
