@@ -271,8 +271,8 @@ $(linux_image): linux
 initrd: $(initramfs)
 	@echo "initramfs cpio file is generated into $<"
 
-linux: $(linux_srcdir) $(linux_wrkdir)/.config
-	$(MAKE) -C $< O=$(linux_wrkdir) \
+linux: $(linux_wrkdir)/.config
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		CONFIG_INITRAMFS_ROOT_UID=$(shell id -u) \
 		CONFIG_INITRAMFS_ROOT_GID=$(shell id -g) \
 		ARCH=riscv \
@@ -295,8 +295,8 @@ $(vmlinux_bin): $(vmlinux)
 	PATH=$(RVPATH) $(target)-objcopy -O binary $< $@
 
 ifeq ($(SOC),demosoc)
-$(vmlinux_sim): $(linux_srcdir) $(linux_wrkdir)/.config
-	$(MAKE) -C $< O=$(linux_wrkdir) \
+$(vmlinux_sim): $(linux_wrkdir)/.config
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		CONFIG_INITRAMFS_SOURCE="$(confdir)/initramfs.txt $(buildroot_initramfs_sysroot)" \
 		CONFIG_INITRAMFS_ROOT_UID=$(shell id -u) \
 		CONFIG_INITRAMFS_ROOT_GID=$(shell id -g) \
@@ -394,7 +394,7 @@ $(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_l
 	cd $(boot_wrkdir) && zip -q -r $(boot_zip) .
 
 .PHONY: uboot uboot-menuconfig
-uboot: $(uboot_srcdir) $(uboot_wrkdir)/.config
+uboot: $(uboot_wrkdir)/.config
 	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) all
 
 uboot-menuconfig: $(uboot_wrkdir)/.config $(uboot_srcdir)
