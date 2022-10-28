@@ -11,12 +11,37 @@ GITSHA=${GITSHA:-$(git describe --always)}
 
 FLDROOT=/home/share/devtools/linuxsdk/freeloader
 BOOTROOT=/home/share/devtools/linuxsdk/boot
+SYSENVROOT=/home/share/devtools/linuxsdk/trigger
 
 # eval MAKEOPTS to overwrite variable of SOC/CORE/BOOT_MODE
 if [ "x$MAKEOPTS" !=  "x" ] ; then
     echo "MAKEOPTS=$MAKEOPTS"
     eval export $MAKEOPTS
 fi
+
+# get SYSENV, this is a text file contains some variable
+# since manual job of gitlab is not able to retrigger it with inputs
+# so we use a local share environment file accessable in shared shell
+# runner.
+# sample content
+# SPFL1DCTRL1=0x1f
+# SIMULATION=1
+# CACHE_CTRL=0x10001
+SYSENV=${SYSENV:-${SYSENVROOT}/build_${CORE}_${BOOT_MODE}.env}
+
+if [ -f ${SYSENV} ] ; then
+    echo "Current share environment file for this build is ${SYSENV}"
+    echo "If you to rerun this manual job, please change the content of ${SYSENV}"
+    echo "Here is the content in it, now source it"
+    cat ${SYSENV}
+    source ${SYSENV}
+else
+    echo "Unable to find system environment file ${SYSENV} for this build"
+    echo "Please make sure it exist, if you want to overwrite your build environment"
+fi
+
+# after sourcing ${SYSENV}, the build environment variable might change
+# such as SOC/CORE/BOOT_MODE
 
 echo "Git commit is $GITSHA"
 
