@@ -12,19 +12,26 @@ COPY ubuntu20.04.list /etc/apt/sources.list
 
 RUN apt update && apt upgrade -y
 
-RUN apt install -y build-essential git python3 python3-pip autotools-dev make cmake texinfo bison minicom flex \
-    liblz4-tool libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler libncursesw5-dev \
-    libncursesw5 mtools wget cpio zip unzip rsync bc sudo libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev
+COPY apt.txt /home/
+
+RUN xargs apt install -y < /home/apt.txt
+
+RUN rm -f /home/apt.txt
 
 RUN apt autoclean
 
 RUN ln -s /lib/x86_64-linux-gnu/libgmp.so /lib/x86_64-linux-gnu/libgmp.so.3
 
-RUN pip install git-archive-all
+COPY pipreq.txt /home/
+
+RUN pip install -r /home/pipreq.txt
+
+RUN rm -f /home/pipreq.txt
 
 # create USER with PASS
 ARG USER=nuclei
 ARG PASS=riscv123
+ARG QEMUVER=2022.08
 
 RUN groupadd --system $USER
 
@@ -38,7 +45,7 @@ WORKDIR /home/$USER/
 
 RUN mkdir -p prebuilt
 
-RUN wget -q https://nucleisys.com/upload/files/toochain/qemu/nuclei-qemu-2022.08-linux-x64.tar.gz -O prebuilt/nuclei-qemu.tar.gz
+RUN wget -q https://nucleisys.com/upload/files/toochain/qemu/nuclei-qemu-$QEMUVER-linux-x64.tar.gz -O prebuilt/nuclei-qemu.tar.gz
 
 RUN cd prebuilt && tar --no-same-owner -xzf nuclei-qemu.tar.gz
 
