@@ -30,5 +30,11 @@ jobs:
         run: |
           cd .github
           docker build . -f linuxsdk.Dockerfile -t linuxsdk:latest
+          docker images
+
+      - name: Test Docker Image
+        run: |
+          docker run -t linuxsdk:latest bash .github/run_qemu.sh
+
 
 

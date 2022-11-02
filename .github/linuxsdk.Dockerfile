@@ -8,7 +8,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update
 RUN apt install -y libgnutls30 ca-certificates
 
-COPY ubuntu20.04.list /etc/apt/sources.list
+# Don't copy source list for github ci build docker
+#COPY ubuntu20.04.list /etc/apt/sources.list
 
 RUN apt update && apt upgrade -y
 
