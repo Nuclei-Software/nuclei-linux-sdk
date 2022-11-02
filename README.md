@@ -43,10 +43,8 @@ If you want to run linux on Nuclei Demo SoC, you will need UX600 or UX900 RISC-V
 
 - Status: Working
 - Build dependencies
-  - packages: `build-essential git python3 python3-pip autotools-dev make cmake texinfo bison minicom flex liblz4-tool \
-    libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler \
-    libncursesw5-dev libncursesw5 mtools wget cpio zip unzip rsync bc sudo libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev`
-  - python pips: `git-archive-all`
+  - packages: see [apt.txt](.github/apt.txt)
+  - python pip packages: [pipreq.txt](.github/pipreq.txt)
 - Get prebuilt openocd from [Nuclei Development Tools](https://nucleisys.com/download.php#tools)
 - Setup openocd and add it into **PATH**
 - mtools version >= 4.0.24
@@ -58,10 +56,8 @@ If you want to run linux on Nuclei Demo SoC, you will need UX600 or UX900 RISC-V
 Install the software dependencies required by this SDK using command:
 
 ~~~shell
-sudo apt-get install build-essential git python3 python3-pip autotools-dev cmake texinfo bison minicom flex liblz4-tool \
-   libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler libncursesw5-dev libncursesw5 mtools \
-   wget cpio zip unzip rsync bc sudo libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev
-sudo pip3 install git-archive-all
+sudo xargs apt-get install < .github/apt.txt
+sudo pip3 install -r .github/pipreq.txt
 ~~~
 
 ### Install Nuclei Tools
