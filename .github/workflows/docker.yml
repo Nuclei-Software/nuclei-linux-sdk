@@ -34,7 +34,4 @@ jobs:
 
       - name: Test Docker Image
         run: |
-          docker run -t linuxsdk:latest bash .github/run_qemu.sh
-
-
-
+          cat .github/run_qemu.sh | docker run -t linuxsdk:latest bash
