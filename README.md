@@ -43,7 +43,9 @@ If you want to run linux on Nuclei Demo SoC, you will need UX600 or UX900 RISC-V
 
 - Status: Working
 - Build dependencies
-  - packages: `build-essential git python3 python3-pip autotools-dev make cmake texinfo bison minicom flex liblz4-tool libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler libncursesw5-dev libncursesw5 mtools`
+  - packages: `build-essential git python3 python3-pip autotools-dev make cmake texinfo bison minicom flex liblz4-tool \
+    libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler \
+    libncursesw5-dev libncursesw5 mtools wget cpio zip unzip rsync bc sudo libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev`
   - python pips: `git-archive-all`
 - Get prebuilt openocd from [Nuclei Development Tools](https://nucleisys.com/download.php#tools)
 - Setup openocd and add it into **PATH**
@@ -57,7 +59,8 @@ Install the software dependencies required by this SDK using command:
 
 ~~~shell
 sudo apt-get install build-essential git python3 python3-pip autotools-dev cmake texinfo bison minicom flex liblz4-tool \
-   libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler libncursesw5-dev libncursesw5 mtools
+   libgmp-dev libmpfr-dev libmpc-dev gawk libz-dev libssl-dev device-tree-compiler libncursesw5-dev libncursesw5 mtools \
+   wget cpio zip unzip rsync bc sudo libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev
 sudo pip3 install git-archive-all
 ~~~
 
@@ -73,6 +76,15 @@ and extract it into your PC, and then setup **PATH** using this command:
 export PATH=/path/to/openocd/bin:/path/to/qemu/bin:$PATH
 # Check path is set correctly
 which openocd qemu-system-riscv64
+~~~
+
+### Fix nuclei riscv gdb run issue
+
+You may meet with this issue: `error while loading shared libraries: libgmp.so.3: cannot open shared object file: No such file or directory`
+
+~~~
+# see issue https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/5
+sudo ln -s /lib/x86_64-linux-gnu/libgmp.so /lib/x86_64-linux-gnu/libgmp.so.3
 ~~~
 
 ### Clone Repo
@@ -162,9 +174,11 @@ We support four configurations for **CORE**, choose the right core according to 
 
 You can choose different SoC by modify `SOC ?= demosoc` line in `Makefile`.
 
-* `demosoc`: The demostration SoC from nuclei
-* `evalsoc`: The next generation of the `demosoc`, we call it `demosoc`, when your cpu has `iregion` feature, please use this one
+* `demosoc`: The demostration SoC from nuclei.
+* `evalsoc`: The next generation of the `demosoc`, we call it `evalsoc`, when your cpu has `iregion` feature, please use this one
 * you can add your SoC support by adding configuration in `conf/$SOC` folder
+
+> You can check the dts difference for evalsoc and demosoc, for more details, need to check the Nuclei RISC-V CPU ISA spec.
 
 You can choose different boot mode by modify the `BOOT_MODE ?= sd` line in `Makefile`.
 
