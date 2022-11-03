@@ -34,4 +34,13 @@ jobs:
 
       - name: Test Docker Image
         run: |
-          cat .github/run_qemu.sh | docker run -t linuxsdk:latest bash
+          docker run -i linuxsdk:latest bash run_qemu.sh
+
+      - name: Publish Docker Image
+        run: |
+          echo "Login to docker hub"
+          docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PWD }} docker.io
+          DOCKER_REPO=docker.io/nucleisoftware/linuxsdk:ci
+          docker tag localhost/linuxsdk:latest $DOCKER_REPO
+          docker push $DOCKER_REPO
+          echo "Docker image is pushed to https://hub.docker.com/repository/docker/nucleisoftware/linuxsdk"

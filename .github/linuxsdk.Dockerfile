@@ -60,4 +60,6 @@ RUN cd nuclei-linux-sdk && git submodule init && git submodule update --recursiv
 
 RUN cd nuclei-linux-sdk && make freeloader bootimages
 
+COPY run_qemu.sh /home/$USER
+
 CMD [ "/bin/bash" ]
