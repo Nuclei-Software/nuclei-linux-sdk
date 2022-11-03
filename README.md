@@ -1130,8 +1130,8 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
 * *build.mk*:
   * Change **UIMAGE_AE_CMD** to match your DDR base, used by Makefile to generate rootfs for uboot.
   * if you are using AMP, **CORE1_APP_BIN**, **CORE2_APP_BIN**, **CORE3_APP_BIN**, **CORE4_APP_BIN**,
-    **CORE5_APP_BIN**, **CORE6_APP_BIN** and **CORE7_APP_BIN** need to be configured, CORE1-CORE7 each memory is 4MB
-    and application base address is offset 0xE000000 at DDR base.
+    **CORE5_APP_BIN**, **CORE6_APP_BIN** and **CORE7_APP_BIN** need to be configured, CORE1-CORE7 each memory is default 4MB(configured by AMPFW_SIZE)
+    and application base address is default offset 0xE000000(configured by AMPFW_START_OFFSET) at DDR base.
     > Here each core memory is changed from 8M to 4M, due to only 32MB is reserved for amp binaries, and now we support 8 cores.
   * **CORE1_APP_BIN** start offset is **DDR_BASE** + **0xE000000**, such as `$(confdir)/amp/c1.bin`
   * **CORE2_APP_BIN** start offset is **DDR_BASE** + **0xE000000** + **4M**, such as `$(confdir)/amp/c2.bin`
