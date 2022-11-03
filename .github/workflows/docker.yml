@@ -37,6 +37,7 @@ jobs:
           docker run -i linuxsdk:latest bash run_qemu.sh
 
       - name: Publish Docker Image
+        if: ${{ github.event_name != 'pull_request' }}
         run: |
           echo "Login to docker hub"
           docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PWD }} docker.io
