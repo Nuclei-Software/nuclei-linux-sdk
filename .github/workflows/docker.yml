@@ -41,7 +41,7 @@ jobs:
         run: |
           echo "Login to docker hub"
           docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PWD }} docker.io
-          DOCKER_REPO=docker.io/nucleisoftware/linuxsdk:ci
-          docker tag localhost/linuxsdk:latest $DOCKER_REPO
-          docker push $DOCKER_REPO
+          DOCKER_REPO=docker.io/nucleisoftware/linuxsdk
+          docker tag linuxsdk:latest ${DOCKER_REPO}:ci
+          docker push ${DOCKER_REPO}:ci
           echo "Docker image is pushed to https://hub.docker.com/repository/docker/nucleisoftware/linuxsdk"
