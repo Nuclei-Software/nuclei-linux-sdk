@@ -1,6 +1,8 @@
 # Nuclei Linux SDK
 
-[![Build](https://github.com/Nuclei-Software/nuclei-linux-sdk/workflows/Build/badge.svg)](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions)
+[![Build and Test Linux SDK](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/build.yml/badge.svg)](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/build.yml)
+
+[![Build Linux SDK Docker Image](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/docker.yml/badge.svg)](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/docker.yml)
 
 > Normal development of Nuclei Linux SDK are switched to *dev_nuclei_next* branch, other branchs such as
 > *dev_nuclei* are not recommended.
@@ -38,6 +40,14 @@ If you want to run linux on Nuclei Demo SoC, you will need UX600 or UX900 RISC-V
 > * The documentation in `dev_nuclei_keystone` branch is also updated according to its feature.
 
 ## Tested Configurations
+
+### Docker
+
+If you want to use it in docker image, you can use docker image located in https://hub.docker.com/repository/docker/nucleisoftware/linuxsdk.
+
+> Not tested for upload freeloader, need USB connection.
+
+See [How to evaluate Nuclei Linux SDK in docker](https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/8)
 
 ### Ubuntu 20.04 x86_64 host
 
@@ -99,6 +109,8 @@ sudo ln -s /lib/x86_64-linux-gnu/libgmp.so /lib/x86_64-linux-gnu/libgmp.so.3
   cd nuclei-linux-sdk
   # the following command might fail due to network connection issue
   # you can clone less code with --depth=1
+  # you can also try some github mirror tech, search in baidu/google
+  # if still not working, you can try our prepared source code(maybe out of date), see https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/4
   git submodule update --recursive --init
   # if you want to clone less source code to speed up or make clone stable, please add extra --depth=1
   # --depth=1 is used to do shallow clone, see https://git-scm.com/docs/git-submodule#Documentation/git-submodule.txt---depth
