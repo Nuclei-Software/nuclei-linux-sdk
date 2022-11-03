@@ -2,7 +2,7 @@ name: Build Linux SDK Docker Image
 
 on:
   push:
-    branches: [ dev*, feature/* ]
+    branches: [ dev_nuclei_next ]
     paths-ignore:
     - README.md
     - LICENSE
