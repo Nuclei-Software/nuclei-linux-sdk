@@ -4,7 +4,7 @@
 #define TIMERCLK_FREQ       32768
 #endif
 #ifndef CPUCLK_FREQ
-#define CPUCLK_FREQ         16000000
+#define CPUCLK_FREQ         100000000
 #endif
 #ifndef PERIPHCLK_FREQ
 #define PERIPHCLK_FREQ      CPUCLK_FREQ
