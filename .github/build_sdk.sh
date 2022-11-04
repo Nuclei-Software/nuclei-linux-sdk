@@ -139,6 +139,11 @@ else
     exit 1
 fi
 
+if [ -f ${SYSENV} ] ; then
+    echo "Current share environment file for this build is ${SYSENV}"
+    echo "If you to rerun this manual job, please change the content of ${SYSENV}"
+fi
+
 if [ -f $srcfld ] ; then
     echo "Copy freeloader $srcfld -> $dstfld"
     if [ "x$DRYRUN" == "x0" ] ; then

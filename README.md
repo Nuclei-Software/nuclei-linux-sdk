@@ -188,6 +188,8 @@ You can choose different SoC by modify `SOC ?= demosoc` line in `Makefile`.
 
 > You can check the dts difference for evalsoc and demosoc, for more details, need to check the Nuclei RISC-V CPU ISA spec.
 
+> Now evalsoc default cpu/peripheral frequency change from 16M to 100MHz
+
 You can choose different boot mode by modify the `BOOT_MODE ?= sd` line in `Makefile`.
 
 * `sd`: boot from flash + sdcard, extra SDCard is required(kernel, rootfs, dtb placed in it)
