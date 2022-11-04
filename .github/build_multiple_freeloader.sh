@@ -1,5 +1,8 @@
 #!/bin/env bash
 
+SCRIPTDIR=$(dirname $(readlink -f $BASH_SOURCE))
+SCRIPTDIR=$(readlink -f $SCRIPTDIR)
+
 SOC=${SOC:-demosoc}
 CORE=${CORE:-ux900}
 BOOT_MODE=${BOOT_MODE:-sd}
@@ -26,20 +29,17 @@ if [[ "$CI_JOB_ID" =~ ^[0-9]+$ ]] ; then
     mkdir -p $SYNCDIR
 fi
 
+source $SCRIPTDIR/utils.sh
+
 for var0 in ${VARLIST0//,/ }
 do
     for var1 in ${VARLIST1//,/ }
     do
         echo "Build freeloader for $MAKEOPTS $SELVAR0=$var0 $SELVAR1=$var1"
         eval export $SELVAR0=$var0 $SELVAR1=$var1
-        frlname=freeloader_${GITSHA}_${SOC}_${CORE}_${BOOT_MODE}
-        if [ "$SELVAR0" != "SOC" ] && [ "$SELVAR0" != "CORE" ] && [ "$SELVAR0" != "BOOT_MODE" ] ; then
-            frlname=${frlname}_${SELVAR0,,}-${var0}
-        fi
-        if [ "$SELVAR1" != "SOC" ] && [ "$SELVAR1" != "CORE" ] && [ "$SELVAR1" != "BOOT_MODE" ] ; then
-            frlname=${frlname}_${SELVAR1,,}-${var1}
-        fi
-        frldelf=work/${SOC}/${frlname}.elf
+        # get freeloader and boot zip suffix
+        gen_dstimg_names
+        frldelf=work/${SOC}/${dstfldname}
         runcmd="make freeloader && cp -f work/${SOC}/freeloader/freeloader.elf ${frldelf}"
         echo $runcmd
         if [ "x$DRYRUN" == "x0" ] ; then
@@ -55,7 +55,7 @@ done
 
 if [ "x$SYNCDIR" != "x" ] ; then
     echo "Link latest to $SYNCDIR"
-    if [ "x${CI_COMMIT_BRANCH}" == "xdev_nuclei_next" ]
+    if [ "x${CI_COMMIT_BRANCH}" == "xdev_nuclei_next" ] ; then
         rm -f $SHARELOC/latest
         pushd $SHARELOC
         ln -s $GITSHA latest

@@ -1,5 +1,8 @@
 #!/bin/env bash
 
+SCRIPTDIR=$(dirname $(readlink -f $BASH_SOURCE))
+SCRIPTDIR=$(readlink -f $SCRIPTDIR)
+
 SOC=${SOC:-demosoc}
 CORE=${CORE:-ux900}
 BOOT_MODE=${BOOT_MODE:-sd}
@@ -8,6 +11,7 @@ DRYRUN=${DRYRUN:-0}
 DOBUILD=${DOBUILD:-1}
 DOSYMLINK=${DOSYMLINK:-1}
 BUILDBOOTIMAGES=${BUILDBOOTIMAGES:-1}
+OVERRIDEROOT=${OVERRIDEROOT:-}
 
 GITSHA=${GITSHA:-$(git describe --always)}
 
@@ -29,6 +33,13 @@ if [[ "$CI_PIPELINE_ID" =~ ^[0-9]+$ ]] ; then
     FLDROOT=${PIPELINEDIR}
 else
     echo "Triggered locally via $(whoami)"
+fi
+
+if [ "x$OVERRIDEROOT" != "x$OVERRIDEROOT" ] ; then
+    echo "Using overwrite freeloader, boot zip, sys environment root"
+    BOOTROOT=${OVERRIDEROOT}
+    FLDROOT=${OVERRIDEROOT}
+    SYSENVROOT=${OVERRIDEROOT}
 fi
 
 echo "Final generated freeloader will be copy to ${FLDROOT}"
@@ -69,45 +80,12 @@ echo "Git commit is $GITSHA"
 srcfld=work/${SOC}/freeloader/freeloader.elf
 srcbootzip=work/${SOC}/boot.zip
 
-dstfld=$FLDROOT/freeloader_${GITSHA}_${SOC}_${CORE}_${BOOT_MODE}
-dstbootzip=$BOOTROOT/boot_${GITSHA}_${SOC}_${CORE}_${BOOT_MODE}
+source $SCRIPTDIR/utils.sh
+# get freeloader and boot zip suffix
+gen_dstimg_names
 
-if [[ "$CI_JOB_ID" =~ ^[0-9]+$ ]] ; then
-    dstfld=${dstfld}_job${CI_JOB_ID}
-    dstbootzip=${dstbootzip}_job${CI_JOB_ID}
-fi
-
-if [ "x$CPU_HZ" != "x" ] ; then
-    dstfld=${dstfld}_${CPU_HZ}Hz
-    dstbootzip=${dstbootzip}_${CPU_HZ}Hz
-fi
-
-if [ "x$CACHE_CTRL" != "x" ] ; then
-    dstfld=${dstfld}_l1-${CACHE_CTRL}
-fi
-
-if [ "x$TLB_CTRL" != "x" ] ; then
-    dstfld=${dstfld}_tlb-${TLB_CTRL}
-fi
-
-if [ "x$ENABLE_SMP" != "x" ] ; then
-    dstfld=${dstfld}_smp-${ENABLE_SMP}
-fi
-
-if [ "x$ENABLE_L2" != "x" ] ; then
-    dstfld=${dstfld}_l2-${ENABLE_L2}
-fi
-
-if [ "x$SPFL1DCTRL1" != "x" ] ; then
-    dstfld=${dstfld}_pf-${SPFL1DCTRL1}
-fi
-
-if [ "x$SIMULATION" != "x" ] && [ "x$SIMULATION" != "x0" ] ; then
-    dstfld=${dstfld}_sim
-fi
-
-dstfld=${dstfld}.elf
-dstbootzip=${dstbootzip}.zip
+dstfld=$FLDROOT/${dstfldname}
+dstbootzip=$BOOTROOT/${dstbootzipname}
 
 function prepare_workdir() {
     local workdir=work/${SOC}
