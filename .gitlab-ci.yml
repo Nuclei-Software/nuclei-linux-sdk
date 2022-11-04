@@ -63,27 +63,31 @@ cache:
                 exit 1
             }
         - xz -f -z build_sysroot.log
-        - echo ">>Build multiple CPU_HZ freeloader for $SOC - $CORE - $BOOT_MODE"
+        - echo ">>Build multiple prefetch freeloader for $SOC - $CORE - $BOOT_MODE"
         - |
             export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
-            export SELVAR="CPU_HZ"
-            export VARLIST="16000000,100000000"
-            bash .github/build_multiple_freeloader.sh > >(tee build_cpuhz_freeloader.log) || {
-                xz -f -z build_cpuhz_freeloader.log
+            export SELVAR0="CPU_HZ"
+            export VARLIST0="16000000,100000000"
+            export SELVAR1="SPFL1DCTRL1"
+            export VARLIST1="0x0,0x1f,0xf,0x3f"
+            bash .github/build_multiple_freeloader.sh > >(tee build_pref_freeloader.log) || {
+                xz -f -z build_pref_freeloader.log
                 exit 1
             }
-            unset MAKEOPTS SELVAR VARLIST
-        - xz -f -z build_cpuhz_freeloader.log
+            unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
+        - xz -f -z build_pref_freeloader.log
         - echo ">>Build simulation freeloader for $SOC - $CORE - $BOOT_MODE"
         - |
             export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
-            export SELVAR="SIMULATION"
-            export VARLIST="1"
+            export SELVAR0="SIMULATION"
+            export VARLIST0="1"
+            export SELVAR1="SPFL1DCTRL1"
+            export VARLIST1="0x0,0x1f,0xf,0x3f"
             bash .github/build_multiple_freeloader.sh > >(tee build_simu_freeloader.log) || {
                 xz -f -z build_simu_freeloader.log
                 exit 1
             }
-            unset MAKEOPTS SELVAR VARLIST
+            unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
         - xz -f -z build_simu_freeloader.log
         - echo ">>Build freeloader for $SOC - $CORE - $BOOT_MODE"
         - |
@@ -192,7 +196,7 @@ cache:
             # $(cat run_qemu.sh) is workaround for directly run bash run_qemu.sh
             # If do kill it will just kill bash process, the qemu process is not killed
             # SIGTERM is better for kill qemu
-            timeout --foreground -s SIGTERM 4m $(cat run_qemu.sh) > >(tee run_qemu.log) || {
+            timeout --foreground -s SIGTERM 3m $(cat run_qemu.sh) > >(tee run_qemu.log) || {
                 if cat run_qemu.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
                 if cat run_qemu.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
             }
