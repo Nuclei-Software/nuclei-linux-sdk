@@ -46,7 +46,7 @@ cache:
         expire_in: 2 day
     tags:
         - env::shell
-        - env::outside
+        - net::outside
         - user::xl_ci
     script:
         - echo ">>Clean previous build workspace"
@@ -156,7 +156,7 @@ cache:
           - u-boot
     tags:
         - env::shell
-        - env::outside
+        - net::outside
         - user::xl_ci
     script:
         - |
@@ -184,7 +184,7 @@ cache:
           - u-boot
     tags:
         - env::shell
-        - env::outside
+        - net::outside
     script:
         - echo ">>Run using qemu for $SOC - $CORE - $BOOT_MODE"
         - |
@@ -223,7 +223,7 @@ cache:
         expire_in: 2 day
     tags:
         - env::shell
-        - env::outside
+        - net::outside
         - user::xl_ci
     script:
         - export MAKEOPTS="${MAKEOPTS}"
@@ -299,7 +299,7 @@ release_sources:
         - job: build_ux900_flash
     tags:
         - env::shell
-        - env::outside
+        - net::outside
         - user::xl_ci
     script:
         - activate_swdev
