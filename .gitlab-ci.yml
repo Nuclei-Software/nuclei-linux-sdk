@@ -3,6 +3,7 @@ variables:
     GET_SOURCES_ATTEMPTS: 5
     GIT_STRATEGY: fetch
     FF_USE_FASTZIP: "true"
+    SHARELOC: "/home/xl_ci/linuxsdk/"
 
 workflow:
   rules:
