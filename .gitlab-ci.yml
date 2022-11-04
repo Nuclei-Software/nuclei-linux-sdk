@@ -185,7 +185,6 @@ cache:
     tags:
         - env::shell
         - env::outside
-        - user::xl_ci
     script:
         - echo ">>Run using qemu for $SOC - $CORE - $BOOT_MODE"
         - |
