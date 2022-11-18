@@ -74,7 +74,19 @@ cache:
                 exit 1
             }
             unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
-        - xz -f -z build_pref_freeloader.log
+        - echo ">>Build multiple cache settings freeloader for $SOC - $CORE - $BOOT_MODE"
+        - |
+            export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
+            export SELVAR0="CPU_HZ"
+            export VARLIST0="16000000,100000000"
+            export SELVAR1="CACHE_CTRL"
+            export VARLIST1="0x100C1,0x10001"
+            bash .github/build_multiple_freeloader.sh > >(tee build_cache_freeloader.log) || {
+                xz -f -z build_cache_freeloader.log
+                exit 1
+            }
+            unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
+        - xz -f -z build_cache_freeloader.log
         - echo ">>Build simulation freeloader for $SOC - $CORE - $BOOT_MODE"
         - |
             export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
