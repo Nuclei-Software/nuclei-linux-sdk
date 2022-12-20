@@ -30,7 +30,15 @@ function gen_dstimg_names() {
     fi
 
     if [ "x$SPFL1DCTRL1" != "x" ] ; then
-        dstfldname=${dstfldname}_pf-${SPFL1DCTRL1}
+        dstfldname=${dstfldname}_pfl1dc1-${SPFL1DCTRL1}
+    fi
+
+    if [ "x$SPFL1DCTRL2" != "x" ] ; then
+        dstfldname=${dstfldname}_pfl1dc2-${SPFL1DCTRL2}
+    fi
+
+    if [ "x$MERGL1DCTRL" != "x" ] ; then
+        dstfldname=${dstfldname}_mgl1dc-${MERGL1DCTRL}
     fi
 
     if [ "x$SIMULATION" != "x" ] && [ "x$SIMULATION" != "x0" ] ; then
