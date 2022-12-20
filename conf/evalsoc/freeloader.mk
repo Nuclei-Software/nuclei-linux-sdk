@@ -6,6 +6,8 @@ TLB_CTRL ?= 0x0
 # prefetch control register settings
 ## spfl1dctrl1
 SPFL1DCTRL1 ?= 0x0
+SPFL1DCTRL2 ?=
+MERGL1DCTRL ?=
 ENABLE_SMP ?= 1
 ENABLE_L2 ?= 1
 AMPFW_START_OFFSET ?= 0x5E000000
