@@ -29,6 +29,18 @@ function gen_dstimg_names() {
         dstfldname=${dstfldname}_l2-${ENABLE_L2}
     fi
 
+    if [ "x$MCACHE_CTL" != "x" ] ; then
+        dstfldname=${dstfldname}_mcachectl-${MCACHE_CTL}
+    fi
+
+    if [ "x$MTLB_CTL" != "x" ] ; then
+        dstfldname=${dstfldname}_mtlbctl-${MTLB_CTL}
+    fi
+
+    if [ "x$MMISC_CTL" != "x" ] ; then
+        dstfldname=${dstfldname}_mmiscctl-${MMISC_CTL}
+    fi
+
     if [ "x$SPFL1DCTRL1" != "x" ] ; then
         dstfldname=${dstfldname}_pfl1dc1-${SPFL1DCTRL1}
     fi
