@@ -35,6 +35,7 @@ cache:
           - Makefile
           - .gitlab-ci.yml
           - buildroot
+          - opensbi
           - freeloader
           - linux
           - u-boot
@@ -163,6 +164,7 @@ cache:
           - Makefile*
           - .gitlab-ci.yml
           - buildroot
+          - opensbi
           - freeloader
           - linux
           - u-boot
@@ -191,6 +193,7 @@ cache:
           - Makefile*
           - .gitlab-ci.yml
           - buildroot
+          - opensbi
           - freeloader
           - linux
           - u-boot
@@ -224,6 +227,7 @@ cache:
           - .github/*.sh
           - .gitlab-ci.yml
           - buildroot
+          - opensbi
           - freeloader
           - linux
           - u-boot
@@ -304,6 +308,7 @@ release_sources:
           - .github/*.sh
           - .gitlab-ci.yml
           - buildroot
+          - opensbi
           - freeloader
           - linux
           - u-boot
