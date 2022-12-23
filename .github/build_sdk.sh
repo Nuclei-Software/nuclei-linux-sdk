@@ -66,7 +66,10 @@ if [ -f ${SYSENV} ] ; then
     echo "If you to rerun this manual job, please change the content of ${SYSENV}"
     echo "Here is the content in it, now source it"
     cat ${SYSENV}
+    # Each variable or function that is created or modified is given the export attribute and marked for export to the environment of subsequent commands.
+    set -a
     source ${SYSENV}
+    set +a
 else
     echo "Unable to find system environment file ${SYSENV} for this build"
     echo "Please make sure it exist, if you want to overwrite your build environment"
