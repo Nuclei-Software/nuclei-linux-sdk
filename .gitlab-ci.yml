@@ -30,9 +30,9 @@ cache:
     interruptible: true
     only:
         changes:
-          - conf/*
-          - .github/*.sh
-          - Makefile
+          - conf/**/*
+          - .github/**/*
+          - Makefile*
           - .gitlab-ci.yml
           - buildroot
           - opensbi
@@ -159,8 +159,8 @@ cache:
     interruptible: true
     only:
         changes:
-          - conf/*
-          - .github/*.sh
+          - conf/**/*
+          - .github/**/*
           - Makefile*
           - .gitlab-ci.yml
           - buildroot
@@ -188,8 +188,8 @@ cache:
     interruptible: true
     only:
         changes:
-          - conf/*
-          - .github/*.sh
+          - conf/**/*
+          - .github/**/*
           - Makefile*
           - .gitlab-ci.yml
           - buildroot
@@ -222,9 +222,9 @@ cache:
     when: manual
     only:
         changes:
-          - conf/*
+          - conf/**/*
+          - .github/**/*
           - Makefile*
-          - .github/*.sh
           - .gitlab-ci.yml
           - buildroot
           - opensbi
@@ -303,9 +303,9 @@ release_sources:
     stage: build
     only:
         changes:
-          - conf/*
+          - conf/**/*
+          - .github/**/*
           - Makefile*
-          - .github/*.sh
           - .gitlab-ci.yml
           - buildroot
           - opensbi
