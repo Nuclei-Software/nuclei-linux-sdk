@@ -4,10 +4,10 @@ FLASH_SIZE ?= 32M
 CACHE_CTRL ?= 0x100C1
 TLB_CTRL ?= 0x0
 # prefetch control register settings
-## spfl1dctrl1
-SPFL1DCTRL1 ?= 0x0
+## spfl1dctrl1/2,mergl1ctrl
+SPFL1DCTRL1 ?= 0x1F
 SPFL1DCTRL2 ?=
-MERGL1DCTRL ?=
+MERGL1DCTRL ?= 0x013503FF
 ENABLE_SMP ?= 1
 ENABLE_L2 ?= 1
 AMPFW_START_OFFSET ?= 0x5E000000
