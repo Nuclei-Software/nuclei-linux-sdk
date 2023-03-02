@@ -341,7 +341,7 @@ $(opensbi_jumpbin): opensbi
 opensbi: $(target_gcc) $(opensbi_plat_deps)
 	mkdir -p $(opensbi_plat_srcdir)
 	cp -u $(opensbi_plat_confdir)/* $(opensbi_plat_srcdir)
-	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
+	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) BUILD_INFO=y \
 		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM=generic FW_TEXT_START=$(FW_TEXT_START)
 
 ifeq ($(SOC),demosoc)
@@ -350,7 +350,7 @@ $(opensbi_payload): $(opensbi_srcdir) $(vmlinux_sim_bin) $(platform_sim_dtb) $(o
 	mkdir -p $(opensbi_wrkdir)
 	mkdir -p $(opensbi_plat_srcdir)
 	cp -u $(opensbi_plat_confdir)/* $(opensbi_plat_srcdir)
-	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
+	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) BUILD_INFO=y \
 		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM=generic FW_TEXT_START=$(FW_TEXT_START) \
 		FW_PAYLOAD_PATH=$(vmlinux_sim_bin) FW_FDT_PATH=$(platform_sim_dtb)
 endif
