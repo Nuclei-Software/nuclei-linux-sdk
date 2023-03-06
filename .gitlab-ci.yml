@@ -145,7 +145,7 @@ cache:
                     xz -f -z build_opensbi_payload.log
                     exit 1
                 }
-                cp -f work/${SOC}/opensbi/platform/nuclei/${SOC}/firmware/fw_payload.elf work/${SOC}/fw_payload_xlspike.elf
+                cp -f work/${SOC}/opensbi/platform/generic/firmware/fw_payload.elf work/${SOC}/fw_payload_xlspike.elf
                 xz -f -z build_opensbi_payload.log
             fi
         - |
