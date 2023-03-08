@@ -394,8 +394,9 @@ $(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_l
 	cd $(boot_wrkdir) && zip -q -r $(boot_zip) .
 
 .PHONY: uboot uboot-menuconfig
-uboot: $(uboot_wrkdir)/.config
-	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) all
+uboot: $(uboot_wrkdir)/.config $(platform_dtb)
+	# use external device tree binary for uboot
+	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) EXT_DTB=$(platform_dtb) all
 
 uboot-menuconfig: $(uboot_wrkdir)/.config $(uboot_srcdir)
 	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) menuconfig
