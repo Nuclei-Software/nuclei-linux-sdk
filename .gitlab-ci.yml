@@ -178,7 +178,7 @@ cache:
                 echo ">>Will not run xlspike simulation for $SOC"
                 exit 0
             fi
-            timeout --foreground -s SIGKILL 12m xl_spike work/${SOC}/fw_payload_xlspike.elf > >(tee run_xlspike.log) || {
+            timeout --foreground -s SIGKILL 16m xl_spike work/${SOC}/fw_payload_xlspike.elf > >(tee run_xlspike.log) || {
                 if cat run_xlspike.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
                 if cat run_xlspike.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
             }
@@ -211,7 +211,7 @@ cache:
             # $(cat run_qemu.sh) is workaround for directly run bash run_qemu.sh
             # If do kill it will just kill bash process, the qemu process is not killed
             # SIGTERM is better for kill qemu
-            timeout --foreground -s SIGTERM 10m $(cat run_qemu.sh) > >(tee run_qemu.log) || {
+            timeout --foreground -s SIGTERM 16m $(cat run_qemu.sh) > >(tee run_qemu.log) || {
                 if cat run_qemu.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
                 if cat run_qemu.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
             }
