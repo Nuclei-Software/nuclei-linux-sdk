@@ -13,6 +13,11 @@ function gen_dstimg_names() {
         dstbootzipname=${dstbootzipname}_${CPU_HZ}Hz
     fi
 
+    if [ "x$EXT_SSTC" == "xy" ] ; then
+        dstfldname=${dstfldname}_sstc
+        dstbootzipname=${dstbootzipname}_sstc
+    fi
+
     if [ "x$CACHE_CTRL" != "x" ] ; then
         dstfldname=${dstfldname}_l1-${CACHE_CTRL}
     fi

@@ -102,15 +102,43 @@ function prepare_workdir() {
     fi
 }
 
+function prepare_sstc_dts() {
+    local arch=rv64imac
+    if echo "$CORE" | grep -q "fd" ; then
+        arch=rv64mafdc
+    fi
+    local dts=conf/${SOC}/nuclei_${arch}.dts
+    local old=$arch
+    local new=${arch}_sstc
+    echo "Replace $dts from $old to $new"
+    sed -i "s/$old/$new/g" $dts
+}
+
+function reset_dts() {
+    local arch=rv64imac
+    if echo "$CORE" | grep -q "fd" ; then
+        arch=rv64mafdc
+    fi
+    local dts=conf/${SOC}/nuclei_${arch}.dts
+    echo "reset to default $dts"
+    git checkout -- $dts
+}
+
 if [ "x$DOBUILD" == "x1" ] ; then
     echo "Build freeloader and boot images"
     prepare_workdir
+    if [ "x${EXT_SSTC}" == "xy" ] ; then
+        prepare_sstc_dts
+    fi
     if [ "x${BUILDBOOTIMAGES}" == "x1" ] ; then
         echo "Build boot images now"
         make bootimages
     fi
     echo "Build freeloader now"
     make freeloader
+    if [ "x${EXT_SSTC}" == "xy" ] ; then
+        reset_dts
+    fi
 fi
 
 if [ -d $FLDROOT ] && [ -d $BOOTROOT ] ; then

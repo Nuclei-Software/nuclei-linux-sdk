@@ -75,6 +75,18 @@ cache:
                 exit 1
             }
             unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
+        - echo ">>Build multiple prefetch freeloader for $SOC - $CORE - $BOOT_MODE for sstc extension"
+        - |
+            export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE} EXT_SSTC=y"
+            export SELVAR0="CPU_HZ"
+            export VARLIST0="16000000,100000000"
+            export SELVAR1="SPFL1DCTRL1"
+            export VARLIST1="0x0,0x1f,0xf,0x3f"
+            bash .github/build_multiple_freeloader.sh > >(tee build_pref_sstc_freeloader.log) || {
+                xz -f -z build_pref_sstc_freeloader.log
+                exit 1
+            }
+            unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
         - echo ">>Build multiple cache settings freeloader for $SOC - $CORE - $BOOT_MODE"
         - |
             export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
