@@ -114,6 +114,34 @@ uboot_mkimage := $(uboot_wrkdir)/tools/mkimage
 
 uboot_cmd := $(confdir)/uboot.cmd
 
+# OPTEE gits compile config
+optee_os_srcdir := $(srcdir)/optee/optee_os
+optee_os_wrkdir := $(wrkdir)/optee/optee_os
+optee_os_platform := spike
+optee_os_tzdram_start := 0xA0800000
+optee_os_tzdram_size := 0x800000
+optee_os_shmem_start := 0xA0200000
+optee_os_shmem_size := 0x200000
+optee_os_bin := $(optee_os_wrkdir)/core/tee-pager_v2.bin
+optee_os_export := $(optee_os_wrkdir)/export-ta_rv64/
+
+optee_client_srcdir := $(srcdir)/optee/optee_client
+optee_client_wrkdir := $(wrkdir)/optee/optee_client
+optee_client_export := $(optee_client_wrkdir)/export/usr
+optee_client_supplicant := $(optee_client_wrkdir)/tee-supplicant/tee-supplicant
+
+optee_test_srcdir := $(srcdir)/optee/optee_test
+optee_test_wrkdir := $(wrkdir)/optee/optee_test
+optee_test_xtest := $(optee_test_wrkdir)/xtest/xtest
+optee_test_tadir := $(optee_test_wrkdir)/ta
+optee_test_plugindir := $(optee_test_wrkdir)/supp_plugin
+
+optee_example_srcdir := $(srcdir)/optee/optee_examples
+optee_example_wrkdir := $(wrkdir)/optee/optee_examples
+optee_example_cadir := $(optee_example_wrkdir)/out/ca
+optee_example_tadir := $(optee_example_wrkdir)/out/ta
+optee_example_plugindir := $(optee_example_wrkdir)/out/plugins
+
 # Directory for boot images stored in sdcard
 boot_wrkdir := $(wrkdir)/boot
 boot_zip := $(wrkdir)/boot.zip
@@ -202,12 +230,14 @@ help:
 	@echo "- linux : build linux image"
 	@echo "- opensbi : build opensbi jump binary"
 	@echo "- uboot : build uboot and generate uboot binary"
+	@echo "- optee : build optee os/client/test/example and generate binary"
 	@echo "- clean : clean this full workspace"
 	@echo "- cleanboot : clean generated boot images"
 	@echo "- cleanlinux : clean linux workspace"
 	@echo "- cleanbuildroot : clean buildroot workspace"
 	@echo "- cleansysroot : clean buildroot sysroot files"
 	@echo "- cleanuboot : clean u-boot workspace"
+	@echo "- cleanoptee : clean optee os/client/test/example output files"
 	@echo "- cleanfreeloader : clean freeloader generated objects"
 	@echo "- cleanopensbi : clean opensbi workspace"
 	@echo "- backup : backup generated prebuilt images into $(backupdir) folder, you need to input backup message when this target is triggered"
@@ -225,8 +255,8 @@ ifeq ($(SOC),demosoc)
 	@echo "Deprecated: The xl-spike support will be deprecated in future release"
 endif
 
-
-$(target_gcc): buildroot_initramfs_sysroot
+$(target_gcc): $(buildroot_srcdir) $(buildroot_initramfs_wrkdir)/.config $(buildroot_initramfs_config)
+	$(MAKE) -C $(buildroot_srcdir) RISCV=$(RISCV) O=$(buildroot_initramfs_wrkdir) toolchain
 
 $(wrkdir):
 	mkdir -p $@
@@ -237,9 +267,7 @@ $(buildroot_initramfs_wrkdir)/.config:
 	cp $(buildroot_initramfs_config) $@
 	$(MAKE) -C ${buildroot_srcdir} RISCV=$(RISCV) O=$(buildroot_initramfs_wrkdir) olddefconfig
 
-# buildroot_initramfs provides gcc
 $(buildroot_initramfs_tar): $(buildroot_srcdir) $(buildroot_initramfs_wrkdir)/.config $(buildroot_initramfs_config)
-	$(MAKE) -C $< RISCV=$(RISCV) O=$(buildroot_initramfs_wrkdir)
 
 .PHONY: buildroot_initramfs-menuconfig
 buildroot_initramfs-menuconfig: $(buildroot_initramfs_wrkdir)/.config $(buildroot_srcdir)
@@ -251,9 +279,25 @@ buildroot_initramfs-menuconfig: $(buildroot_initramfs_wrkdir)/.config $(buildroo
 buildroot_busybox-menuconfig: $(buildroot_initramfs_wrkdir)/.config $(buildroot_srcdir) $(target_gcc)
 	$(MAKE) -C $(dir $<) O=$(buildroot_initramfs_wrkdir) busybox-menuconfig
 
-$(buildroot_initramfs_sysroot_stamp): $(buildroot_initramfs_tar)
+$(buildroot_initramfs_sysroot_stamp): $(buildroot_initramfs_tar) optee_test optee_example
+	$(MAKE) -C $(buildroot_srcdir) RISCV=$(RISCV) O=$(buildroot_initramfs_wrkdir)
 	mkdir -p $(buildroot_initramfs_sysroot)
 	tar -xpf $< -C $(buildroot_initramfs_sysroot) --exclude ./dev --exclude ./usr/share/locale
+#	copy S30optee script to init.d
+	if [ -f $(confdir)/S30optee ]; then cp -af $(confdir)/S30optee $(buildroot_initramfs_sysroot)/etc/init.d/; fi
+# 	copy optee client tee-supplicant, libteec to rootfs
+	if [ -f $(optee_client_supplicant) ];then cp -af $(optee_client_supplicant) $(buildroot_initramfs_sysroot)/usr/sbin/; fi
+	if ls $(optee_client_export)/lib/lib*so* >/dev/null 2>&1 ;then cp -af $(optee_client_export)/lib/lib*so* $(buildroot_initramfs_sysroot)/lib/; fi
+#	copy optee test ca,ta,plugin
+	mkdir -p $(buildroot_initramfs_sysroot)/lib/optee_armtz
+	mkdir -p $(buildroot_initramfs_sysroot)/usr/lib/tee-supplicant/plugins
+	if ls $(optee_test_tadir)/*/*.ta >/dev/null 2>&1 ;then cp -af $(optee_test_tadir)/*/*.ta $(buildroot_initramfs_sysroot)/lib/optee_armtz/; fi
+	if [ -f $(optee_test_xtest) ];then cp -af $(optee_test_xtest) $(buildroot_initramfs_sysroot)/usr/bin/; fi
+	if ls $(optee_test_plugindir)/*.plugin >/dev/null 2>&1 ;then cp -af $(optee_test_plugindir)/*.plugin $(buildroot_initramfs_sysroot)/usr/lib/tee-supplicant/plugins/; fi
+#	copy optee example ca,ta,plugin
+	if ls $(optee_example_cadir)/* >/dev/null 2>&1 ;then cp -af $(optee_example_cadir)/* $(buildroot_initramfs_sysroot)/usr/bin; fi
+	if ls $(optee_example_tadir)/* >/dev/null 2>&1 ;then cp -af $(optee_example_tadir)/* $(buildroot_initramfs_sysroot)/lib/optee_armtz/; fi
+	if ls $(optee_example_plugindir)/*.plugin >/dev/null 2>&1 ;then cp -af $(optee_example_plugindir)/*.plugin  $(buildroot_initramfs_sysroot)/usr/lib/tee-supplicant/plugins/; fi
 	touch $@
 
 .PHONY: initrd linux
@@ -410,6 +454,28 @@ $(uboot_wrkdir)/.config: $(target_gcc) $(uboot_config)
 $(uboot_mkimage) $(uboot_bin): uboot
 	@echo "Uboot binary is generated into $<"
 
+$(optee_os_bin): optee_os
+
+.PHONY: optee optee_os optee_client optee_example optee_test
+
+optee: optee_os optee_client optee_test optee_example
+
+optee_os: $(target_gcc) $(optee_os_srcdir)
+	$(MAKE) -C $(optee_os_srcdir) O=$(optee_os_wrkdir) CROSS_COMPILE64=$(CROSS_COMPILE) ARCH=riscv CFG_RV64_core=y \
+	CFG_TZDRAM_START=$(optee_os_tzdram_start) CFG_TZDRAM_SIZE=$(optee_os_tzdram_size) CFG_SHMEM_START=$(optee_os_shmem_start) \
+	CFG_SHMEM_SIZE=$(optee_os_shmem_size) PLATFORM=$(optee_os_platform) ta-targets=ta_rv64 MARCH=$(ISA) MABI=$(ABI)
+
+optee_client: $(target_gcc) $(optee_client_srcdir)
+	$(MAKE) -C $(optee_client_srcdir) O=$(optee_client_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) MARCH=$(ISA) MABI=$(ABI)
+
+optee_test: $(target_gcc) optee_client optee_os
+	$(MAKE) -C $(optee_test_srcdir) O=$(optee_test_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) OPTEE_CLIENT_EXPORT=$(optee_client_export) \
+	--no-builtin-variables TA_DEV_KIT_DIR=$(optee_os_export) MARCH=$(ISA) MABI=$(ABI)
+
+optee_example: $(target_gcc) $(optee_example_srcdir) optee_client optee_os
+	cp -af $(optee_example_srcdir)  $(wrkdir)/optee/
+	$(MAKE) -C $(optee_example_wrkdir) HOST_CROSS_COMPILE=$(CROSS_COMPILE) TEEC_EXPORT=$(optee_client_export) --no-builtin-variables TA_DEV_KIT_DIR=$(optee_os_export) MARCH=$(ISA) MABI=$(ABI)
+
 .PHONY: freeloader upload_freeloader debug_freeloader run_openocd
 
 freeloader: $(freeloader_elf)
@@ -443,9 +509,9 @@ freeloader4m: prepare4m $(freeloader_elf)
 endif
 
 ifeq ($(BOOT_MODE),sd)
-$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb) $(amp_bins)
+$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb) $(amp_bins) $(optee_os_bin)
 else
-$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb) $(boot_zip) $(amp_bins)
+$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb) $(boot_zip) $(amp_bins) $(optee_os_bin)
 endif
 	mkdir -p  $(freeloader_wrkdir)
 	$(MAKE) -C $(freeloader_srcdir) O=$(freeloader_wrkdir) ARCH=$(ISA) ABI=$(ABI) ARCH_EXT=$(ARCH_EXT) \
@@ -453,7 +519,8 @@ endif
 		OPENSBI_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(platform_dtb) \
 		KERNEL_BIN=$(boot_uimage_lz4) INITRD_BIN=$(boot_uinitrd_lz4) CONFIG_MK=$(freeloader_confmk)  \
 		CORE1_APP_BIN=$(CORE1_APP_BIN) CORE2_APP_BIN=$(CORE2_APP_BIN) CORE3_APP_BIN=$(CORE3_APP_BIN) \
-		CORE4_APP_BIN=$(CORE4_APP_BIN) CORE5_APP_BIN=$(CORE5_APP_BIN) CORE6_APP_BIN=$(CORE6_APP_BIN) CORE7_APP_BIN=$(CORE7_APP_BIN)
+		CORE4_APP_BIN=$(CORE4_APP_BIN) CORE5_APP_BIN=$(CORE5_APP_BIN) CORE6_APP_BIN=$(CORE6_APP_BIN) CORE7_APP_BIN=$(CORE7_APP_BIN) \
+		OPTEEOS_BIN=$(optee_os_bin)
 
 upload_freeloader: $(freeloader_elf)
 	$(target_gdb) $< -ex "set remotetimeout 240" \
@@ -510,6 +577,9 @@ cleansysroot:
 
 cleanuboot:
 	rm -rf $(uboot_wrkdir)
+
+cleanoptee:
+	rm -rf $(optee_os_wrkdir) $(optee_client_wrkdir) $(optee_test_wrkdir) $(optee_example_wrkdir)
 
 clean_freeloader: cleanfreeloader
 

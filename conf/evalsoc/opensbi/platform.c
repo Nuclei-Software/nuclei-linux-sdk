@@ -45,6 +45,7 @@ static void nuclei_modify_dt(void *fdt)
     fdt_domain_fixup(fdt);
 }
 
+extern void sm_init(bool cold_boot);
 static int nuclei_final_init(bool cold_boot)
 {
     void *fdt;
@@ -54,7 +55,7 @@ static int nuclei_final_init(bool cold_boot)
 
     fdt = sbi_scratch_thishart_arg1_ptr();
     nuclei_modify_dt(fdt);
-
+	sm_init(cold_boot);
     // Check mcfg_info.tee to see whether tee present
     if (csr_read(0xfc2) & 0x1) {
         // Enable U-Mode to access all regions by setting spmpcfg0 and spmpaddr0

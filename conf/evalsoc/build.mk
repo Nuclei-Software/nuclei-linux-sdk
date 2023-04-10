@@ -1,4 +1,4 @@
-UIMAGE_AE_CMD := -a 0xA0400000 -e 0xA0400000
+UIMAGE_AE_CMD := -a 0xA1200000 -e 0xA1200000
 # qemu currently not work for evalsoc
 QEMU_MACHINE_OPTS := -M nuclei_u,download=flashxip -smp 8 -m 1.5G
 # initramfs pre command before generate initrd ramfs

@@ -17,3 +17,19 @@
 [submodule "u-boot"]
 	path = u-boot
 	url = ../u-boot.git
+
+[submodule "optee/optee_os"]
+	path = optee/optee_os
+	url = ../optee_os.git
+
+[submodule "optee/optee_client"]
+	path = optee/optee_client
+	url = ../optee_client.git
+
+[submodule "optee/optee_test"]
+	path = optee/optee_test
+	url = ../optee_test.git
+
+[submodule "optee/optee_examples"]
+	path = optee/optee_examples
+	url = ../optee_examples.git
