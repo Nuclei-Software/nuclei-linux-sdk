@@ -66,7 +66,7 @@ See [How to evaluate Nuclei Linux SDK in docker](https://github.com/Nuclei-Softw
 Install the software dependencies required by this SDK using command:
 
 ~~~shell
-sudo xargs apt-get install < .github/apt.txt
+sudo xargs apt-get install -y < .github/apt.txt
 sudo pip3 install -r .github/pipreq.txt
 ~~~
 
