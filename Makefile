@@ -117,7 +117,7 @@ uboot_cmd := $(confdir)/uboot.cmd
 # OPTEE gits compile config
 optee_os_srcdir := $(srcdir)/optee/optee_os
 optee_os_wrkdir := $(wrkdir)/optee/optee_os
-optee_os_platform := spike
+optee_os_platform := nuclei
 optee_os_tzdram_start := 0xA0800000
 optee_os_tzdram_size := 0x800000
 optee_os_shmem_start := 0xA0200000
