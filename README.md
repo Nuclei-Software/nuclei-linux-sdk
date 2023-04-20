@@ -168,6 +168,7 @@ Here are the version numbers of sub projects used in Nuclei Linux SDK.
 * Uboot v2021.01
 * OpenSBI v0.9
 * Buildroot 2020.11.2
+* OPTEE v3.18
 
 Our changes to support Nuclei Demo SoC are adapted based on above version.
 
@@ -1176,6 +1177,10 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
 > If you have enabled TEE feature(sPMP module included), you need to configure spmp csr registers
 > as this commit https://github.com/Nuclei-Software/opensbi/commit/1d28050d01b93b6afe590487324b663c65a2c429 .
 > Then you will be able to boot up linux kernel, otherwise the init process will fail.
+
+## How to use OPTEE in Linux SDK
+
+  [optee riscv brief](optee/README.md)
 
 ## Known issues and FAQs
 
