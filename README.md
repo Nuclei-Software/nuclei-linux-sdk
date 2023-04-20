@@ -1180,7 +1180,7 @@ To basically port this SDK to match your target, you can make a copy of `conf/de
 
 ## How to use OPTEE in Linux SDK
 
-  [optee riscv brief](optee/README.md)
+Please check the user guide about [how to use optee in linux sdk](optee/README.md).
 
 ## Known issues and FAQs
 
