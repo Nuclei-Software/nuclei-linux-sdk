@@ -2,7 +2,8 @@
 
 本文档是说明RISC-V架构相关的OPTEE实现，不讲OPTEE的工作原理，OPTEE的工作原理请参考官方文档(http://optee.readthedocs.io/).
 
-我们基于RISC-V实现的OPTEE和ARM基本类似，也分为两个世界：安全世界(TEE)，非安全世界(REE)。两个世界彼此隔离，包括代码执行隔离，中断隔离。目前单核开发测试完成，多核还在开发中。实现TEE系统目前仅需要M模式下PLIC中断控制器pending可写。
+我们基于RISC-V实现的OPTEE和ARM基本类似，也分为两个世界：安全世界(TEE)，非安全世界(REE)。
+两个世界彼此隔离，包括代码执行隔离，中断隔离。目前单核开发测试完成，多核还在开发中。实现TEE系统目前仅需要M模式下PLIC中断控制器pending可写。
 
 ## 启动过程
 
@@ -12,7 +13,7 @@ optee-os 会被freeloader从flash介质加载到内存，由opensbi来初始化o
 
 RISC-V OPTEE系统的运行架构如下图：
 
-![](optee_riscv_arch.png)
+![OpTEE RISC-V Architecture](optee_riscv_arch.png)
 
 通过PMP将TEE与REE的运行地址空间隔离开，通过PLIC中断使能模式的切换实现中断隔离，即安全中断在安全世界处理，非安全中断在非安全世界处理，碰到不属于本世界处理的中断，需要经过M模式转发到另一个世界处理。
 
@@ -23,7 +24,7 @@ RISC-V OPTEE系统的运行架构如下图：
 - plic_secure_int[0]记录多少个安全中断
 - plic_secure_int[x]记录第x个安全中断的硬件中断号
 
-```
+```c
 void plic_init_sec_interrupt_tab(void)
 {
 	/*have security interrupt currently*/
@@ -49,6 +50,7 @@ void plic_init_sec_interrupt_tab(void)
 ## 编译部署
 
 optee 仓库包括optee-os，optee-client，optee-test，optee-example编译和部署已集成到顶层Makefile中，编译SDK时会默认编译optee各部分，典型的编译如下：
+
 ```makefile
 make SOC=evalsoc CORE=ux900fd BOOT_MODE=sd freeloader
 make SOC=evalsoc CORE=ux900fd BOOT_MODE=sd bootimages
@@ -65,9 +67,9 @@ linux系统需要配置TEE driver，dts需要配置optee节点，以便启动时
 
 下面的打印包括系统的启动过程及运行的应用程序，运行了三个CA(client application)应用程序：optee_example_hello_world，xtest 1006测试，optee_example_demo，optee_example_demo展示的是中断的转发处理过程。
 
-登录用户名：root
+- 登录用户名：root
 
-登录密码：nuclei
+- 登录密码：nuclei
 
 ```
 OpenSBI v0.9
@@ -320,8 +322,6 @@ Starting tee-supplicant...
 Welcome to Nuclei System Technology
 nucleisys login: root
 Password: 
-# nuclei
--bash: nuclei: command not found
 # optee_example_hello_world 
 M:fwd timer int to REE
 D/TA:  TA_CreateEntryPoint:39 has been called
