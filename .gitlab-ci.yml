@@ -67,7 +67,7 @@ cache:
         - |
             export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
             export SELVAR0="CPU_HZ"
-            export VARLIST0="16000000,100000000"
+            export VARLIST0="16000000,50000000,100000000"
             export SELVAR1="SPFL1DCTRL1"
             export VARLIST1="0x0,0x1f,0xf,0x3f"
             bash .github/build_multiple_freeloader.sh > >(tee build_pref_freeloader.log) || {
@@ -79,7 +79,7 @@ cache:
         - |
             export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
             export SELVAR0="CPU_HZ"
-            export VARLIST0="16000000,100000000"
+            export VARLIST0="16000000,50000000,100000000"
             export SELVAR1="CACHE_CTRL"
             export VARLIST1="0x100C1,0x10001"
             bash .github/build_multiple_freeloader.sh > >(tee build_cache_freeloader.log) || {
