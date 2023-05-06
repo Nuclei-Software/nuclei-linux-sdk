@@ -9,6 +9,9 @@
 #ifndef PERIPHCLK_FREQ
 #define PERIPHCLK_FREQ      CPUCLK_FREQ
 #endif
+#ifndef SIMULATION
+#define SIMULATION          0
+#endif
 
 / {
   #address-cells = <2>;
@@ -221,6 +224,7 @@
     status = "disabled";
   };
 
+#if SIMULATION == 0
   qspi0: spi@10014000 {
     compatible = "nuclei,spi0";
     reg = <0x0 0x10014000 0x0 0x1000>;
@@ -278,4 +282,5 @@
     clocks = <&hfclk>;
     status = "disabled";
   };
+#endif
 };
