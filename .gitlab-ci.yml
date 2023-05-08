@@ -113,6 +113,19 @@ cache:
             }
             unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
         - xz -f -z build_simu_freeloader.log
+        - echo ">>Build simulation freeloader console=hvc0 for $SOC - $CORE - $BOOT_MODE"
+        - |
+            export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE} HVC_CONSOLE=y"
+            export SELVAR0="SIMULATION"
+            export VARLIST0="1"
+            export SELVAR1="SPFL1DCTRL1"
+            export VARLIST1="0x0,0x1f,0xf,0x3f"
+            bash .github/build_multiple_freeloader.sh > >(tee build_simu_hvc_freeloader.log) || {
+                xz -f -z build_simu_hvc_freeloader.log
+                exit 1
+            }
+            unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
+        - xz -f -z build_simu_hvc_freeloader.log
         - echo ">>Build freeloader for $SOC - $CORE - $BOOT_MODE"
         - |
             echo ">>>Build freeloader for default MHz"
@@ -165,6 +178,7 @@ cache:
             echo "Zip all generated boot images and freeloader elfs to ${genbootzip}"
             rm -f ${genbootzip}
             zip -r ${genbootzip} work/${SOC}/boot.zip work/${SOC}/freeloader/freeloader.elf work/${SOC}/run_qemu.sh work/${SOC}/disk.img work/${SOC}/freeloader_*.elf work/${SOC}/buildstamp.txt work/${SOC}/fw_payload_xlspike.elf
+        - echo "Please find generated freeloaders in $SHARELOC/$(git describe --always)"
 
 ## Job template for run linux in xlspike
 .run_linux_sdk_xlspike_template: &run_linux_sdk_xlspike_job_def
