@@ -18,6 +18,11 @@ function gen_dstimg_names() {
         dstbootzipname=${dstbootzipname}_sstc
     fi
 
+    if [ "x$HVC_CONSOLE" == "xy" ] ; then
+        dstfldname=${dstfldname}_hvc
+        dstbootzipname=${dstbootzipname}_hvc
+    fi
+
     if [ "x$CACHE_CTRL" != "x" ] ; then
         dstfldname=${dstfldname}_l1-${CACHE_CTRL}
     fi
@@ -63,4 +68,69 @@ function gen_dstimg_names() {
     fi
     dstfldname=${dstfldname}.elf
     dstbootzipname=${dstbootzipname}.zip
+}
+
+function get_arch() {
+    local arch=rv64imac
+    if echo "$CORE" | grep -q "fd" > /dev/null ; then
+        arch=rv64imafdc
+    fi
+    echo $arch
+}
+
+function replace_dts() {
+    local arch=$1
+    local old=$2
+    local new=$3
+    local dts=conf/${SOC}/nuclei_${arch}.dts
+    echo "Replace $dts from $old to $new"
+    sed -i "s/$old/$new/g" $dts
+}
+
+function prepare_sstc_dts() {
+    local arch=$(get_arch)
+    replace_dts $arch $arch ${arch}_sstc
+}
+
+function prepare_hvc_console_dts() {
+    local arch=$(get_arch)
+    replace_dts $arch ttyNUC0 hvc0
+}
+
+function prepare_dts() {
+    if [ "x${EXT_SSTC}" == "xy" ] ; then
+        prepare_sstc_dts
+    fi
+    if [ "x${HVC_CONSOLE}" == "xy" ] ; then
+        prepare_hvc_console_dts
+    fi
+}
+
+function reset_dts() {
+    local arch=$(get_arch)
+    local dts=conf/${SOC}/nuclei_${arch}.dts
+    # if modified, then reset to default version
+    if git status -s $dts | grep dts > /dev/null 2>&1 ; then
+        echo "Reset dts $dts to unmodified version in git"
+        git checkout -- $dts
+    else
+        echo "No need to reset dts $dts"
+    fi
+}
+
+function link_latest_freeloader() {
+    local tag=latest
+    if [ "x${CI_COMMIT_BRANCH}" == "x" ] ; then
+        echo "Maybe a tag commit or merge request commit, ignore it!"
+        return
+    fi
+    if [ "x${CI_COMMIT_BRANCH}" == "xdev_nuclei_6.1" ] ; then
+        tag=latest_6.1
+    elif [ "x${CI_COMMIT_BRANCH}" != "xdev_nuclei_next" ] ; then
+        tag=$CI_COMMIT_REF_SLUG
+    fi
+    echo "Link $tag to $SYNCDIR for ${CI_COMMIT_BRANCH}"
+    rm -f $SHARELOC/$tag
+    pushd $SHARELOC
+    ln -s $GITSHA $tag
 }

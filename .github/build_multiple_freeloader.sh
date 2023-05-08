@@ -43,7 +43,9 @@ do
         runcmd="make freeloader && cp -f work/${SOC}/freeloader/freeloader.elf ${frldelf}"
         echo $runcmd
         if [ "x$DRYRUN" == "x0" ] ; then
+            prepare_dts
             eval $runcmd
+            reset_dts
         fi
         unset $SELVAR0 $SELVAR1
         if [ "x$SYNCDIR" != "x" ] ; then
@@ -53,14 +55,8 @@ do
     done
 done
 
-if [ "x$SYNCDIR" != "x" ] ; then
-    echo "Link latest to $SYNCDIR"
-    if [ "x${CI_COMMIT_BRANCH}" == "xdev_nuclei_next" ] ; then
-        rm -f $SHARELOC/latest
-        pushd $SHARELOC
-        ln -s $GITSHA latest
-        popd
-    fi
+if [ "x$SYNCDIR" != "x" ] && [ "x$DRYRUN" == "x0" ] ; then
+    link_latest_freeloader
 fi
 
 exit 0
