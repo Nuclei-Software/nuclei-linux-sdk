@@ -105,12 +105,14 @@ function prepare_workdir() {
 if [ "x$DOBUILD" == "x1" ] ; then
     echo "Build freeloader and boot images"
     prepare_workdir
+    prepare_dts
     if [ "x${BUILDBOOTIMAGES}" == "x1" ] ; then
         echo "Build boot images now"
         make bootimages
     fi
     echo "Build freeloader now"
     make freeloader
+    reset_dts
 fi
 
 if [ -d $FLDROOT ] && [ -d $BOOTROOT ] ; then
