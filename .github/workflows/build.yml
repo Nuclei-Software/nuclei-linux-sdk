@@ -76,9 +76,9 @@ jobs:
         run: |
           export SOC=${{ matrix.soc }} CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }}
           echo "Generate QEMU Disk"
-          echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 4000000"
-          #sed -i "s/32768/4000000/" conf/$SOC/*.dts
-          export TIMER_HZ=4000000
+          echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 1000000"
+          #sed -i "s/32768/1000000/" conf/$SOC/*.dts
+          export TIMER_HZ=1000000
           make genstamp
           make freeloader
           cp work/$SOC/freeloader/freeloader.elf work/$SOC/freeloader_qemu.elf
