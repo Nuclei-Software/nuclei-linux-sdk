@@ -65,11 +65,12 @@ jobs:
             python3 python3-pip mtools
           sudo pip3 install git-archive-all
           mkdir -p buildroot/dl
-          if [ ! -f buildroot/dl/nuclei-qemu-2022.04-linux-x64.tar.gz ] ; then
-            wget -P buildroot/dl https://nucleisys.com/upload/files/toochain/qemu/nuclei-qemu-2022.04-linux-x64.tar.gz
+          QEMUVER=2022.12
+          if [ ! -f buildroot/dl/nuclei-qemu-${QEMUVER}-linux-x64.tar.gz ] ; then
+            wget -P buildroot/dl https://nucleisys.com/upload/files/toochain/qemu/nuclei-qemu-${QEMUVER}-linux-x64.tar.gz
           fi
           mkdir -p prebuilt_tools
-          tar -xzf buildroot/dl/nuclei-qemu-2022.04-linux-x64.tar.gz -C prebuilt_tools
+          tar -xzf buildroot/dl/nuclei-qemu-${QEMUVER}-linux-x64.tar.gz -C prebuilt_tools
 
       # Build bootimages
       - name: Build bootimages for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
