@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: recursive
- 
+
       - name: Tarball source
         run: |
           base=$(basename $PWD)
@@ -98,7 +98,7 @@ jobs:
       - name: Run and test on qemu for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
         if: matrix.soc == 'demosoc'
         run: |
-          QEMU_PATH=$(pwd)/prebuilt_tools/linux_qemu/bin
+          QEMU_PATH=$(pwd)/prebuilt_tools/linux_qemu/bin:$(pwd)/prebuilt_tools/qemu/bin
           export PATH=${QEMU_PATH}:$PATH
           export SOC=${{ matrix.soc }} CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }}
           cd work/$SOC
