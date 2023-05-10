@@ -32,7 +32,7 @@ RUN rm -f /home/pipreq.txt
 # create USER with PASS
 ARG USER=nuclei
 ARG PASS=riscv123
-ARG QEMUVER=2022.08
+ARG QEMUVER=2022.12
 
 RUN groupadd --system $USER
 
