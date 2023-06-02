@@ -163,7 +163,11 @@ cache:
             unset TIMER_HZ
         - |
             RUNQEMUSH=work/$SOC/run_qemu.sh
-            echo "qemu-system-riscv64 -M nuclei_${SOC},download=flashxip -cpu nuclei-ux900fd,ext=$ARCH_EXT -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
+            qemucmd=qemu-system-riscv32
+            if [[ $CORE == *ux* ]] ; then
+                qemucmd=qemu-system-riscv64
+            fi
+            echo "$qemucmd -M nuclei_${SOC},download=flashxip -cpu nuclei-${CORE},ext=$ARCH_EXT -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
             chmod +x $RUNQEMUSH
         - |
             if [ "x$SOC" == "xdemosoc" ] ; then
@@ -236,6 +240,22 @@ cache:
             #    echo ">>Will not run qemu simulation for $SOC"
             #    exit 0
             #fi
+            cd work/$SOC
+            # $(cat run_qemu.sh) is workaround for directly run bash run_qemu.sh
+            # If do kill it will just kill bash process, the qemu process is not killed
+            # SIGTERM is better for kill qemu
+            timeout --foreground -s SIGTERM 3m $(cat run_qemu.sh) > >(tee run_qemu.log) || {
+                if cat run_qemu.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
+                if cat run_qemu.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
+            }
+
+## Job template for build linux sdk
+.build_run_linux_sdk_template: &build_run_linux_sdk_job_def
+    interruptible: true
+    <<: *build_linux_sdk_job_def
+    after_script:
+        - echo ">>Run using qemu for $SOC - $CORE - $BOOT_MODE"
+        - |
             cd work/$SOC
             # $(cat run_qemu.sh) is workaround for directly run bash run_qemu.sh
             # If do kill it will just kill bash process, the qemu process is not killed
@@ -524,3 +544,18 @@ run_ux900fd_sd_qemu:
         CORE: "ux900fd"
         BOOT_MODE: "sd"
     <<: *run_linux_sdk_qemu_job_def
+
+
+## Job for build sdk
+# Build for rv32 core
+build_run_rv32:
+    stage: build
+    variables:
+        SOC: "evalsoc"
+        ARCH_EXT: ""
+        BOOT_MODE: "flash"
+    parallel:
+        matrix:
+            - SOC: ["demosoc", "evalsoc"]
+              CORE: ["u900", "u900fd"]
+    <<: *build_run_linux_sdk_job_def
