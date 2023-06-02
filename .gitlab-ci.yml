@@ -377,8 +377,10 @@ run_ux900_flash_qemu:
     stage: run
     dependencies:
         - build_ux900_flash
+    parallel:
+        matrix:
+            - SOC: ["demosoc", "evalsoc"]
     variables:
-        SOC: "demosoc"
         CORE: "ux900"
         BOOT_MODE: "flash"
     <<: *run_linux_sdk_qemu_job_def
@@ -389,8 +391,10 @@ run_ux900_sd_qemu:
     stage: run
     dependencies:
         - build_ux900_sd
+    parallel:
+        matrix:
+            - SOC: ["demosoc", "evalsoc"]
     variables:
-        SOC: "demosoc"
         CORE: "ux900"
         BOOT_MODE: "sd"
     <<: *run_linux_sdk_qemu_job_def
@@ -485,8 +489,10 @@ run_ux900fd_flash_qemu:
     allow_failure: true
     dependencies:
         - build_ux900fd_flash
+    parallel:
+        matrix:
+            - SOC: ["demosoc", "evalsoc"]
     variables:
-        SOC: "demosoc"
         CORE: "ux900fd"
         BOOT_MODE: "flash"
     <<: *run_linux_sdk_qemu_job_def
@@ -499,8 +505,10 @@ run_ux900fd_sd_qemu:
     allow_failure: true
     dependencies:
         - build_ux900fd_sd
+    parallel:
+        matrix:
+            - SOC: ["demosoc", "evalsoc"]
     variables:
-        SOC: "demosoc"
         CORE: "ux900fd"
         BOOT_MODE: "sd"
     <<: *run_linux_sdk_qemu_job_def
