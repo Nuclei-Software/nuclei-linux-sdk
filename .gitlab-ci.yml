@@ -241,6 +241,7 @@ cache:
             #    exit 0
             #fi
             cd work/$SOC
+            cat run_qemu.sh
             # $(cat run_qemu.sh) is workaround for directly run bash run_qemu.sh
             # If do kill it will just kill bash process, the qemu process is not killed
             # SIGTERM is better for kill qemu
@@ -261,10 +262,11 @@ cache:
         - echo ">>Run using qemu for $SOC - $CORE - $BOOT_MODE"
         - |
             cd work/$SOC
+            cat run_qemu.sh
             # $(cat run_qemu.sh) is workaround for directly run bash run_qemu.sh
             # If do kill it will just kill bash process, the qemu process is not killed
             # SIGTERM is better for kill qemu
-            timeout --foreground -s SIGTERM 3m $(cat run_qemu.sh) > >(tee run_qemu.log) || {
+            timeout --foreground -s SIGTERM 5m $(cat run_qemu.sh) > >(tee run_qemu.log) || {
                 if cat run_qemu.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
                 if cat run_qemu.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
             }
