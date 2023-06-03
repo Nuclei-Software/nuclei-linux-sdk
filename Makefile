@@ -399,9 +399,7 @@ ifeq ($(XLEN),32)
 	#gzip -1 -c $< > $(boot_image)
 	$(uboot_mkimage) -A riscv -O linux -T kernel -C none $(UIMAGE_AE_CMD) -n Linux -d $(boot_image) $@
 else
-	lz4 $< $(boot_image) -f -4
-	cp $< $(boot_image)
-	gzip -1 -c $< > $(boot_image)
+	lz4 $< $(boot_image) -f -9
 	$(uboot_mkimage) -A riscv -O linux -T kernel -C lz4 $(UIMAGE_AE_CMD) -n Linux -d $(boot_image) $@
 endif
 	rm -f $(boot_image)
