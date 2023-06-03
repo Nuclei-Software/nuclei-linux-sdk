@@ -254,6 +254,10 @@ cache:
     interruptible: true
     <<: *build_linux_sdk_job_def
     after_script:
+        # Scripts you specify in after_script execute in a new shell, separate from any before_script or script commands.
+        # it will not affect exit code, see https://docs.gitlab.com/ee/ci/yaml/#after_script
+        # set qemu path here to avoid qemu not found issue
+        - export PATH=$QEMUPATH/bin:$PATH
         - echo ">>Run using qemu for $SOC - $CORE - $BOOT_MODE"
         - |
             cd work/$SOC
@@ -545,17 +549,14 @@ run_ux900fd_sd_qemu:
         BOOT_MODE: "sd"
     <<: *run_linux_sdk_qemu_job_def
 
-
-## Job for build sdk
-# Build for rv32 core
+# Build and run for rv32 core
 build_run_rv32:
     stage: build
     variables:
         SOC: "evalsoc"
         ARCH_EXT: ""
-        BOOT_MODE: "flash"
     parallel:
         matrix:
-            - SOC: ["demosoc", "evalsoc"]
-              CORE: ["u900", "u900fd"]
+            - CORE: ["u900", "u900fd"]
+              BOOT_MODE: ["sd", "flash"]
     <<: *build_run_linux_sdk_job_def
