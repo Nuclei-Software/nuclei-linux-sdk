@@ -164,23 +164,25 @@ But if you want to change and adapt for your SoC, you need to understand the bui
 
 Here are the version numbers of sub projects used in Nuclei Linux SDK.
 
-* Linux 5.10
-* Uboot v2021.01
-* OpenSBI v0.9
-* Buildroot 2020.11.2
+* Linux 6.1.y
+* Uboot v2023.01
+* OpenSBI master > v1.2
+* Buildroot 2022.11
 
 Our changes to support Nuclei Demo SoC are adapted based on above version.
 
 ## Modify Build Configuration
 
-You can choose different core configuration by modify the `CORE ?= ux600` line in `Makefile`.
+You can choose different core configuration by modify the `CORE ?= ux900fd` line in `Makefile`.
 
 We support four configurations for **CORE**, choose the right core according to your configuration:
 
 * `ux600` or `ux900`: rv64imac RISC-V CORE configuration without FPU.
 * `ux600fd` or `ux900fd`: rv64imafdc RISC-V CORE configuration with FPU.
+* `u900`: rv32imac RISC-V CORE configuration without FPU added from 2023.06.
+* `u900fd`: rv32imafdc RISC-V CORE configuration with FPU added from 2023.06.
 
-You can choose different SoC by modify `SOC ?= demosoc` line in `Makefile`.
+You can choose different SoC by modify `SOC ?= evalsoc` line in `Makefile`.
 
 * `demosoc`: The demostration SoC from nuclei.
 * `evalsoc`: The next generation of the `demosoc`, we call it `evalsoc`, when your cpu has `iregion` feature, please use this one
@@ -188,7 +190,9 @@ You can choose different SoC by modify `SOC ?= demosoc` line in `Makefile`.
 
 > You can check the dts difference for evalsoc and demosoc, for more details, need to check the Nuclei RISC-V CPU ISA spec.
 
-> Now evalsoc default cpu/peripheral frequency change from 16M to 100MHz
+> - Default SoC changed from demosoc to evalsoc, and default CORE changed to ux900fd from 2023.06
+> - Now evalsoc default cpu/peripheral frequency change from 100M to 50MHz from 2023.06
+> - From 2023.06, evalsoc ddr base address changed from 0xA0000000 to 0x80000000, so previous release of 600 and 900 bitstream may not work on this sdk, please take care
 
 You can choose different boot mode by modify the `BOOT_MODE ?= sd` line in `Makefile`.
 
@@ -381,6 +385,9 @@ If you want to remove the login, and directly enter to bash, please check [**Kno
 ## Booting Linux on Nuclei QEMU
 
 **Note**: `qemu-system-riscv64` tool should be installed and added into **PATH** in advance.
+
+> From 2023.06, this branch is no longer works with Nuclei QEMU <= 2022.12 release, you can't run on qemu.
+> Please wait for our latest release of qemu, or you can compile a development version(nuclei/7.2) of https://github.com/riscv-mcu/qemu
 
 In release 2022.01 version of Nuclei QEMU, the Nuclei System Timer implementation has some issue, you need to change the
 **TIMERCLK_FREQ** in `conf/demosoc/*.dts` from 32768 to 1000000 before you run on qemu via `TIMER_HZ` in `conf/$SOC/build.mk`.
