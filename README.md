@@ -164,7 +164,7 @@ But if you want to change and adapt for your SoC, you need to understand the bui
 
 Here are the version numbers of sub projects used in Nuclei Linux SDK.
 
-* Linux 5.10
+* Linux 5.10.y
 * Uboot v2021.01
 * OpenSBI v0.9
 * Buildroot 2020.11.2
@@ -173,14 +173,14 @@ Our changes to support Nuclei Demo SoC are adapted based on above version.
 
 ## Modify Build Configuration
 
-You can choose different core configuration by modify the `CORE ?= ux600` line in `Makefile`.
+You can choose different core configuration by modify the `CORE ?= ux900fd` line in `Makefile`.
 
 We support four configurations for **CORE**, choose the right core according to your configuration:
 
 * `ux600` or `ux900`: rv64imac RISC-V CORE configuration without FPU.
 * `ux600fd` or `ux900fd`: rv64imafdc RISC-V CORE configuration with FPU.
 
-You can choose different SoC by modify `SOC ?= demosoc` line in `Makefile`.
+You can choose different SoC by modify `SOC ?= evalsoc` line in `Makefile`.
 
 * `demosoc`: The demostration SoC from nuclei.
 * `evalsoc`: The next generation of the `demosoc`, we call it `evalsoc`, when your cpu has `iregion` feature, please use this one
@@ -188,7 +188,8 @@ You can choose different SoC by modify `SOC ?= demosoc` line in `Makefile`.
 
 > You can check the dts difference for evalsoc and demosoc, for more details, need to check the Nuclei RISC-V CPU ISA spec.
 
-> Now evalsoc default cpu/peripheral frequency change from 16M to 100MHz
+> - Now evalsoc default cpu/peripheral frequency change from 100MHz to 50MHz from 2023.06
+> - Now evalsoc ddr base address changed from 0xA0000000 to 0x80000000 from 2023.06, so previous bitstream will not work
 
 You can choose different boot mode by modify the `BOOT_MODE ?= sd` line in `Makefile`.
 
@@ -221,7 +222,7 @@ Contact with our sales via email **contact@nucleisys.com** to get `xl_spike` too
 
 > This feature is **deprecated** now.
 
-### Run on xl_spike 
+### Run on xl_spike
 
 If you have run `make bootimages` command before, please make sure you run `make presim` to prepare
 build environment for running linux in simulation.
@@ -379,6 +380,8 @@ UART: #
 If you want to remove the login, and directly enter to bash, please check [**Known issues and FAQ**](#Known-issues-and-FAQs).
 
 ## Booting Linux on Nuclei QEMU
+
+> From 2023.06, this branch will no longer work with Nuclei QEMU 2022.12 release, please take a try with nuclei 7.2 version.
 
 **Note**: `qemu-system-riscv64` tool should be installed and added into **PATH** in advance.
 
