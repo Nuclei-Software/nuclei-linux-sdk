@@ -179,7 +179,7 @@ xlspike := xl_spike
 openocd := openocd
 
 # qemu is prebuild and installed to PATH
-qemu := qemu-system-riscv64
+qemu := qemu-system-riscv$(XLEN)
 
 ## Makefile Variable GDBREMOTE
 # You can change GDBREMOTE to other gdb remotes
