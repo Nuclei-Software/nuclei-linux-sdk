@@ -1,4 +1,4 @@
-## Makefile Variable SOC
+# Makefile Variable SOC
 ## SOC Supported:
 ## demosoc: Nuclei Demo SoC used for evaluation
 ## evalsoc: Nuclei Evaluation SoC
@@ -38,6 +38,12 @@ endif
 ISA := $(word 1, $(CORE_ARCH_ABI))
 ABI := $(word 2, $(CORE_ARCH_ABI))
 
+ifneq ($(findstring 32,$(ABI)),)
+XLEN := 32
+else
+XLEN := 64
+endif
+
 srcdir := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 srcdir := $(srcdir:/=)
 wrkdir_root := $(CURDIR)/work
@@ -69,8 +75,6 @@ platform_sim_dtb := $(wrkdir)/nuclei_$(ISA)_sim.dtb
 
 platform_openocd_cfg := $(confdir)/openocd.cfg
 
-target := riscv-nuclei-linux-gnu
-CROSS_COMPILE := $(RISCV)/bin/$(target)-
 buildroot_initramfs_config := $(confdir)/buildroot_initramfs_$(ISA)_config
 
 buildroot_initramfs_tar := $(buildroot_initramfs_wrkdir)/images/rootfs.tar
@@ -143,6 +147,13 @@ FILES2BACKUP := $(subst $(realpath $(srcdir))/,, $(realpath $(FILES2BACKUP)))
 
 # Include SoC related Makefile
 include $(confdir)/build.mk
+
+ifeq ($(XLEN),64)
+target := riscv-nuclei-linux-gnu
+else
+target := riscv32-buildroot-linux-gnu
+endif
+CROSS_COMPILE := $(RISCV)/bin/$(target)-
 
 amp_bins = $(CORE1_APP_BIN) $(CORE2_APP_BIN) $(CORE3_APP_BIN) $(CORE4_APP_BIN) $(CORE5_APP_BIN) $(CORE6_APP_BIN) $(CORE7_APP_BIN)
 
@@ -379,8 +390,17 @@ $(boot_ubootscr): $(uboot_cmd) $(uboot_mkimage)
 # For DDR_BASE = 0xA0000000, eg.
 # UIMAGE_AE_CMD := -a 0xA0400000 -e 0xA0400000
 $(boot_uimage_lz4): $(linux_image)
+# workaround for xlen = 32 target, use uncompressed kernel image
+# compressed kernel image, facing an uncompress error -93 in Uncompressing Kernel Image stage
+ifeq ($(XLEN),32)
+	#lz4 $< $(boot_image) -f -4
+	cp $< $(boot_image)
+	#gzip -1 -c $< > $(boot_image)
+	$(uboot_mkimage) -A riscv -O linux -T kernel -C none $(UIMAGE_AE_CMD) -n Linux -d $(boot_image) $@
+else
 	lz4 $< $(boot_image) -f -9
 	$(uboot_mkimage) -A riscv -O linux -T kernel -C lz4 $(UIMAGE_AE_CMD) -n Linux -d $(boot_image) $@
+endif
 	rm -f $(boot_image)
 
 $(boot_uinitrd_lz4): $(initramfs)

@@ -4,7 +4,9 @@ UX600_CORE_ARCH_ABI = rv64imac lp64
 UX600FD_CORE_ARCH_ABI = rv64imafdc lp64d
 UX900_CORE_ARCH_ABI = rv64imac lp64
 UX900FD_CORE_ARCH_ABI = rv64imafdc lp64d
+U900_CORE_ARCH_ABI = rv32imac ilp32
+U900FD_CORE_ARCH_ABI = rv32imafdc ilp32d
 
 # Don't forget to add a new core below
 # if you add a new XXX_CORE_ARCH_ABI above
-SUPPORTED_CORES = ux600 ux600fd ux900 ux900fd
+SUPPORTED_CORES = ux600 ux600fd ux900 ux900fd u900 u900fd
