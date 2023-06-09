@@ -127,14 +127,16 @@ cache:
         unset TIMER_HZ
     - |
         RUNQEMUSH=work/$SOC/run_qemu.sh
+        SHOWQEMUSH=work/$SOC/show_qemu.sh
         qemucmd=qemu-system-riscv32
         if [[ $CORE == *ux* ]] ; then
             qemucmd=qemu-system-riscv64
         fi
-        echo "which $qemucmd" > $RUNQEMUSH
-        echo "$qemucmd --version" >> $RUNQEMUSH
-        echo "$qemucmd -M nuclei_${SOC},download=flashxip -cpu nuclei-${CORE},ext=$ARCH_EXT -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" >> $RUNQEMUSH
+        echo "which $qemucmd" > $SHOWQEMUSH
+        echo "$qemucmd --version" >> $SHOWQEMUSH
+        echo "$qemucmd -M nuclei_${SOC},download=flashxip -cpu nuclei-${CORE},ext=$ARCH_EXT -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
         chmod +x $RUNQEMUSH
+        chmod +x $SHOWQEMUSH
     - |
         if [ "x$SOC" == "xdemosoc" ] ; then
             echo ">>Will build xlspike simulation images only for demosoc"
@@ -176,6 +178,8 @@ cache:
         #    exit 0
         #fi
         cd work/$SOC
+        # show qemu version
+        bash show_qemu.sh
         cat run_qemu.sh
         # $(cat run_qemu.sh) is workaround for directly run bash run_qemu.sh
         # If do kill it will just kill bash process, the qemu process is not killed
