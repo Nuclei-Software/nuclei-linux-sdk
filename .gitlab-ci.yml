@@ -131,7 +131,9 @@ cache:
         if [[ $CORE == *ux* ]] ; then
             qemucmd=qemu-system-riscv64
         fi
-        echo "$qemucmd -M nuclei_${SOC},download=flashxip -cpu nuclei-${CORE},ext=$ARCH_EXT -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
+        echo "which $qemucmd" > $RUNQEMUSH
+        echo "$qemucmd --version" >> $RUNQEMUSH
+        echo "$qemucmd -M nuclei_${SOC},download=flashxip -cpu nuclei-${CORE},ext=$ARCH_EXT -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" >> $RUNQEMUSH
         chmod +x $RUNQEMUSH
     - |
         if [ "x$SOC" == "xdemosoc" ] ; then
@@ -157,6 +159,10 @@ cache:
             echo ">>Will not run xlspike simulation for $SOC"
             exit 0
         fi
+        # show xlspike help and version
+        which xl_spike
+        xl_spike -h
+        # run xlspike with timeout
         timeout --foreground -s SIGKILL 16m xl_spike work/${SOC}/fw_payload_xlspike.elf > >(tee run_xlspike.log) || {
             if cat run_xlspike.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
             if cat run_xlspike.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
