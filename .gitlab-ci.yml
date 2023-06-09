@@ -28,8 +28,158 @@ cache:
     paths:
         - buildroot/dl
 
-## Job template for build linux sdk
-.build_linux_sdk_template: &build_linux_sdk_job_def
+.snippet_build_sdk: &snippet_build_sdk
+    - echo ">>Clean previous build workspace"
+    - make clean
+    - echo ">>Show help message for $SOC - $CORE - $BOOT_MODE"
+    - make help
+    - echo ">>Build buildroot_initramfs_sysroot for $CORE"
+    - |
+        make -j buildroot_initramfs_sysroot > >(tee build_sysroot.log |grep '>>>') || {
+            echo 'Show last 200 lines of build log'
+            tail -n 200 build_sysroot.log
+            xz -f -z build_sysroot.log
+            exit 1
+        }
+    - xz -f -z build_sysroot.log
+    - echo ">>Build multiple prefetch freeloader for $SOC - $CORE - $BOOT_MODE"
+    - |
+        export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
+        export SELVAR0="CPU_HZ"
+        export VARLIST0="16000000,50000000,100000000"
+        export SELVAR1="SPFL1DCTRL1"
+        export VARLIST1="0x0,0x1f,0xf,0x3f"
+        bash .github/build_multiple_freeloader.sh > >(tee build_pref_freeloader.log) || {
+            xz -f -z build_pref_freeloader.log
+            exit 1
+        }
+        unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
+    - echo ">>Build multiple cache settings freeloader for $SOC - $CORE - $BOOT_MODE"
+    - |
+        export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
+        export SELVAR0="CPU_HZ"
+        export VARLIST0="16000000,50000000,100000000"
+        export SELVAR1="CACHE_CTRL"
+        export VARLIST1="0x100C1,0x10001"
+        bash .github/build_multiple_freeloader.sh > >(tee build_cache_freeloader.log) || {
+            xz -f -z build_cache_freeloader.log
+            exit 1
+        }
+        unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
+    - xz -f -z build_cache_freeloader.log
+    - echo ">>Build simulation freeloader for $SOC - $CORE - $BOOT_MODE"
+    - |
+        export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
+        export SELVAR0="SIMULATION"
+        export VARLIST0="1"
+        export SELVAR1="SPFL1DCTRL1"
+        export VARLIST1="0x0,0x1f,0xf,0x3f"
+        bash .github/build_multiple_freeloader.sh > >(tee build_simu_freeloader.log) || {
+            xz -f -z build_simu_freeloader.log
+            exit 1
+        }
+        unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
+    - xz -f -z build_simu_freeloader.log
+    - echo ">>Build simulation freeloader console=hvc0 for $SOC - $CORE - $BOOT_MODE"
+    - |
+        export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE} HVC_CONSOLE=y"
+        export SELVAR0="SIMULATION"
+        export VARLIST0="1"
+        export SELVAR1="SPFL1DCTRL1"
+        export VARLIST1="0x0,0x1f,0xf,0x3f"
+        bash .github/build_multiple_freeloader.sh > >(tee build_simu_hvc_freeloader.log) || {
+            xz -f -z build_simu_hvc_freeloader.log
+            exit 1
+        }
+        unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
+    - xz -f -z build_simu_hvc_freeloader.log
+    - echo ">>Build freeloader for $SOC - $CORE - $BOOT_MODE"
+    - |
+        echo ">>>Build freeloader for default MHz"
+        make freeloader > >(tee build_freeloader.log) || {
+            xz -f -z build_freeloader.log
+            exit 1
+        }
+    - xz -f -z build_freeloader.log
+    - echo ">>Build and generate boot images for $SOC - $CORE - $BOOT_MODE"
+    - |
+        make preboot && make -j bootimages > >(tee build_bootimages.log) || {
+            xz -f -z build_bootimages.log
+            exit 1
+        }
+    - xz -f -z build_bootimages.log
+    - |
+        echo ">>Build and generate qemu images for $SOC - $CORE - $BOOT_MODE"
+        #echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 1000000"
+        #sed -i "s/32768/1000000/" conf/$SOC/*.dts
+        #export TIMER_HZ=1000000
+        make freeloader
+        QEMU_FREELOADER=work/$SOC/freeloader_qemu.elf
+        cp work/$SOC/freeloader/freeloader.elf $QEMU_FREELOADER
+        make -j DISK_SIZE=128 gendisk > >(tee build_qemu_disk.log) || {
+            xz -f -z build_qemu_disk.log
+            exit 1
+        }
+        echo ">>> Reset workaround and source code, and rebuilt freeloader and boot images"
+        git reset --hard
+        make genboot
+        xz -f -z build_qemu_disk.log
+        unset TIMER_HZ
+    - |
+        RUNQEMUSH=work/$SOC/run_qemu.sh
+        qemucmd=qemu-system-riscv32
+        if [[ $CORE == *ux* ]] ; then
+            qemucmd=qemu-system-riscv64
+        fi
+        echo "$qemucmd -M nuclei_${SOC},download=flashxip -cpu nuclei-${CORE},ext=$ARCH_EXT -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
+        chmod +x $RUNQEMUSH
+    - |
+        if [ "x$SOC" == "xdemosoc" ] ; then
+            echo ">>Will build xlspike simulation images only for demosoc"
+            echo ">>Build simulation target for $SOC - $CORE - $BOOT_MODE"
+            make presim && make -j opensbi_sim > >(tee build_opensbi_payload.log) || {
+                xz -f -z build_opensbi_payload.log
+                exit 1
+            }
+            cp -f work/${SOC}/opensbi/platform/nuclei/${SOC}/firmware/fw_payload.elf work/${SOC}/fw_payload_xlspike.elf
+            xz -f -z build_opensbi_payload.log
+        fi
+    - |
+        genbootzip=work/${SOC}/genboot_artifacts_${CI_COMMIT_SHA::8}.zip
+        echo "Zip all generated boot images and freeloader elfs to ${genbootzip}"
+        rm -f ${genbootzip}
+        zip -r ${genbootzip} work/${SOC}/boot.zip work/${SOC}/freeloader/freeloader.elf work/${SOC}/run_qemu.sh work/${SOC}/disk.img work/${SOC}/freeloader_*.elf work/${SOC}/buildstamp.txt work/${SOC}/fw_payload_xlspike.elf
+    - echo "Please find generated freeloaders in $SHARELOC/$(git describe --always)"
+
+.snippet_run_sdk_in_xlspike: &snippet_run_sdk_in_xlspike
+    - |
+        if [ "x$SOC" != "xdemosoc" ] ; then
+            echo ">>Will not run xlspike simulation for $SOC"
+            exit 0
+        fi
+        timeout --foreground -s SIGKILL 16m xl_spike work/${SOC}/fw_payload_xlspike.elf > >(tee run_xlspike.log) || {
+            if cat run_xlspike.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
+            if cat run_xlspike.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
+        }
+
+.snippet_run_sdk_in_qemu: &snippet_run_sdk_in_qemu
+    - echo ">>Run using qemu for $SOC - $CORE - $BOOT_MODE"
+    - |
+        #if [ "x$SOC" != "xdemosoc" ] ; then
+        #    echo ">>Will not run qemu simulation for $SOC"
+        #    exit 0
+        #fi
+        cd work/$SOC
+        cat run_qemu.sh
+        # $(cat run_qemu.sh) is workaround for directly run bash run_qemu.sh
+        # If do kill it will just kill bash process, the qemu process is not killed
+        # SIGTERM is better for kill qemu
+        timeout --foreground -s SIGTERM 3m $(cat run_qemu.sh) > >(tee run_qemu.log) || {
+            if cat run_qemu.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
+            if cat run_qemu.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
+        }
+
+.job_rules:
     interruptible: true
     only:
         changes:
@@ -42,222 +192,52 @@ cache:
           - freeloader
           - linux
           - u-boot
+    tags:
+        - env::shell
+        - net::outside
+        - user::xl_ci
+
+## Job template for build linux sdk
+.build_linux_sdk_template: &build_linux_sdk_job_def
+    extends: .job_rules
     artifacts:
         name: "bootimages-${SOC}-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
         paths:
             - work/${SOC}/
             - build_*.log.*
         expire_in: 2 day
-    tags:
-        - env::shell
-        - net::outside
-        - user::xl_ci
     script:
-        - echo ">>Clean previous build workspace"
-        - make clean
-        - echo ">>Show help message for $SOC - $CORE - $BOOT_MODE"
-        - make help
-        - echo ">>Build buildroot_initramfs_sysroot for $CORE"
-        - |
-            make -j buildroot_initramfs_sysroot > >(tee build_sysroot.log |grep '>>>') || {
-                echo 'Show last 200 lines of build log'
-                tail -n 200 build_sysroot.log
-                xz -f -z build_sysroot.log
-                exit 1
-            }
-        - xz -f -z build_sysroot.log
-        - echo ">>Build multiple prefetch freeloader for $SOC - $CORE - $BOOT_MODE"
-        - |
-            export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
-            export SELVAR0="CPU_HZ"
-            export VARLIST0="16000000,50000000,100000000"
-            export SELVAR1="SPFL1DCTRL1"
-            export VARLIST1="0x0,0x1f,0xf,0x3f"
-            bash .github/build_multiple_freeloader.sh > >(tee build_pref_freeloader.log) || {
-                xz -f -z build_pref_freeloader.log
-                exit 1
-            }
-            unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
-        - echo ">>Build multiple cache settings freeloader for $SOC - $CORE - $BOOT_MODE"
-        - |
-            export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
-            export SELVAR0="CPU_HZ"
-            export VARLIST0="16000000,50000000,100000000"
-            export SELVAR1="CACHE_CTRL"
-            export VARLIST1="0x100C1,0x10001"
-            bash .github/build_multiple_freeloader.sh > >(tee build_cache_freeloader.log) || {
-                xz -f -z build_cache_freeloader.log
-                exit 1
-            }
-            unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
-        - xz -f -z build_cache_freeloader.log
-        - echo ">>Build simulation freeloader for $SOC - $CORE - $BOOT_MODE"
-        - |
-            export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
-            export SELVAR0="SIMULATION"
-            export VARLIST0="1"
-            export SELVAR1="SPFL1DCTRL1"
-            export VARLIST1="0x0,0x1f,0xf,0x3f"
-            bash .github/build_multiple_freeloader.sh > >(tee build_simu_freeloader.log) || {
-                xz -f -z build_simu_freeloader.log
-                exit 1
-            }
-            unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
-        - xz -f -z build_simu_freeloader.log
-        - echo ">>Build simulation freeloader console=hvc0 for $SOC - $CORE - $BOOT_MODE"
-        - |
-            export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE} HVC_CONSOLE=y"
-            export SELVAR0="SIMULATION"
-            export VARLIST0="1"
-            export SELVAR1="SPFL1DCTRL1"
-            export VARLIST1="0x0,0x1f,0xf,0x3f"
-            bash .github/build_multiple_freeloader.sh > >(tee build_simu_hvc_freeloader.log) || {
-                xz -f -z build_simu_hvc_freeloader.log
-                exit 1
-            }
-            unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
-        - xz -f -z build_simu_hvc_freeloader.log
-        - echo ">>Build freeloader for $SOC - $CORE - $BOOT_MODE"
-        - |
-            echo ">>>Build freeloader for default MHz"
-            make freeloader > >(tee build_freeloader.log) || {
-                xz -f -z build_freeloader.log
-                exit 1
-            }
-        - xz -f -z build_freeloader.log
-        - echo ">>Build and generate boot images for $SOC - $CORE - $BOOT_MODE"
-        - |
-            make preboot && make -j bootimages > >(tee build_bootimages.log) || {
-                xz -f -z build_bootimages.log
-                exit 1
-            }
-        - xz -f -z build_bootimages.log
-        - |
-            echo ">>Build and generate qemu images for $SOC - $CORE - $BOOT_MODE"
-            #echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 1000000"
-            #sed -i "s/32768/1000000/" conf/$SOC/*.dts
-            #export TIMER_HZ=1000000
-            make freeloader
-            QEMU_FREELOADER=work/$SOC/freeloader_qemu.elf
-            cp work/$SOC/freeloader/freeloader.elf $QEMU_FREELOADER
-            make -j DISK_SIZE=128 gendisk > >(tee build_qemu_disk.log) || {
-                xz -f -z build_qemu_disk.log
-                exit 1
-            }
-            echo ">>> Reset workaround and source code, and rebuilt freeloader and boot images"
-            git reset --hard
-            make genboot
-            xz -f -z build_qemu_disk.log
-            unset TIMER_HZ
-        - |
-            RUNQEMUSH=work/$SOC/run_qemu.sh
-            echo "qemu-system-riscv64 -M nuclei_${SOC},download=flashxip -cpu nuclei-ux900fd,ext=$ARCH_EXT -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
-            chmod +x $RUNQEMUSH
-        - |
-            if [ "x$SOC" == "xdemosoc" ] ; then
-                echo ">>Will build xlspike simulation images only for demosoc"
-                echo ">>Build simulation target for $SOC - $CORE - $BOOT_MODE"
-                make presim && make -j opensbi_sim > >(tee build_opensbi_payload.log) || {
-                    xz -f -z build_opensbi_payload.log
-                    exit 1
-                }
-                cp -f work/${SOC}/opensbi/platform/nuclei/${SOC}/firmware/fw_payload.elf work/${SOC}/fw_payload_xlspike.elf
-                xz -f -z build_opensbi_payload.log
-            fi
-        - |
-            genbootzip=work/${SOC}/genboot_artifacts_${CI_COMMIT_SHA::8}.zip
-            echo "Zip all generated boot images and freeloader elfs to ${genbootzip}"
-            rm -f ${genbootzip}
-            zip -r ${genbootzip} work/${SOC}/boot.zip work/${SOC}/freeloader/freeloader.elf work/${SOC}/run_qemu.sh work/${SOC}/disk.img work/${SOC}/freeloader_*.elf work/${SOC}/buildstamp.txt work/${SOC}/fw_payload_xlspike.elf
-        - echo "Please find generated freeloaders in $SHARELOC/$(git describe --always)"
+        - *snippet_build_sdk
 
 ## Job template for run linux in xlspike
 .run_linux_sdk_xlspike_template: &run_linux_sdk_xlspike_job_def
-    interruptible: true
-    only:
-        changes:
-          - conf/**/*
-          - .github/**/*
-          - Makefile*
-          - .gitlab-ci.yml
-          - buildroot
-          - opensbi
-          - freeloader
-          - linux
-          - u-boot
-    tags:
-        - env::shell
-        - net::outside
-        - user::xl_ci
+    extends: .job_rules
     script:
-        - |
-            if [ "x$SOC" != "xdemosoc" ] ; then
-                echo ">>Will not run xlspike simulation for $SOC"
-                exit 0
-            fi
-            timeout --foreground -s SIGKILL 12m xl_spike work/${SOC}/fw_payload_xlspike.elf > >(tee run_xlspike.log) || {
-                if cat run_xlspike.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
-                if cat run_xlspike.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
-            }
+        - *snippet_run_sdk_in_xlspike
 
 ## Job template for run linux in qemu
 .run_linux_sdk_qemu_template: &run_linux_sdk_qemu_job_def
-    interruptible: true
-    only:
-        changes:
-          - conf/**/*
-          - .github/**/*
-          - Makefile*
-          - .gitlab-ci.yml
-          - buildroot
-          - opensbi
-          - freeloader
-          - linux
-          - u-boot
-    tags:
-        - env::shell
-        - net::outside
+    extends: .job_rules
     script:
-        - echo ">>Run using qemu for $SOC - $CORE - $BOOT_MODE"
-        - |
-            #if [ "x$SOC" != "xdemosoc" ] ; then
-            #    echo ">>Will not run qemu simulation for $SOC"
-            #    exit 0
-            #fi
-            cd work/$SOC
-            # $(cat run_qemu.sh) is workaround for directly run bash run_qemu.sh
-            # If do kill it will just kill bash process, the qemu process is not killed
-            # SIGTERM is better for kill qemu
-            timeout --foreground -s SIGTERM 3m $(cat run_qemu.sh) > >(tee run_qemu.log) || {
-                if cat run_qemu.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
-                if cat run_qemu.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
-            }
+        - *snippet_run_sdk_in_qemu
+
+## Job template for build linux sdk
+.build_run_linux_sdk_template: &build_run_linux_sdk_job_def
+    <<: *build_linux_sdk_job_def
+    script:
+        - *snippet_build_sdk
+        - *snippet_run_sdk_in_qemu
 
 # Manual job template
 .build_linux_sdk_manual_template: &build_linux_sdk_manual_job_def
-    interruptible: true
+    extends: .job_rules
     when: manual
-    only:
-        changes:
-          - conf/**/*
-          - .github/**/*
-          - Makefile*
-          - .gitlab-ci.yml
-          - buildroot
-          - opensbi
-          - freeloader
-          - linux
-          - u-boot
     artifacts:
         name: "bootimages-${SOC}-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
         paths:
             - work/${SOC}/freeloader/freeloader.elf
             - work/${SOC}/boot.zip
         expire_in: 2 day
-    tags:
-        - env::shell
-        - net::outside
-        - user::xl_ci
     script:
         - export MAKEOPTS="${MAKEOPTS}"
         - make preboot
@@ -316,25 +296,10 @@ build_ux900_flash_manual:
     <<: *build_linux_sdk_manual_job_def
 
 release_sources:
-    interruptible: true
+    extends: .job_rules
     stage: build
-    only:
-        changes:
-          - conf/**/*
-          - .github/**/*
-          - Makefile*
-          - .gitlab-ci.yml
-          - buildroot
-          - opensbi
-          - freeloader
-          - linux
-          - u-boot
     needs:
         - job: build_ux900_flash
-    tags:
-        - env::shell
-        - net::outside
-        - user::xl_ci
     script:
         - activate_swdev
         - make snapshot
@@ -512,3 +477,15 @@ run_ux900fd_sd_qemu:
         CORE: "ux900fd"
         BOOT_MODE: "sd"
     <<: *run_linux_sdk_qemu_job_def
+
+# Build and run for rv32 core
+build_run_rv32:
+    stage: build
+    variables:
+        SOC: "evalsoc"
+        ARCH_EXT: ""
+    parallel:
+        matrix:
+            - CORE: ["u900", "u900fd"]
+              BOOT_MODE: ["sd", "flash"]
+    <<: *build_run_linux_sdk_job_def
