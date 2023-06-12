@@ -46,16 +46,24 @@ static void nuclei_modify_dt(void *fdt)
 }
 
 extern void sm_init(bool cold_boot);
+extern void opteed_cpu_on_handler(uint32_t linear_id);
 static int nuclei_final_init(bool cold_boot)
 {
     void *fdt;
 
-    if (!cold_boot)
+    if (!cold_boot) {
+        /* warm boot to setup optee ctx for secondary cpu */
+        unsigned int secondary_hartid;
+
+        secondary_hartid = current_hartid();
+        opteed_cpu_on_handler(secondary_hartid);
+
         return 0;
+    }
 
     fdt = sbi_scratch_thishart_arg1_ptr();
     nuclei_modify_dt(fdt);
-	sm_init(cold_boot);
+    sm_init(cold_boot);
     // Check mcfg_info.tee to see whether tee present
     if (csr_read(0xfc2) & 0x1) {
         // Enable U-Mode to access all regions by setting spmpcfg0 and spmpaddr0
