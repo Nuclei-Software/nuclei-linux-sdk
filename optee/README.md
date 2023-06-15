@@ -3,7 +3,7 @@
 本文档是说明RISC-V架构相关的OPTEE实现，不讲OPTEE的工作原理，OPTEE的工作原理请参考官方文档(http://optee.readthedocs.io/).
 
 我们基于RISC-V实现的OPTEE和ARM基本类似，也分为两个世界：安全世界(TEE)，非安全世界(REE)。
-两个世界彼此隔离，包括代码执行隔离，中断隔离。目前单核开发测试完成，多核还在开发中。实现TEE系统目前仅需要M模式下PLIC中断控制器pending可写。
+两个世界彼此隔离，包括代码执行隔离，中断隔离。目前单核多核都已支持，当CPU在TEE执行时，不能被非安全中断打断；CPU在REE执行时，可以被安全中断打断。另外_wg后缀的分支已支持CPU硬件安全状态位，世界切换时，状态位会改变。目前TEE系统需要M模式下PLIC中断控制器pending可写。
 
 ## 启动过程
 
@@ -19,33 +19,52 @@ RISC-V OPTEE系统的运行架构如下图：
 
 ## 中断安全设置
 
-我们使用了一个表来记录哪些中断是安全中断，M模式在切换世界时，会根据进入的时间来决定安全中断应该设置为什么模式响应，同时将M模式中断代理打开。例如在进入REE世界前，M模式软件会设置安全中断为M模式响应，非安全中断设置为S模式响应，在进入TEE世界前，M模式软件会设置安全中断为S模式响应，非安全中断设置为M模式响应。安全中断表的配置在opensbi 仓库中plic_init_sec_interrupt_tab 函数中完成，
+我们使用了一个表来记录哪些中断是安全中断，M模式在切换世界时，会根据进入的时间来决定安全中断应该设置为什么模式响应，同时将M模式中断代理打开。例如在进入REE世界前，M模式软件会设置安全中断为M模式响应，非安全中断设置为S模式响应，在进入TEE世界前，M模式软件会设置安全中断为S模式响应，非安全中断设置为M模式响应。安全中断在opensbi中由plic_secure_int数组记录,目前配置最大安全中断个数为16个，plic_secure_int数组中每个元素是个。
 
-- plic_secure_int[0]记录多少个安全中断
-- plic_secure_int[x]记录第x个安全中断的硬件中断号
+- plic_secure_int[0]：表示有plic_secure_int[0] & 0xFFFF个安全中断
+- plic_secure_int[x]：表示plic_secure_int[x] & 0xFFFF 这个安全中断绑定到了hartid为plic_secure_int[x] >> 16 的core上
 
+optee-os 中使用void sbi_register_secure_intr(int intr) 这个函数ecall到opensbi来注册安全中断，安全中断和非安全中断号，
+需要在系统层面规划好，以免产生冲突。下面是注册一个安全timer中断的例子：
+
+optee_os/core/pta/nuclei/timer.c 
 ```c
-void plic_init_sec_interrupt_tab(void)
+static TEE_Result pta_timer_set_timeout(uint32_t param_types,
+				     TEE_Param params[TEE_NUM_PARAMS])
 {
-	/*have security interrupt currently*/
-	plic_secure_int[0] = 2;
 
-	/*support secure interrupt : timer int*/
-	/*use 38,39 as secure interrupt for debug only*/
-	plic_secure_int[1] = 38;
-	plic_secure_int[2] = 39;
+	uint32_t timeout1 = 0;
+	uint32_t exp_param_types;
+	static int flag = 0;
 
-	/**debug only*/
-	/*set 38,39 priority,threshold*/
-	*(unsigned int *)0x1c000098 = 1;
-	*(unsigned int *)0x1c00009c = 1;
-	*(unsigned int *)0x1c200000 = 0;
+	/* register secure timer interrupt int38*/
+	if (flag == 0) {
+		flag = 1;
+		sbi_register_secure_intr(38);
+	}
 
-	csr_set(CSR_MIE, MIP_MEIP);
+	exp_param_types = TEE_PARAM_TYPES(TEE_PARAM_TYPE_VALUE_INPUT,
+						   TEE_PARAM_TYPE_VALUE_INPUT,
+						   TEE_PARAM_TYPE_NONE,
+						   TEE_PARAM_TYPE_NONE);
+
+	if (exp_param_types != param_types) {
+		EMSG("Invalid Param types");
+		return TEE_ERROR_BAD_PARAMETERS;
+	}
+
+	timeout1 = params[0].value.a;
+	if (timer_base == 0)
+		timer_base = core_mmu_get_va(SEC_TIMER_BASE, MEM_AREA_IO_SEC,
+	                   SEC_TIMER_SIZE);
+
+	*(volatile unsigned int*)timer_base = timeout1;
+
+	return TEE_SUCCESS;
 }
+
 ```
 
-如需要动态改变中断安全属性的，需要S模式发请求由M模式完成，M模式可以预置一张表，标识哪些中断能动态改变安全属性，哪些一直是安全属性，具体这个过程我们暂时未实现。
 
 ## 编译部署
 
