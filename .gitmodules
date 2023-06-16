@@ -33,3 +33,7 @@
 [submodule "optee/optee_examples"]
 	path = optee/optee_examples
 	url = ../optee_examples.git
+
+[submodule "optee/optee_benchmark"]
+	path = optee/optee_benchmark
+	url = ../optee_benchmark.git

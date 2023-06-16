@@ -142,6 +142,10 @@ optee_example_cadir := $(optee_example_wrkdir)/out/ca
 optee_example_tadir := $(optee_example_wrkdir)/out/ta
 optee_example_plugindir := $(optee_example_wrkdir)/out/plugins
 
+optee_benchmark_srcdir := $(srcdir)/optee/optee_benchmark
+optee_benchmark_wrkdir := $(wrkdir)/optee/optee_benchmark
+optee_benchmark_elf := $(optee_benchmark_wrkdir)/out/benchmark
+
 # Directory for boot images stored in sdcard
 boot_wrkdir := $(wrkdir)/boot
 boot_zip := $(wrkdir)/boot.zip
@@ -298,6 +302,12 @@ $(buildroot_initramfs_sysroot_stamp): $(buildroot_initramfs_tar) optee_test opte
 	if ls $(optee_example_cadir)/* >/dev/null 2>&1 ;then cp -af $(optee_example_cadir)/* $(buildroot_initramfs_sysroot)/usr/bin; fi
 	if ls $(optee_example_tadir)/* >/dev/null 2>&1 ;then cp -af $(optee_example_tadir)/* $(buildroot_initramfs_sysroot)/lib/optee_armtz/; fi
 	if ls $(optee_example_plugindir)/*.plugin >/dev/null 2>&1 ;then cp -af $(optee_example_plugindir)/*.plugin  $(buildroot_initramfs_sysroot)/usr/lib/tee-supplicant/plugins/; fi
+#	copy optee benchmark
+	if [ -f $(optee_benchmark_elf) ];then \
+		cp -af $(optee_benchmark_elf) $(buildroot_initramfs_sysroot)/usr/bin; \
+		cp -af $(optee_benchmark_wrkdir)/out/libyaml/out/lib/libyaml*.so* $(buildroot_initramfs_sysroot)/lib/; \
+	fi
+
 	touch $@
 
 .PHONY: initrd linux
@@ -475,6 +485,10 @@ optee_test: $(target_gcc) optee_client optee_os
 optee_example: $(target_gcc) $(optee_example_srcdir) optee_client optee_os
 	cp -af $(optee_example_srcdir)  $(wrkdir)/optee/
 	$(MAKE) -C $(optee_example_wrkdir) HOST_CROSS_COMPILE=$(CROSS_COMPILE) TEEC_EXPORT=$(optee_client_export) --no-builtin-variables TA_DEV_KIT_DIR=$(optee_os_export) MARCH=$(ISA) MABI=$(ABI)
+
+optee_benchmark: $(target_gcc) $(optee_benchmark_srcdir) optee_client optee_os
+	cp -af $(optee_benchmark_srcdir)  $(wrkdir)/optee/
+	$(MAKE) -C $(optee_benchmark_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) TEEC_EXPORT=$(optee_client_export) TEEC_INTERNAL_INCLUDES=$(optee_client_srcdir)/libteec	MULTIARCH=riscv-nuclei-linux-gnu
 
 .PHONY: freeloader upload_freeloader debug_freeloader run_openocd
 
