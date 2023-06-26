@@ -1,26 +1,29 @@
-# OPTEE 说明
+# OPTEE Description
 
-本文档是说明RISC-V架构相关的OPTEE实现，不讲OPTEE的工作原理，OPTEE的工作原理请参考官方文档(http://optee.readthedocs.io/).
+This document explains the OPTEE implementation related to RISC-V architecture, not the basic principle of OPTEE, please refer to the official document for the basic principle of OPTEE(http://optee.readthedocs.io/).
 
-我们基于RISC-V实现的OPTEE和ARM基本类似，也分为两个世界：安全世界(TEE)，非安全世界(REE)。
-两个世界彼此隔离，包括代码执行隔离，中断隔离。目前单核多核都已支持，当CPU在TEE执行时，不能被非安全中断打断；CPU在REE执行时，可以被安全中断打断。另外_wg后缀的分支已支持CPU硬件安全状态位，世界切换时，状态位会改变。目前TEE系统需要M模式下PLIC中断控制器pending可写。
+Our optee software implementations based on riscv are basically same with ARM, divided into two worlds: the secure world (TEE) and the non-secure world (REE).The two worlds are isolated from each other, including code execution isolation, interrupt isolation. At present, single-core and multi-core are supported. When the CPU is executed in TEE, it cannot be interrupted by non-security interrupts. The CPU can be interrupted by security interrupts during REE execution. In addition, the Linux SDK branch with _wg postfix already supports NUCLEI 900 serial CPU hardware security bits, which change when worlds are switched. This security bit can be reflected on the system bus. Currently,our solution of interrupt management requires that the PLIC interrupt controller pending bits can be written in M mode.
 
-## 启动过程
+## Boot Flow
 
-optee-os 会被freeloader从flash介质加载到内存，由opensbi来初始化optee，初始化完成后opensbi继续启动uboot，直到linux启动完成。
+optee-os will be load by freeloader from norflash to DRAM,  opensbi initializes optee. After initialization, opensbi continues to boot uboot, uboot startup linux to system console.
 
-## 运行过程
+## System Architecture
 
-RISC-V OPTEE系统的运行架构如下图：
+RISC-V OPTEE system architecture:
 
 ![OpTEE RISC-V Architecture](optee_riscv_arch.png)
 
-通过PMP将TEE与REE的运行地址空间隔离开，通过PLIC中断使能模式的切换实现中断隔离，即安全中断在安全世界处理，非安全中断在非安全世界处理，碰到不属于本世界处理的中断，需要经过M模式转发到另一个世界处理。
+The TEE is separated from the running address space of REE by PMP, and the interrupt isolation is realized through the switch of PLIC interrupt enable mode, that is, the secure interrupt is processed in the secure world, and the non-secure interrupt is processed in the non-secure world, and the interrupt that does not belong to the processing of this world needs to be forwarded to another world through M mode.Currently when cpu in TEE, M mode interrupt is disabled.
 
-## 中断处理
-目前安全世界执行时，M模式中断被关闭(包括Timer，Software，PLIC)，S模式中断使能(此时是安全中断PLIC中断，因为切换到tee执行前，Monitor 把非安全PLIC中断设置为M模式使能)。安全世界能响应本世界的PLIC中断，非安全中断不能打断其执行。
-安全中断打断非安全世界执行，其流程图如下：
-REE对应Linux os，Monitor对应opensbi，TEE对应optee_os
+## Interrupt Management
+
+To distinguish between secure and non-secure interrupts, Setting interrupts that are not handled by the current world to M mode, while interrupts handled by the current world will be set to Smode.
+When the cpu executes in the secure world, M-mode interrupts are turned off (including Timer, Software, PLIC) and S-mode PLIC interrupts are enabled. PLIC interrupts will directly trap to the secure world, and non-secure interrupts cannot interrupt their execution.
+A security interrupt can interrupt non-secure world execution with the following flowchart:
+REE is Nonsecure software stack, like Linux os and its app;
+Monitor is Secure Monitor, like riscv opensbi;
+TEE is Secure software stack, like OPTEE;
 
 ```mermaid
 sequenceDiagram
@@ -48,16 +51,20 @@ sequenceDiagram
     Ree ->> Ree: continue to process
 ```
 
+## Secure PLIC interrupt configuration
 
-## 中断安全设置
+We use a table to record which plic device interrupts are secure, which are non-secure。Monitor will set
+interrupt enable mode depending on next world secure state. For example, before cpu entering into REE, Monitor will set secure plic interrupt enable mode to M, non-secure plic interrupt to S. otherwise, before entering into TEE, Monitor will set secure plic interrupt enable mode to S, non-secure plic interrupt enable mode to M.
+Currently Monitor use plic_secure_int array to save secure plic interrupt information, each element of array include hart and secure interrupt number, high 16bit represent hart id, low 16bit represent interrupt number.The plic_secure_int [0] is a special value that records the total number of interrupts.
 
-我们使用了一个表来记录哪些中断是安全中断。Monitor在切换世界前，根据进入的world来决定安全中断应该设置成S还是M模式响应，同时将M模式中断代理打开。例如在进入REE世界前，Monitor会设置安全中断为M模式响应，非安全中断设置为S模式响应，在进入TEE世界前，M模式软件会设置安全中断为S模式响应，非安全中断设置为M模式响应。安全中断在opensbi中由plic_secure_int数组记录,目前配置最大安全中断个数为16个，plic_secure_int数组中每个元素是由hartid和中断号组成，各占16bit，plic_secure_int[0]是个特殊值记录安全中断总个数。
+- plic_secure_int[0]：Indicates that there are plic_secure_int[0] & 0xFFFF security interrupts.
+- plic_secure_int[x]：Indicates (plic_secure_int[x] & 0xFFFF) secure interrupt is bound to (plic_secure_int[x] >> 16) hart.
 
-- plic_secure_int[0]：表示有plic_secure_int[0] & 0xFFFF个安全中断
-- plic_secure_int[x]：表示plic_secure_int[x] & 0xFFFF 这个安全中断绑定到了hartid为plic_secure_int[x] >> 16 的core上
+Secure interrupt and non-Secure interrupt needs to be designed at the system startup to avoid conflicts.
 
-optee-os 中使用void sbi_register_secure_intr(int intr) 这个函数ecall到opensbi来注册安全中断，安全中断和非安全中断号，
-需要在系统层面规划好，以免产生冲突。下面是注册一个安全timer中断的例子：
+OPTEE-OS use sbi_register_secure_intr(int intr) function to ecall to Monitor to register secure interrupt.
+
+there is a register secure timer interrupt demo:
 
 optee_os/core/pta/nuclei/timer.c 
 ```c
@@ -97,29 +104,31 @@ static TEE_Result pta_timer_set_timeout(uint32_t param_types,
 
 ```
 
-## 编译部署
+## Compile and Depoly
 
-optee 仓库包括optee-os，optee-client，optee-test，optee-example编译和部署已集成到顶层Makefile中，编译SDK时会默认编译optee各部分，典型的编译如下：
+optee compilation include optee-os, optee-client, optee-test, optee-example, have been integrated into top Mafile of Linux SDK. it will finish compile when build linux sdk. 
+
+general linux SDK compile command as flow:
 
 ```makefile
 make SOC=evalsoc CORE=ux900fd BOOT_MODE=sd freeloader
 make SOC=evalsoc CORE=ux900fd BOOT_MODE=sd bootimages
 ```
-optee-client编译后的tee-supplicant, libteec会安装到rootfs。
 
-optee-test 编译产生的ta，ca，plugin 会安装到rootfs。
+tee-supplicant and libteec program generated after compiling optee-client will be installed to the rootfs.
+ta app, ca app, plugin program generated after compiling optee-test will be installed to the rootfs.
 
-具体编译过程及安装可以参考Makefile 文件
+more detail compile info please refer to top Makfile.
 
-linux系统需要配置TEE driver，dts需要配置optee节点，以便启动时加载OPTEE驱动。
+The TEE driver and optee dts node needs to be configured for linux, so that the OPTEE driver can be loaded upon startup.
 
-## 启动运行日志
+## Start and Running log
 
-下面的打印包括SMP系统的启动过程及运行的应用程序，运行了2个CA(client application)应用程序：optee_example_hello_world，optee_example_demo.
+The following log includes the startup process of the SMP system and running two client application (CA) applications：optee_example_hello_world,optee_example_demo.
 
-- 登录用户名：root
+- user name：root
 
-- 登录密码：nuclei
+- password：nuclei
 
 ```
 [2023/06/16-12:05:50:699] 
