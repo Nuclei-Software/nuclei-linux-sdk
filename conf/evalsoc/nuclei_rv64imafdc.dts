@@ -39,6 +39,7 @@
       status = "okay";
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
+      riscv,ccm-block-size = <64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu0_intc: interrupt-controller {
@@ -53,6 +54,7 @@
       status = "okay";
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
+      riscv,ccm-block-size = <64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu1_intc: interrupt-controller {
@@ -67,6 +69,7 @@
       status = "okay";
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
+      riscv,ccm-block-size = <64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu2_intc: interrupt-controller {
@@ -81,6 +84,7 @@
       status = "okay";
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
+      riscv,ccm-block-size = <64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu3_intc: interrupt-controller {
@@ -95,6 +99,7 @@
       status = "okay";
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
+      riscv,ccm-block-size = <64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu4_intc: interrupt-controller {
@@ -109,6 +114,7 @@
       status = "okay";
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
+      riscv,ccm-block-size = <64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu5_intc: interrupt-controller {
@@ -123,6 +129,7 @@
       status = "okay";
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
+      riscv,ccm-block-size = <64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu6_intc: interrupt-controller {
@@ -137,6 +144,7 @@
       status = "okay";
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
+      riscv,ccm-block-size = <64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu7_intc: interrupt-controller {
