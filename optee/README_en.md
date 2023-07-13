@@ -14,7 +14,37 @@ RISC-V OPTEE system architecture:
 
 ![OpTEE RISC-V Architecture](optee_riscv_arch.png)
 
-The TEE is separated from the running address space of REE by PMP, and the interrupt isolation is realized through the switch of PLIC interrupt enable mode, that is, the secure interrupt is processed in the secure world, and the non-secure interrupt is processed in the non-secure world, and the interrupt that does not belong to the processing of this world needs to be forwarded to another world through M mode.Currently when cpu in TEE, M mode interrupt is disabled.
+Opensbi is responsible for context switch between secure world and non-secure world, which is similar with ARM ATF. Unlike ARM, RISC-V cpu have no hardware security state,so security state is managed by software. The current CPU security state determines which state context the CPU context should be saved to
+
+Context switches in different stages are as follows:
+- optee os initialization phase: During initialization phase, opensbi jump to optee os by mret. After optee os have finished initialization, execute ecall instrustion back to opensbi. On recevied ecall exception, opensbi saves the current cpu context to the secure world context.
+
+- ree os running phase, when the optee service is needed, ree os sends an optee request through ecall. On recevied ecall exception, opensbi saves the current cpu status to the non-secure state context, restores the secure state context, and forwards the request to optee os for processing. After the optee os finish the request, execute ecall instrustion back to opensbi, which saves the current cpu state to the secure state context, and restores the non-secure state context back to ree os to continue.
+
+The TEE is separated from the running address space of REE by PMP, and the interrupt isolation is realized through the switch of PLIC interrupt enable mode, that is, the secure interrupt is processed in the secure world, and the non-secure interrupt is processed in the non-secure world, and the interrupt that does not belong to the processing of this world needs to be forwarded to another world through M mode.Currently when cpu in TEE, M mode interrupt is disabled, all non-secure interrupt is disabled.
+
+The following figure shows the general tee service request process. In the figure, switch CTX includes PMP running address space switch, interrupt enable mode switch, cpu security status update, etc.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Ree
+    participant Monitor
+    participant Tee
+    Ree ->> Ree: process
+    Ree ->> Monitor: request tee service
+    Monitor ->> Monitor: save REE CTX
+    Monitor ->> Monitor: restore TEE CTX
+    Monitor ->> Monitor: switch CTX
+    Monitor -->> Tee: mret
+    Tee ->> Tee: process request
+    Tee -->> Monitor: ecall with result
+    Monitor ->> Monitor: save TEE CTX
+    Monitor ->> Monitor: restore REE CTX
+    Monitor ->> Monitor: switch CTX
+    Monitor -->> Ree: mret
+    Ree ->> Ree: continue to process
+```
 
 ## Interrupt Management
 
