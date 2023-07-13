@@ -15,7 +15,35 @@ RISC-V OPTEE系统的运行架构如下图：
 
 ![OpTEE RISC-V Architecture](optee_riscv_arch.png)
 
-通过PMP将TEE与REE的运行地址空间隔离开，通过PLIC中断使能模式的切换实现中断隔离，即安全中断在安全世界处理，非安全中断在非安全世界处理，碰到不属于本世界处理的中断，需要经过M模式转发到另一个世界处理。
+由opensbi 负责安全世界和非安全世界上下文的管理，opensbi实现和ARM ATF类似功能。与ARM不同的是当前cpu的安全状态由软件负责管理，
+系统从上电运行，不同阶段上下文的切换如下:
+- optee os初始化阶段，opensbi在平台初始化阶段，通过mret进入optee os，optee os完成初始化后ecall返回opensbi，此时opensbi保存optee os的cpu上下文，即保存安全世界上下文。
+- ree os 运行阶段，当需要optee服务时，ree os通过ecall发出optee请求，opensbi收到请求后，保存当前cpu状态到非安全状态上下文，然后恢复安全状态上下文及转发请求给optee os处理，optee os处理完成后ecall返回到opensbi，opensbi 保存当前cpu状态到安全状态上下文，然后保存optee返回值，恢复非安全状态上下文到ree os继续执行。
+
+通过PMP将TEE与REE的运行地址空间隔离开，通过PLIC中断使能模式的切换实现中断隔离，即安全中断在安全世界处理，非安全中断在非安全世界处理，碰到不属于本世界处理的中断，需要经过M模式转发到另一个世界处理。目前cpu在安全世界执行时，M模式中断被禁止，不能被非安全中断打断。
+
+下图是一般tee服务请求流程，图中switch CTX 包括PMP运行地址空间切换，中断使能模式切换，cpu安全状态的更新等。
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Ree
+    participant Monitor
+    participant Tee
+    Ree ->> Ree: process
+    Ree ->> Monitor: request tee service
+    Monitor ->> Monitor: save REE CTX
+    Monitor ->> Monitor: restore TEE CTX
+    Monitor ->> Monitor: switch CTX
+    Monitor -->> Tee: mret
+    Tee ->> Tee: process request
+    Tee -->> Monitor: ecall with result
+    Monitor ->> Monitor: save TEE CTX
+    Monitor ->> Monitor: restore REE CTX
+    Monitor ->> Monitor: switch CTX
+    Monitor -->> Ree: mret
+    Ree ->> Ree: continue to process
+```
 
 ## 中断处理
 目前安全世界执行时，M模式中断被关闭(包括Timer，Software，PLIC)，S模式中断使能(此时是安全中断PLIC中断，因为切换到tee执行前，Monitor 把非安全PLIC中断设置为M模式使能)。安全世界能响应本世界的PLIC中断，非安全中断不能打断其执行。
