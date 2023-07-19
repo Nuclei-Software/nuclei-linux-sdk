@@ -152,6 +152,8 @@ more detail compile info please refer to top Makfile.
 
 The TEE driver and optee dts node needs to be configured for linux, so that the OPTEE driver can be loaded upon startup.
 
+> If you see an error when compiling optee, please check the error message, such as pyelftools cryptography module of python3. You can refer to the basic environment required for compiling optee.(https://optee.readthedocs.io/en/latest/building/prerequisites.html)
+
 ## Start and Running log
 
 The following log includes the startup process of the SMP system and running two client application (CA) applications：optee_example_hello_world,optee_example_demo.
