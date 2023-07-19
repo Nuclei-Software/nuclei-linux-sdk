@@ -141,6 +141,8 @@ optee-test 编译产生的ta，ca，plugin 会安装到rootfs。
 
 linux系统需要配置TEE driver，dts需要配置optee节点，以便启动时加载OPTEE驱动。
 
+> 如编译optee 碰到错误，请检查错误提示的模块是否安装，例如python3的 pyelftools cryptography等模块，编译optee需要的基础环境可参考(https://optee.readthedocs.io/en/latest/building/prerequisites.html)
+
 ## 启动运行日志
 
 下面的打印包括SMP系统的启动过程及运行的应用程序，运行了2个CA(client application)应用程序：optee_example_hello_world，optee_example_demo.
