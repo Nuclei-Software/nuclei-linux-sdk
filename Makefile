@@ -149,7 +149,7 @@ FILES2BACKUP := $(subst $(realpath $(srcdir))/,, $(realpath $(FILES2BACKUP)))
 include $(confdir)/build.mk
 
 ifeq ($(XLEN),64)
-target := riscv-nuclei-linux-gnu
+target := riscv64-linux
 else
 target := riscv32-buildroot-linux-gnu
 endif
@@ -283,11 +283,12 @@ $(linux_image): linux
 initrd: $(initramfs)
 	@echo "initramfs cpio file is generated into $<"
 
-linux: $(linux_wrkdir)/.config
+linux: $(buildroot_initramfs_tar) $(linux_wrkdir)/.config
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
+		ARCH=riscv \
+		CONFIG_INITRAMFS_SOURCE="$(confdir)/initramfs.txt $(buildroot_initramfs_sysroot)" \
 		CONFIG_INITRAMFS_ROOT_UID=$(shell id -u) \
 		CONFIG_INITRAMFS_ROOT_GID=$(shell id -g) \
-		ARCH=riscv \
 		CROSS_COMPILE=$(CROSS_COMPILE) \
 		PATH=$(RVPATH) \
 		vmlinux Image
@@ -463,16 +464,11 @@ freeloader4m: prepare4m $(freeloader_elf)
 	ls -lh $(freeloader_elf)
 endif
 
-ifeq ($(BOOT_MODE),sd)
-$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb) $(amp_bins)
-else
-$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb) $(boot_zip) $(amp_bins)
-endif
+$(freeloader_elf): $(freeloader_srcdir) $(linux_image) $(platform_dtb) $(amp_bins)
 	mkdir -p  $(freeloader_wrkdir)
 	$(MAKE) -C $(freeloader_srcdir) O=$(freeloader_wrkdir) ARCH=$(ISA) ABI=$(ABI) ARCH_EXT=$(ARCH_EXT) \
-		BOOT_MODE=$(BOOT_MODE) CROSS_COMPILE=$(CROSS_COMPILE) \
-		OPENSBI_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(platform_dtb) \
-		KERNEL_BIN=$(boot_uimage_lz4) INITRD_BIN=$(boot_uinitrd_lz4) CONFIG_MK=$(freeloader_confmk)  \
+		BOOT_MODE=$(BOOT_MODE) CROSS_COMPILE=$(CROSS_COMPILE) DTB=$(platform_dtb) \
+		KERNEL_BIN=$(linux_image) INITRD_BIN=$(boot_uinitrd_lz4) CONFIG_MK=$(freeloader_confmk)  \
 		CORE1_APP_BIN=$(CORE1_APP_BIN) CORE2_APP_BIN=$(CORE2_APP_BIN) CORE3_APP_BIN=$(CORE3_APP_BIN) \
 		CORE4_APP_BIN=$(CORE4_APP_BIN) CORE5_APP_BIN=$(CORE5_APP_BIN) CORE6_APP_BIN=$(CORE6_APP_BIN) CORE7_APP_BIN=$(CORE7_APP_BIN)
 
@@ -487,8 +483,7 @@ debug_freeloader:
 	$(target_gdb) $(freeloader_elf) -ex "set remotetimeout 240" \
 	-ex "target remote $(GDBREMOTE)" \
 	-ex "set confirm off" -ex "add-symbol-file $(vmlinux)" \
-	-ex "add-symbol-file $(opensbi_jumpelf)" \
-	-ex "add-symbol-file $(uboot_elf)" -ex "set confirm on"
+	-ex "set confirm on"
 
 # Internal used
 upload_sbipayload: $(opensbi_payload)
@@ -571,9 +566,9 @@ $(qemu_disk): $(boot_zip)
 
 # workaround for demosoc: need to change TIMERCLK_FREQ for conf/demosoc/*.dts to 10000000
 # limited feature for simulation demosoc is supported, don't expect full feature of demosoc
-run_qemu: $(qemu_disk) $(freeloader_elf)
+run_qemu: $(freeloader_elf)
 	@echo "Run on qemu for simulation"
-	$(qemu) $(QEMU_MACHINE_OPTS) -cpu nuclei-$(CORE),ext=$(ARCH_EXT) -bios $(freeloader_elf) -nographic -drive file=$(qemu_disk),if=sd,format=raw
+	$(qemu) $(QEMU_MACHINE_OPTS) -cpu nuclei-$(CORE),ext=$(ARCH_EXT) -bios $(freeloader_elf) -nographic
 
 .PHONY: backup snapshot genstamp genboot
 # backup your build
