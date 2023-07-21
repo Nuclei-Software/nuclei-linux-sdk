@@ -211,6 +211,7 @@
     interrupts = <33>;
     clocks = <&hfclk>;
     clock-frequency = <PERIPHCLK_FREQ>;
+    current-speed = <115200>;
     status = "okay";
   };
 
@@ -221,6 +222,7 @@
     interrupts = <34>;
     clocks = <&hfclk>;
     clock-frequency = <PERIPHCLK_FREQ>;
+    current-speed = <115200>;
     status = "disabled";
   };
 
