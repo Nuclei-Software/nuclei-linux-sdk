@@ -286,6 +286,9 @@ initrd: $(initramfs)
 linux: $(buildroot_initramfs_tar) $(linux_wrkdir)/.config
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		ARCH=riscv \
+		CONFIG_INITRAMFS_SOURCE="$(confdir)/initramfs.txt $(buildroot_initramfs_sysroot)" \
+		CONFIG_INITRAMFS_ROOT_UID=$(shell id -u) \
+		CONFIG_INITRAMFS_ROOT_GID=$(shell id -g) \
 		CROSS_COMPILE=$(CROSS_COMPILE) \
 		PATH=$(RVPATH) \
 		vmlinux Image
