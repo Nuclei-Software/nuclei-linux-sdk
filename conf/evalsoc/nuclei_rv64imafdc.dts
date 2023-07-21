@@ -20,7 +20,7 @@
   model = "nuclei,evalsoc";
 
   chosen {
-      bootargs = "earlycon=sbi console=ttyNUC0";
+      bootargs = "earlycon console=ttyNUC0";
       stdout-path = "serial0";
   };
 
@@ -39,7 +39,7 @@
       status = "okay";
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
-      mmu-type = "riscv,sv39";
+      mmu-type = "none";
       clock-frequency = <CPUCLK_FREQ>;
       cpu0_intc: interrupt-controller {
         #interrupt-cells = <1>;
@@ -53,7 +53,7 @@
       status = "okay";
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
-      mmu-type = "riscv,sv39";
+      mmu-type = "none";
       clock-frequency = <CPUCLK_FREQ>;
       cpu1_intc: interrupt-controller {
         #interrupt-cells = <1>;
@@ -67,7 +67,7 @@
       status = "okay";
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
-      mmu-type = "riscv,sv39";
+      mmu-type = "none";
       clock-frequency = <CPUCLK_FREQ>;
       cpu2_intc: interrupt-controller {
         #interrupt-cells = <1>;
@@ -81,7 +81,7 @@
       status = "okay";
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
-      mmu-type = "riscv,sv39";
+      mmu-type = "none";
       clock-frequency = <CPUCLK_FREQ>;
       cpu3_intc: interrupt-controller {
         #interrupt-cells = <1>;
@@ -95,7 +95,7 @@
       status = "okay";
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
-      mmu-type = "riscv,sv39";
+      mmu-type = "none";
       clock-frequency = <CPUCLK_FREQ>;
       cpu4_intc: interrupt-controller {
         #interrupt-cells = <1>;
@@ -109,7 +109,7 @@
       status = "okay";
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
-      mmu-type = "riscv,sv39";
+      mmu-type = "none";
       clock-frequency = <CPUCLK_FREQ>;
       cpu5_intc: interrupt-controller {
         #interrupt-cells = <1>;
@@ -123,7 +123,7 @@
       status = "okay";
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
-      mmu-type = "riscv,sv39";
+      mmu-type = "none";
       clock-frequency = <CPUCLK_FREQ>;
       cpu6_intc: interrupt-controller {
         #interrupt-cells = <1>;
@@ -137,7 +137,7 @@
       status = "okay";
       compatible = "riscv";
       riscv,isa = "rv64imafdc";
-      mmu-type = "riscv,sv39";
+      mmu-type = "none";
       clock-frequency = <CPUCLK_FREQ>;
       cpu7_intc: interrupt-controller {
         #interrupt-cells = <1>;
