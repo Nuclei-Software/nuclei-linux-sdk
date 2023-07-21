@@ -8,6 +8,7 @@ variables:
 
 workflow:
   rules:
+    - when: never
     - if: $CI_COMMIT_MESSAGE =~ /draft|wip|stash/i
       when: never
     - if: $CI_COMMIT_BRANCH =~ /master|develop|dev_nuclei*|feature\/.|/
