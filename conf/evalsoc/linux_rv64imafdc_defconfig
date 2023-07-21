@@ -2,7 +2,7 @@
 CONFIG_DEFAULT_HOSTNAME="nucleisys"
 # CONFIG_CPU_ISOLATION is not set
 CONFIG_BLK_DEV_INITRD=y
-CONFIG_INITRAMFS_SOURCE="../buildroot_initramfs/images/rootfs.cpio.gz"
+CONFIG_INITRAMFS_SOURCE="../buildroot_initramfs_sysroot"
 # CONFIG_RD_BZIP2 is not set
 # CONFIG_RD_LZMA is not set
 # CONFIG_RD_XZ is not set
