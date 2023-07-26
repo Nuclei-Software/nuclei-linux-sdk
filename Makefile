@@ -21,7 +21,7 @@ ARCH_EXT ?=
 BOOT_MODE ?= sd
 ## QEMU Disk Size in MBytes
 ## DISK_SIZE should >= 64
-DISK_SIZE ?= 1024
+DISK_SIZE ?= 128
 
 # Include Nuclei RISC-V Core Makefile
 include Makefile.core
@@ -151,7 +151,7 @@ include $(confdir)/build.mk
 ifeq ($(XLEN),64)
 target := riscv64-linux
 else
-target := riscv32-buildroot-linux-gnu
+target := riscv32-linux
 endif
 CROSS_COMPILE := $(RISCV)/bin/$(target)-
 
