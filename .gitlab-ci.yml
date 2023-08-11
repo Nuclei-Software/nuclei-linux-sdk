@@ -4,7 +4,7 @@ variables:
     GIT_STRATEGY: fetch
     FF_USE_FASTZIP: "true"
     SHARELOC: "/home/xl_ci/linuxsdk/"
-    QEMUPATH: "/home/share/devtools/qemu/linux64/2023.06-7.2"
+    QEMUPATH: "/home/share/devtools/qemu/linux64/8.0"
 
 workflow:
   rules:
