@@ -389,20 +389,15 @@ $(boot_ubootscr): $(uboot_cmd) $(uboot_mkimage)
 	$(uboot_mkimage) -A riscv -T script -O linux -C none -a 0 -e 0 -n "bootscript" -d $(uboot_cmd) $@
 
 # UIMAGE_AE_CMD is defined in conf/$(SOC)/build.mk
-# For DDR_BASE = 0xA0000000, eg.
-# UIMAGE_AE_CMD := -a 0xA0400000 -e 0xA0400000
+# For DDR_BASE = 0x80000000, eg.
+# UIMAGE_AE_CMD := -a 0x80400000 -e 0x80400000
 $(boot_uimage_lz4): $(linux_image)
-# workaround for xlen = 32 target, use uncompressed kernel image
+# For xlen = 32 target, the uncompressed kernel image is 25M, but for rv64, it is only 15M
 # compressed kernel image, facing an uncompress error -93 in Uncompressing Kernel Image stage
-ifeq ($(XLEN),32)
-	#lz4 $< $(boot_image) -f -4
-	cp $< $(boot_image)
-	#gzip -1 -c $< > $(boot_image)
-	$(uboot_mkimage) -A riscv -O linux -T kernel -C none $(UIMAGE_AE_CMD) -n Linux -d $(boot_image) $@
-else
+# when decompressed to 0x810000000, which only left 15.75M space, so we changed kernel decompress
+# address to 0x83000000, to left about 48M space to decompress
 	lz4 $< $(boot_image) -f -9
 	$(uboot_mkimage) -A riscv -O linux -T kernel -C lz4 $(UIMAGE_AE_CMD) -n Linux -d $(boot_image) $@
-endif
 	rm -f $(boot_image)
 
 $(boot_uinitrd_lz4): $(initramfs)
