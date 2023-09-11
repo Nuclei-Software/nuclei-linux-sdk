@@ -389,18 +389,11 @@ $(boot_ubootscr): $(uboot_cmd) $(uboot_mkimage)
 # UIMAGE_AE_CMD is defined in conf/$(SOC)/build.mk
 # For DDR_BASE = 0xA0000000, eg.
 # UIMAGE_AE_CMD := -a 0xA0400000 -e 0xA0400000
+# uncompressed kernel can be as large as 25M, so we need to put kernel load addr to above 25M size
+# to allow when uncompress the kernel, it won't corrupt the compressed data, and affect uncompress process
 $(boot_uimage_lz4): $(linux_image)
-# workaround for xlen = 32 target, use uncompressed kernel image
-# compressed kernel image, facing an uncompress error -93 in Uncompressing Kernel Image stage
-ifeq ($(XLEN),32)
-	#lz4 $< $(boot_image) -f -4
-	cp $< $(boot_image)
-	#gzip -1 -c $< > $(boot_image)
-	$(uboot_mkimage) -A riscv -O linux -T kernel -C none $(UIMAGE_AE_CMD) -n Linux -d $(boot_image) $@
-else
 	lz4 $< $(boot_image) -f -9
 	$(uboot_mkimage) -A riscv -O linux -T kernel -C lz4 $(UIMAGE_AE_CMD) -n Linux -d $(boot_image) $@
-endif
 	rm -f $(boot_image)
 
 $(boot_uinitrd_lz4): $(initramfs)
