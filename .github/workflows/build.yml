@@ -134,7 +134,7 @@ jobs:
             work/${{ matrix.soc }}/run_qemu.sh
 
       - name: Upload cached packages
-        if: matrix.core == 'ux600' && matrix.boot_mode == 'sd' && matrix.soc == 'fsl91030m'
+        if: matrix.core == 'ux600fd' && matrix.boot_mode == 'sd' && matrix.soc == 'fsl91030m'
         uses: actions/upload-artifact@v2.2.0
         with:
           name: build_caching
