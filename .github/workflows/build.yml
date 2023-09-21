@@ -6,14 +6,14 @@ name: Build
 # events but only for the dev_nuclei_next branch
 on:
   push:
-    branches: [ dev* ]
+    branches: [ feature/fsl ]
     paths-ignore:
     - README.md
     - LICENSE
     - .gitlab-ci.yml
     - .gitignore
   pull_request:
-    branches: [ dev_nuclei_next ]
+    branches: [ feature/fsl ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -23,8 +23,8 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        soc: [demosoc, evalsoc]
-        core: [ux600, ux600fd]
+        soc: [fsl91030m]
+        core: [ux600fd]
         boot_mode: [sd, flash]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -43,7 +43,7 @@ jobs:
           mv source.tar.gz $base/
 
       - name: Upload source
-        if: matrix.core == 'ux600' && matrix.boot_mode == 'sd' && matrix.soc == 'demosoc'
+        if: matrix.core == 'ux600fd' && matrix.boot_mode == 'sd' && matrix.soc == 'fsl91030m'
         uses: actions/upload-artifact@v2.2.0
         with:
           name: nuclei_linux_sdk_source
@@ -55,7 +55,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: buildroot/dl
-          key: build 
+          key: build
 
       # Install dependendenc
       - name: Install dependencies
@@ -75,21 +75,23 @@ jobs:
       - name: Build bootimages for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
         run: |
           export SOC=${{ matrix.soc }} CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }}
-          echo "Generate QEMU Disk"
-          echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 4000000"
-          #sed -i "s/32768/4000000/" conf/$SOC/*.dts
-          export TIMER_HZ=4000000
-          make genstamp
-          make freeloader
-          cp work/$SOC/freeloader/freeloader.elf work/$SOC/freeloader_qemu.elf
-          make bootimages
-          make DISK_SIZE=128 gendisk
-          RUNQEMUSH=work/$SOC/run_qemu.sh
-          echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
-          chmod +x $RUNQEMUSH
-          unset TIMER_HZ
-          echo ">>> Reset workaround and source code"
-          git reset --hard
+          if [ "x$SOC" != "xfsl91030m" ] ; then
+            echo "Generate QEMU Disk"
+            echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 4000000"
+            #sed -i "s/32768/4000000/" conf/$SOC/*.dts
+            export TIMER_HZ=4000000
+            make genstamp
+            make freeloader
+            cp work/$SOC/freeloader/freeloader.elf work/$SOC/freeloader_qemu.elf
+            make bootimages
+            make DISK_SIZE=128 gendisk
+            RUNQEMUSH=work/$SOC/run_qemu.sh
+            echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
+            chmod +x $RUNQEMUSH
+            unset TIMER_HZ
+            echo ">>> Reset workaround and source code"
+            git reset --hard
+          fi
           echo "Generate freeloader and boot images"
           make genboot
 
@@ -132,7 +134,7 @@ jobs:
             work/${{ matrix.soc }}/run_qemu.sh
 
       - name: Upload cached packages
-        if: matrix.core == 'ux600' && matrix.boot_mode == 'sd' && matrix.soc == 'demosoc'
+        if: matrix.core == 'ux600' && matrix.boot_mode == 'sd' && matrix.soc == 'fsl91030m'
         uses: actions/upload-artifact@v2.2.0
         with:
           name: build_caching

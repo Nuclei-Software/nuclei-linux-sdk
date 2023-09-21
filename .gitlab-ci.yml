@@ -261,7 +261,7 @@ build_ux600fd_flash:
         BOOT_MODE: "flash"
     parallel:
         matrix:
-            - SOC: ["demosoc", "evalsoc"]
+            - SOC: ["demosoc", "evalsoc", "fsl91030m"]
     <<: *build_linux_sdk_job_def
 
 ## Job for build sdk
@@ -276,7 +276,7 @@ build_ux600fd_sd:
         BOOT_MODE: "sd"
     parallel:
         matrix:
-            - SOC: ["demosoc", "evalsoc"]
+            - SOC: ["demosoc", "evalsoc", "fsl91030m"]
     <<: *build_linux_sdk_job_def
 
 ## Job for run sim
