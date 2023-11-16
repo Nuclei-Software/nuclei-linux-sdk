@@ -1112,7 +1112,7 @@ To basically port this SDK to match your target, you can make a copy of `conf/ev
   * If you have qemu support, you can change your qemu machine options **QEMU_MACHINE_OPTS** to match your qemu machine.
   * If you are using AMP, **CORE1_APP_BIN**, **CORE2_APP_BIN**, **CORE3_APP_BIN**, **CORE4_APP_BIN**,
     **CORE5_APP_BIN**, **CORE6_APP_BIN** and **CORE7_APP_BIN** need to be configured, CORE1-CORE7 each memory is default 4MB(configured by **AMPFW_SIZE**)
-    and application base address is default offset 0x7E000000(configured by **AMPFW_START_OFFSET**) at DDR base.
+    and application base address is default offset 0x7E000000(configured by **AMPFW_START_OFFSET**) at DDR base, you can refer to https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/18 for how to use AMP demo.
     > Here each core memory is changed from 8M to 4M, due to only 32MB is reserved for amp binaries, and now we support 8 cores.
     - **CORE1_APP_BIN** start offset is **DDR_BASE** + **0x7E000000**, such as `$(confdir)/amp/c1.bin`
     - **CORE2_APP_BIN** start offset is **DDR_BASE** + **0x7E000000** + **4M**, such as `$(confdir)/amp/c2.bin`
