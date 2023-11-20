@@ -70,8 +70,10 @@ existing issues not address your problem, please [create a new issue](https://gi
 
 * Checkout this repository using `git`.
 
+> Change the below `dev_nuclei_5.10` to your desired branch.
+
   - If you have good network access to github, you can clone this repo using command
-    `git clone https://github.com/Nuclei-Software/nuclei-linux-sdk`
+    `git clone -b dev_nuclei_5.10 https://github.com/Nuclei-Software/nuclei-linux-sdk`
   - Otherwise, you can try methods provided https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/10
   - If https is not stable, you can try ssh, please search about git clone ssh/https difference
 
@@ -93,8 +95,8 @@ existing issues not address your problem, please [create a new issue](https://gi
   and get expected output as below:
 
   ~~~
-  On branch dev_nuclei_next
-  Your branch is up to date with 'origin/dev_nuclei_next'.
+  On branch dev_nuclei_5.10
+  Your branch is up to date with 'origin/dev_nuclei_5.10'.
 
   nothing to commit, working tree clean
   ~~~
@@ -113,13 +115,13 @@ source repository).
 
 Update source code if there are new commits in this repo.
 
-Assume currently you are in `dev_nuclei_next` branch, and the working tree is clean.
+Assume currently you are in `dev_nuclei_5.10` branch, and the working tree is clean.
 
 Then you run the following command to update this repo:
 
 ~~~shell
 # Pull lastest source code and rebase your local commits onto it
-git pull --rebase origin dev_nuclei_next
+git pull --rebase origin dev_nuclei_5.10
 # Update git submodules
 git submodule update
 # Check workspace status to see whether it is clean
@@ -155,7 +157,6 @@ We support four configurations for **CORE**, choose the right core according to 
 
 * `ux600` or `ux900`: rv64imac RISC-V CORE configuration without FPU.
 * `ux600fd` or `ux900fd`: rv64imafdc RISC-V CORE configuration with FPU.
-* `u900` or `u900fd`: rv32imac/rv32imafdc RISC-V CORE configuration.
 
 You can choose different SoC by modify `SOC ?= demosoc` line in `Makefile`.
 
@@ -198,7 +199,7 @@ Contact with our sales via email **contact@nucleisys.com** to get `xl_spike` too
 
 > This feature is **deprecated** now, please use Nuclei Qemu.
 
-### Run on xl_spike 
+### Run on xl_spike
 
 If you have run `make bootimages` command before, please make sure you run `make presim` to prepare
 build environment for running linux in simulation.
@@ -364,6 +365,8 @@ If you want to remove the login, and directly enter to bash, please check [**Kno
 **Note**: `qemu-system-riscv64` tool should be installed and added into **PATH** in advance.
 
 When the required changes has been done, then you can run `make run_qemu` to run riscv linux on Nuclei QEMU, here are the sample output.
+
+> You can check latest output in github action https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/build.yml?query=branch%3Adev_nuclei_5.10
 
 ~~~
 Run on qemu for simulation
