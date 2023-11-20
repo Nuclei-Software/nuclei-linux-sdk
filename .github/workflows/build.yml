@@ -13,7 +13,7 @@ on:
     - .gitlab-ci.yml
     - .gitignore
   pull_request:
-    branches: [ dev_nuclei_next ]
+    branches: [ dev* ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -24,14 +24,14 @@ jobs:
     strategy:
       matrix:
         soc: [demosoc, evalsoc]
-        core: [ux600, ux600fd]
+        core: [ux900, ux900fd]
         boot_mode: [sd, flash]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Linux SDK Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
@@ -43,8 +43,8 @@ jobs:
           mv source.tar.gz $base/
 
       - name: Upload source
-        if: matrix.core == 'ux600' && matrix.boot_mode == 'sd' && matrix.soc == 'demosoc'
-        uses: actions/upload-artifact@v2.2.0
+        if: matrix.core == 'ux900fd' && matrix.boot_mode == 'sd' && matrix.soc == 'evalsoc'
+        uses: actions/upload-artifact@v3
         with:
           name: nuclei_linux_sdk_source
           path: source.tar.gz
@@ -52,7 +52,7 @@ jobs:
         continue-on-error: true
 
       - name: Caching packages
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: buildroot/dl
           key: build
@@ -65,29 +65,38 @@ jobs:
             python3 python3-pip mtools
           sudo pip3 install git-archive-all
           mkdir -p buildroot/dl
-          QEMUVER=2022.12
+          QEMUVER=2023.10
           if [ ! -f buildroot/dl/nuclei-qemu-${QEMUVER}-linux-x64.tar.gz ] ; then
-            wget -P buildroot/dl https://nucleisys.com/upload/files/toochain/qemu/nuclei-qemu-${QEMUVER}-linux-x64.tar.gz
+            wget --progress=dot -P buildroot/dl https://nucleisys.com/upload/files/toochain/qemu/nuclei-qemu-${QEMUVER}-linux-x64.tar.gz
           fi
           mkdir -p prebuilt_tools
           tar -xzf buildroot/dl/nuclei-qemu-${QEMUVER}-linux-x64.tar.gz -C prebuilt_tools
 
       # Build bootimages
       - name: Build bootimages for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
+        if: ${{ !( matrix.soc == 'demosoc' && startsWith(matrix.core, 'u900')) }}
         run: |
           export SOC=${{ matrix.soc }} CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }}
           echo "Generate QEMU Disk"
-          echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 4000000"
+          #echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 4000000"
           #sed -i "s/32768/4000000/" conf/$SOC/*.dts
-          export TIMER_HZ=4000000
+          #export TIMER_HZ=4000000
           make genstamp
           make freeloader
           cp work/$SOC/freeloader/freeloader.elf work/$SOC/freeloader_qemu.elf
           make bootimages
           make DISK_SIZE=128 gendisk
           RUNQEMUSH=work/$SOC/run_qemu.sh
-          echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
+          SHOWQEMUSH=work/$SOC/show_qemu.sh
+          qemucmd=qemu-system-riscv32
+          if [[ $CORE == *ux* ]] ; then
+              qemucmd=qemu-system-riscv64
+          fi
+          echo "which $qemucmd" > $SHOWQEMUSH
+          echo "$qemucmd --version" >> $SHOWQEMUSH
+          echo "$qemucmd -M nuclei_${SOC},download=flashxip -cpu nuclei-${CORE},ext=$ARCH_EXT -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
           chmod +x $RUNQEMUSH
+          chmod +x $SHOWQEMUSH
           unset TIMER_HZ
           echo ">>> Reset workaround and source code"
           git reset --hard
@@ -96,22 +105,25 @@ jobs:
 
       # Run on qemu
       - name: Run and test on qemu for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
-        if: matrix.soc == 'demosoc'
+        if: ${{ !( matrix.soc == 'demosoc' && startsWith(matrix.core, 'u900')) }}
         run: |
           QEMU_PATH=$(pwd)/prebuilt_tools/linux_qemu/bin:$(pwd)/prebuilt_tools/qemu/bin
           export PATH=${QEMU_PATH}:$PATH
           export SOC=${{ matrix.soc }} CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }}
           cd work/$SOC
+          # show qemu version
+          bash show_qemu.sh
           # $(cat run_qemu.sh) is workaround for directly run bash run_qemu.sh
           # If do kill it will just kill bash process, the qemu process is not killed
           # SIGTERM is better for kill qemu
-          timeout --foreground -s SIGTERM 8m $(cat run_qemu.sh) > >(tee run_qemu.log) || {
+          timeout --foreground -s SIGTERM 5m $(cat run_qemu.sh) > >(tee run_qemu.log) || {
               if cat run_qemu.log | grep "Run /init" ; then echo "Kernel boot successfully" ; else echo "Kernel boot failed" && exit 1; fi;
               if cat run_qemu.log | grep "Welcome to" ; then echo "Pass simulation" && exit 0; else echo "Failed init process" && exit 1; fi;
           }
 
       - name: Upload bootimages for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
-        uses: actions/upload-artifact@v2.2.0
+        if: ${{ !( matrix.soc == 'demosoc' && startsWith(matrix.core, 'u900')) }}
+        uses: actions/upload-artifact@v3
         with:
           name: bootimages_${{ matrix.soc }}_${{ matrix.core }}_${{ matrix.boot_mode }}
           path: |
@@ -120,8 +132,8 @@ jobs:
             work/${{ matrix.soc }}/buildstamp.txt
 
       - name: Upload qemu images for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
-        if: matrix.soc == 'demosoc'
-        uses: actions/upload-artifact@v2.2.0
+        if: ${{ !( matrix.soc == 'demosoc' && startsWith(matrix.core, 'u900')) }}
+        uses: actions/upload-artifact@v3
         with:
           name: qemu_images_${{ matrix.soc }}_${{ matrix.core }}_${{ matrix.boot_mode }}
           path: |
@@ -130,11 +142,11 @@ jobs:
             work/${{ matrix.soc }}/freeloader_qemu.elf
             work/${{ matrix.soc }}/buildstamp.txt
             work/${{ matrix.soc }}/disk.img
-            work/${{ matrix.soc }}/run_qemu.sh
+            work/${{ matrix.soc }}/*.sh
 
       - name: Upload cached packages
-        if: matrix.core == 'ux600' && matrix.boot_mode == 'sd' && matrix.soc == 'demosoc'
-        uses: actions/upload-artifact@v2.2.0
+        if: matrix.core == 'ux900fd' && matrix.boot_mode == 'sd' && matrix.soc == 'evalsoc'
+        uses: actions/upload-artifact@v3
         with:
           name: build_caching
           path: |
