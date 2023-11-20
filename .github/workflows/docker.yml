@@ -2,14 +2,14 @@ name: Build Linux SDK Docker Image
 
 on:
   push:
-    branches: [ dev_nuclei_next ]
+    branches: [ dev* ]
     paths-ignore:
     - README.md
     - LICENSE
     - .gitlab-ci.yml
     - .gitignore
   pull_request:
-    branches: [ dev_nuclei_next ]
+    branches: [ dev* ]
 
 jobs:
 
@@ -22,19 +22,20 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Linux SDK Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: false
 
       - name: Build Docker Image
         run: |
           cd .github
-          docker build . -f linuxsdk.Dockerfile -t linuxsdk:latest
+          docker build . -f linuxsdk.Dockerfile -t linuxsdk:${{github.ref_name}} --build-arg BRANCH=${{github.ref_name}}
           docker images
 
       - name: Test Docker Image
+        if: ${{ startsWith(github.ref_name, 'dev_') && github.event_name != 'pull_request' }}
         run: |
-          docker run -i linuxsdk:latest bash run_qemu.sh
+          docker run -i linuxsdk:${{github.ref_name}} bash run_qemu.sh
 
       - name: Publish Docker Image
         if: ${{ github.event_name != 'pull_request' }}
@@ -42,6 +43,6 @@ jobs:
           echo "Login to docker hub"
           docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PWD }} docker.io
           DOCKER_REPO=docker.io/nucleisoftware/linuxsdk
-          docker tag linuxsdk:latest ${DOCKER_REPO}:ci
-          docker push ${DOCKER_REPO}:ci
-          echo "Docker image is pushed to https://hub.docker.com/repository/docker/nucleisoftware/linuxsdk"
+          docker tag linuxsdk:${{github.ref_name}} ${DOCKER_REPO}:${{github.ref_name}}
+          docker push ${DOCKER_REPO}:${{github.ref_name}}
+          echo "Docker image is pushed to https://hub.docker.com/repository/docker/nucleisoftware/linuxsdk, tag ${{github.ref_name}}"
