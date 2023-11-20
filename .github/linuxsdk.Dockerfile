@@ -19,20 +19,26 @@ RUN xargs apt install -y < /home/apt.txt
 
 RUN rm -f /home/apt.txt
 
-RUN apt autoclean
-
 RUN ln -s /lib/x86_64-linux-gnu/libgmp.so /lib/x86_64-linux-gnu/libgmp.so.3
 
 COPY pipreq.txt /home/
+
+RUN pip3 install -U pip
 
 RUN pip install -r /home/pipreq.txt
 
 RUN rm -f /home/pipreq.txt
 
+# Cleanup apt/pip cache
+RUN apt autoclean
+RUN apt clean
+RUN pip3 cache purge
+
 # create USER with PASS
 ARG USER=nuclei
 ARG PASS=riscv123
-ARG QEMUVER=2022.12
+ARG QEMUVER=2023.10
+ARG BRANCH=dev_nuclei_next
 
 RUN groupadd --system $USER
 
@@ -52,9 +58,12 @@ RUN cd prebuilt && tar --no-same-owner -xzf nuclei-qemu.tar.gz
 
 ENV PATH "/home/$USER/prebuilt/qemu/bin:$PATH"
 
-RUN git clone https://github.com/Nuclei-Software/nuclei-linux-sdk
+RUN ldd `which qemu-system-riscv64`
 
-RUN cd nuclei-linux-sdk && git remote add gitee https://gitee.com/Nuclei-Software/nuclei-linux-sdk
+RUN git clone -b $BRANCH https://github.com/Nuclei-Software/nuclei-linux-sdk
+
+# gitee mirror no longer works
+#RUN cd nuclei-linux-sdk && git remote add gitee https://gitee.com/Nuclei-Software/nuclei-linux-sdk
 
 RUN cd nuclei-linux-sdk && git submodule init && git submodule update --recursive --init
 
