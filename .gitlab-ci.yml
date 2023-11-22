@@ -131,9 +131,9 @@ cache:
         - xz -f -z build_bootimages.log
         - |
             echo ">>Build and generate qemu images for $SOC - $CORE - $BOOT_MODE"
-            echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 1000000"
+            #echo ">>> Apply workaround: change TIMERCLK_FREQ from 32768 to 1000000"
             #sed -i "s/32768/1000000/" conf/$SOC/*.dts
-            export TIMER_HZ=1000000
+            #export TIMER_HZ=1000000
             make freeloader
             QEMU_FREELOADER=work/$SOC/freeloader_qemu.elf
             cp work/$SOC/freeloader/freeloader.elf $QEMU_FREELOADER
@@ -148,7 +148,7 @@ cache:
             unset TIMER_HZ
         - |
             RUNQEMUSH=work/$SOC/run_qemu.sh
-            echo "qemu-system-riscv64 -M nuclei_u,download=flashxip -cpu nuclei-ux900fd,ext=$ARCH_EXT -smp 8 -m 256M -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
+            echo "qemu-system-riscv64 -M nuclei_${SOC},download=flashxip -cpu nuclei-ux900fd,ext=$ARCH_EXT -smp 8 -m 2G -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
             chmod +x $RUNQEMUSH
         - |
             if [ "x$SOC" == "xdemosoc" ] ; then
@@ -217,10 +217,6 @@ cache:
     script:
         - echo ">>Run using qemu for $SOC - $CORE - $BOOT_MODE"
         - |
-            if [ "x$SOC" != "xdemosoc" ] ; then
-                echo ">>Will not run qemu simulation for $SOC"
-                exit 0
-            fi
             cd work/$SOC
             # $(cat run_qemu.sh) is workaround for directly run bash run_qemu.sh
             # If do kill it will just kill bash process, the qemu process is not killed
