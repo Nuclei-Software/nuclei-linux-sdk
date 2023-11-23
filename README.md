@@ -370,6 +370,10 @@ If you want to remove the login, and directly enter to bash, please check [**Kno
 
 When the required changes has been done, then you can run `make run_qemu` to run riscv linux on Nuclei QEMU, here are the sample output.
 
+> You can check latest output in github action https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/build.yml?query=branch%3Adev_nuclei_6.1_v2
+
+> This may be out of date.
+
 ~~~
 Run on qemu for simulation
 qemu-system-riscv64 -M nuclei_evalsoc,download=flashxip -smp 8 -m 2G -cpu nuclei-ux900fd,ext= -bios /Local/hqfang/workspace/software/nuclei-linux-sdk/work/evalsoc/freeloader/freeloader.elf -nographic -drive file=/Local/hqfang/workspace/software/nuclei-linux-sdk/work/evalsoc/disk.img,if=sd,format=raw
@@ -705,7 +709,9 @@ has the `iregion` feature, you should use `evalsoc`, otherwise choose `demosoc`(
 If there is double float fpu and isa is rv64 in the bitstream supported, you should choose `ux600fd` or `ux900fd`.
 
 - Default cpu/periph freq and timer freq are 16MHz and 32768Hz for demosoc.
-- Default cpu/periph freq and timer freq are 50Mhz and 32768Hz for evalsoc.
+- Default cpu/periph freq and timer freq are 50Mhz and 32768Hz for evalsoc v2.
+
+About detailed SoC information, please check https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/2
 
 If the bitstream you get not matching above settings, please change co-reponsibing `conf/<SOC>/build.mk`'s `TIMER_HZ`/`CPU_HZ`/`PERIPH_HZ`.
 
@@ -776,6 +782,8 @@ Sample output in **UART @ 115200bps, Data 8bit, Parity None, Stop Bits 1bit, No 
 
 > UART baudrate changed from 57600bps to 115200bps, due to evaluation SoC frequency by default
 > changed from 8MHz to 16MHz or 50MHz, and now uart can work correctly on 115200bps.
+
+> This may be out of date.
 
 ~~~
 OpenSBI v1.3
