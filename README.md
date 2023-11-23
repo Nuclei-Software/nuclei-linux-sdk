@@ -368,6 +368,10 @@ If you want to remove the login, and directly enter to bash, please check [**Kno
 
 When the required changes has been done, then you can run `make run_qemu` to run riscv linux on Nuclei QEMU, here are the sample output.
 
+> You can check latest output in github action https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/build.yml?query=branch%3Adev_nuclei_5.10_v2
+
+> The output may be out of date, take care.
+
 ~~~
 Run on qemu for simulation
 qemu-system-riscv64 -M nuclei_evalsoc,download=flashxip -smp 8 -m 2G -cpu nuclei-ux900fd,ext= -bios /Local/hqfang/workspace/software/nuclei-linux-sdk/work/evalsoc/freeloader/freeloader.elf -nographic -drive file=/Local/hqfang/workspace/software/nuclei-linux-sdk/work/evalsoc/disk.img,if=sd,format=raw
@@ -722,16 +726,18 @@ Sample output in **UART @ 115200bps, Data 8bit, Parity None, Stop Bits 1bit, No 
 > UART baudrate changed from 57600bps to 115200bps, due to evaluation SoC frequency by default
 > changed from 8MHz to 16MHz or 50MHz, and now uart can work correctly on 115200bps.
 
+> The output may be out of date, take care.
+
 ~~~
 OpenSBI v0.9
-____                    _____ ____ _____
-/ __ \                  / ____|  _ \_   _|
-| |  | |_ __   ___ _ __ | (___ | |_) || |
-| |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
-| |__| | |_) |  __/ | | |____) | |_) || |_
-\____/| .__/ \___|_| |_|_____/|____/_____|
-| |
-|_|
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
 
 Platform Name             : Nuclei Evaluation SoC
 Platform Features         : timer,mfdeleg
@@ -782,33 +788,31 @@ Scanning mmc 0:1...
 Found U-Boot script /boot.scr
 725 bytes read in 334 ms (2 KiB/s)
 ## Executing script at 80200000
-Boot images located in 5.10_rv64
+Boot images located in .
 Loading kernel: ./uImage.lz4
 4030405 bytes read in 19703 ms (199.2 KiB/s)
 Loading ramdisk: ./uInitrd.lz4
 6261647 bytes read in 30264 ms (201.2 KiB/s)
 ./kernel.dtb not found, ignore it
 Starts booting from SD
-## Booting kernel from Legacy Image at 81000000 ...
-Image Name:   Linux
-Image Type:   RISC-V Linux Kernel Image (lz4 compressed)
-Data Size:    4030341 Bytes = 3.8 MiB
-Load Address: 80400000
-Entry Point:  80400000
-Verifying Checksum ...
-OK
+## Booting kernel from Legacy Image at 83000000 ...
+   Image Name:   Linux
+   Image Type:   RISC-V Linux Kernel Image (lz4 compressed)
+   Data Size:    4034958 Bytes = 3.8 MiB
+   Load Address: 80400000
+   Entry Point:  80400000
+   Verifying Checksum ... OK
 ## Loading init Ramdisk from Legacy Image at 88300000 ...
-Image Name:   Initrd
-Image Type:   RISC-V Linux RAMDisk Image (lz4 compressed)
-Data Size:    6261583 Bytes = 6 MiB
-Load Address: 00000000
-Entry Point:  00000000
-Verifying Checksum ...
-OK
+   Image Name:   Initrd
+   Image Type:   RISC-V Linux RAMDisk Image (lz4 compressed)
+   Data Size:    6260898 Bytes = 6 MiB
+   Load Address: 00000000
+   Entry Point:  00000000
+   Verifying Checksum ... OK
 ## Flattened Device Tree blob at 88000000
-Booting using the fdt blob at 0x88000000
-Uncompressing Kernel Image
-Using Device Tree in place at 0000000088000000, end 0000000088004664
+   Booting using the fdt blob at 0x88000000
+   Uncompressing Kernel Image
+   Using Device Tree in place at 0000000088000000, end 0000000088004244
 
 Starting kernel ...
 
