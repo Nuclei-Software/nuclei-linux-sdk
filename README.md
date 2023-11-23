@@ -368,6 +368,8 @@ When the required changes has been done, then you can run `make run_qemu` to run
 
 > You can check latest output in github action https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/build.yml?query=branch%3Adev_nuclei_5.10
 
+> This output may be out of date.
+
 ~~~
 Run on qemu for simulation
 qemu-system-riscv64 -M nuclei_evalsoc,download=flashxip -smp 8 -m 2G -cpu nuclei-ux900fd,ext= -bios /Local/hqfang/workspace/software/nuclei-linux-sdk/work/evalsoc/freeloader/freeloader.elf -nographic -drive file=/Local/hqfang/workspace/software/nuclei-linux-sdk/work/evalsoc/disk.img,if=sd,format=raw
@@ -385,17 +387,17 @@ OpenSBI v0.9
 Platform Name             : Nuclei Evaluation SoC
 Platform Features         : timer,mfdeleg
 Platform HART Count       : 8
-Firmware Base             : 0x80000000
+Firmware Base             : 0xa0000000
 Firmware Size             : 156 KB
 Runtime SBI Version       : 0.2
 
 Domain0 Name              : root
 Domain0 Boot HART         : 6
 Domain0 HARTs             : 0*,1*,2*,3*,4*,5*,6*,7*
-Domain0 Region00          : 0x0000000080000000-0x000000008003ffff ()
+Domain0 Region00          : 0x00000000a0000000-0x00000000a003ffff ()
 Domain0 Region01          : 0x0000000000000000-0xffffffffffffffff (R,W,X)
-Domain0 Next Address      : 0x0000000080200000
-Domain0 Next Arg1         : 0x0000000088000000
+Domain0 Next Address      : 0x00000000a0200000
+Domain0 Next Arg1         : 0x00000000a8000000
 Domain0 Next Mode         : S-mode
 Domain0 SysReset          : yes
 
@@ -416,7 +418,7 @@ U-Boot 2021.01-00021-g7e7c388fc6 (Nov 16 2023 - 16:06:13 +0800)
 
 CPU:   rv64imafdc
 Model: nuclei,evalsoc
-DRAM:  2 GiB
+DRAM:  1.5 GiB
 Board: Initialized
 MMC:   Nuclei SPI version 0x0
 spi@10034000:mmc@0: 0
@@ -430,7 +432,7 @@ mmc0 is current device
 Scanning mmc 0:1...
 Found U-Boot script /boot.scr
 725 bytes read in 22 ms (31.3 KiB/s)
-## Executing script at 80200000
+## Executing script at a0200000
 Boot images located in .
 Loading kernel: ./uImage.lz4
 4035022 bytes read in 9962 ms (395.5 KiB/s)
@@ -439,41 +441,41 @@ Loading ramdisk: ./uInitrd.lz4
 Loading dtb: ./kernel.dtb
 4677 bytes read in 36 ms (126 KiB/s)
 Starts booting from SD
-## Booting kernel from Legacy Image at 83000000 ...
+## Booting kernel from Legacy Image at a3000000 ...
    Image Name:   Linux
    Image Type:   RISC-V Linux Kernel Image (lz4 compressed)
    Data Size:    4034958 Bytes = 3.8 MiB
-   Load Address: 80400000
-   Entry Point:  80400000
+   Load Address: a0400000
+   Entry Point:  a0400000
    Verifying Checksum ... OK
-## Loading init Ramdisk from Legacy Image at 88300000 ...
+## Loading init Ramdisk from Legacy Image at a8300000 ...
    Image Name:   Initrd
    Image Type:   RISC-V Linux RAMDisk Image (lz4 compressed)
    Data Size:    6260898 Bytes = 6 MiB
    Load Address: 00000000
    Entry Point:  00000000
    Verifying Checksum ... OK
-## Flattened Device Tree blob at 88000000
-   Booting using the fdt blob at 0x88000000
+## Flattened Device Tree blob at a8000000
+   Booting using the fdt blob at 0xa8000000
    Uncompressing Kernel Image
-   Using Device Tree in place at 0000000088000000, end 0000000088004244
+   Using Device Tree in place at 00000000a8000000, end 00000000a8004244
 
 Starting kernel ...
 
 [    0.000000] Linux version 5.10.196+ (hqfang@whss5.corp.nucleisys.com) (riscv-nuclei-linux-gnu-gcc (GCC) 10.2.0, GNU ld (GNU Binutils) 2.36.1) #1 SMP Thu Nov 16 15:59:29 CST 2023
-[    0.000000] OF: fdt: Ignoring memory range 0x80000000 - 0x80400000
+[    0.000000] OF: fdt: Ignoring memory range 0xa0000000 - 0xa0400000
 [    0.000000] Machine model: nuclei,evalsoc
 [    0.000000] earlycon: sbi0 at I/O port 0x0 (options '')
 [    0.000000] printk: bootconsole [sbi0] enabled
 [    0.000000] efi: UEFI not found.
 [    0.000000] Initial ramdisk at: 0x(____ptrval____) (6262784 bytes)
 [    0.000000] Zone ranges:
-[    0.000000]   DMA32    [mem 0x0000000080400000-0x00000000fdffffff]
+[    0.000000]   DMA32    [mem 0x00000000a0400000-0x00000000fdffffff]
 [    0.000000]   Normal   empty
 [    0.000000] Movable zone start for each node
 [    0.000000] Early memory node ranges
-[    0.000000]   node   0: [mem 0x0000000080400000-0x00000000fdffffff]
-[    0.000000] Initmem setup node 0 [mem 0x0000000080400000-0x00000000fdffffff]
+[    0.000000]   node   0: [mem 0x00000000a0400000-0x00000000fdffffff]
+[    0.000000] Initmem setup node 0 [mem 0x00000000a0400000-0x00000000fdffffff]
 [    0.000000] software IO TLB: mapped [mem 0x00000000f8475000-0x00000000fc475000] (64MB)
 [    0.000000] SBI specification v0.2 detected
 [    0.000000] SBI implementation ID=0x1 Version=0x9
@@ -616,10 +618,6 @@ Linux nucleisys 5.10.196+ #1 SMP Thu Nov 16 15:59:29 CST 2023 riscv64 GNU/Linux
 # mount /dev/mmcblk0p1 /mnt/
 # ls /mnt/
 boot.scr     kernel.dtb   uImage.lz4   uInitrd.lz4
-# free -m
-              total        used        free      shared  buff/cache   available
-Mem:           1904          27        1856          14          21        1850
-Swap:             0           0           0
 ~~~
 
 ## Booting Linux on Nuclei FPGA Evaluation Board
@@ -724,31 +722,33 @@ Sample output in **UART @ 115200bps, Data 8bit, Parity None, Stop Bits 1bit, No 
 > UART baudrate changed from 57600bps to 115200bps, due to evaluation SoC frequency by default
 > changed from 8MHz to 16MHz or 100MHz, and now uart can work correctly on 115200bps.
 
+> This output may be out of date.
+
 ~~~
 OpenSBI v0.9
-____                    _____ ____ _____
-/ __ \                  / ____|  _ \_   _|
-| |  | |_ __   ___ _ __ | (___ | |_) || |
-| |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
-| |__| | |_) |  __/ | | |____) | |_) || |_
-\____/| .__/ \___|_| |_|_____/|____/_____|
-| |
-|_|
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
 
 Platform Name             : Nuclei Evaluation SoC
 Platform Features         : timer,mfdeleg
 Platform HART Count       : 8
-Firmware Base             : 0x80000000
+Firmware Base             : 0xa0000000
 Firmware Size             : 156 KB
 Runtime SBI Version       : 0.2
 
 Domain0 Name              : root
 Domain0 Boot HART         : 0
 Domain0 HARTs             : 0*,1*,2*,3*,4*,5*,6*,7*
-Domain0 Region00          : 0x0000000080000000-0x000000008003ffff ()
+Domain0 Region00          : 0x00000000a0000000-0x00000000a003ffff ()
 Domain0 Region01          : 0x0000000000000000-0xffffffffffffffff (R,W,X)
-Domain0 Next Address      : 0x0000000080200000
-Domain0 Next Arg1         : 0x0000000088000000
+Domain0 Next Address      : 0x00000000a0200000
+Domain0 Next Arg1         : 0x00000000a8000000
 Domain0 Next Mode         : S-mode
 Domain0 SysReset          : yes
 
@@ -769,7 +769,7 @@ U-Boot 2021.01-00021-g7e7c388fc6 (Jun 09 2023 - 17:01:18 +0800)
 
 CPU:   rv64imafdc
 Model: nuclei,evalsoc
-DRAM:  2 GiB
+DRAM:  1.5 GiB
 Board: Initialized
 MMC:   Nuclei SPI version 0xee010102
 spi@10034000:mmc@0: 0
@@ -783,51 +783,49 @@ mmc0 is current device
 Scanning mmc 0:1...
 Found U-Boot script /boot.scr
 725 bytes read in 334 ms (2 KiB/s)
-## Executing script at 80200000
-Boot images located in 5.10_rv64
+## Executing script at a0200000
+Boot images located in .
 Loading kernel: ./uImage.lz4
 4030405 bytes read in 19703 ms (199.2 KiB/s)
 Loading ramdisk: ./uInitrd.lz4
 6261647 bytes read in 30264 ms (201.2 KiB/s)
 ./kernel.dtb not found, ignore it
 Starts booting from SD
-## Booting kernel from Legacy Image at 81000000 ...
-Image Name:   Linux
-Image Type:   RISC-V Linux Kernel Image (lz4 compressed)
-Data Size:    4030341 Bytes = 3.8 MiB
-Load Address: 80400000
-Entry Point:  80400000
-Verifying Checksum ...
-OK
-## Loading init Ramdisk from Legacy Image at 88300000 ...
-Image Name:   Initrd
-Image Type:   RISC-V Linux RAMDisk Image (lz4 compressed)
-Data Size:    6261583 Bytes = 6 MiB
-Load Address: 00000000
-Entry Point:  00000000
-Verifying Checksum ...
-OK
-## Flattened Device Tree blob at 88000000
-Booting using the fdt blob at 0x88000000
-Uncompressing Kernel Image
-Using Device Tree in place at 0000000088000000, end 0000000088004664
+## Booting kernel from Legacy Image at a3000000 ...
+   Image Name:   Linux
+   Image Type:   RISC-V Linux Kernel Image (lz4 compressed)
+   Data Size:    4034958 Bytes = 3.8 MiB
+   Load Address: a0400000
+   Entry Point:  a0400000
+   Verifying Checksum ... OK
+## Loading init Ramdisk from Legacy Image at a8300000 ...
+   Image Name:   Initrd
+   Image Type:   RISC-V Linux RAMDisk Image (lz4 compressed)
+   Data Size:    6260898 Bytes = 6 MiB
+   Load Address: 00000000
+   Entry Point:  00000000
+   Verifying Checksum ... OK
+## Flattened Device Tree blob at a8000000
+   Booting using the fdt blob at 0xa8000000
+   Uncompressing Kernel Image
+   Using Device Tree in place at 00000000a8000000, end 00000000a8004244
 
 Starting kernel ...
 
 [    0.000000] Linux version 5.10.181+ (xl_ci@whml1.corp.nucleisys.com) (riscv-nuclei-linux-gnu-gcc (GCC) 10.2.0, GNU ld (GNU Binutils) 2.36.1) #1 SMP Fri Jun 9 17:03:39 CST 2023
-[    0.000000] OF: fdt: Ignoring memory range 0x80000000 - 0x80400000
+[    0.000000] OF: fdt: Ignoring memory range 0xa0000000 - 0xa0400000
 [    0.000000] Machine model: nuclei,evalsoc
 [    0.000000] earlycon: sbi0 at I/O port 0x0 (options '')
 [    0.000000] printk: bootconsole [sbi0] enabled
 [    0.000000] efi: UEFI not found.
 [    0.000000] Initial ramdisk at: 0x(____ptrval____) (6262784 bytes)
 [    0.000000] Zone ranges:
-[    0.000000]   DMA32    [mem 0x0000000080400000-0x00000000fdffffff]
+[    0.000000]   DMA32    [mem 0x00000000a0400000-0x00000000fdffffff]
 [    0.000000]   Normal   empty
 [    0.000000] Movable zone start for each node
 [    0.000000] Early memory node ranges
-[    0.000000]   node   0: [mem 0x0000000080400000-0x00000000fdffffff]
-[    0.000000] Initmem setup node 0 [mem 0x0000000080400000-0x00000000fdffffff]
+[    0.000000]   node   0: [mem 0x00000000a0400000-0x00000000fdffffff]
+[    0.000000] Initmem setup node 0 [mem 0x00000000a0400000-0x00000000fdffffff]
 [    0.000000] software IO TLB: mapped [mem 0x00000000f8475000-0x00000000fc475000] (64MB)
 [    0.000000] SBI specification v0.2 detected
 [    0.000000] SBI implementation ID=0x1 Version=0x9
