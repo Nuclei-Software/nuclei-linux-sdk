@@ -151,14 +151,14 @@ Our changes to support Nuclei Eval SoC are adapted based on above version.
 
 ## Modify Build Configuration
 
-You can choose different core configuration by modify the `CORE ?= ux600` line in `Makefile`.
+You can choose different core configuration by modify the `CORE ?= ux900fd` line in `Makefile`.
 
 We support four configurations for **CORE**, choose the right core according to your configuration:
 
 * `ux600` or `ux900`: rv64imac RISC-V CORE configuration without FPU.
 * `ux600fd` or `ux900fd`: rv64imafdc RISC-V CORE configuration with FPU.
 
-You can choose different SoC by modify `SOC ?= demosoc` line in `Makefile`.
+You can choose different SoC by modify `SOC ?= evalsoc` line in `Makefile`.
 
 * `demosoc`: **Deprecated**, the demostration SoC from nuclei.
 * `evalsoc`: The next generation of the `demosoc`, we call it `evalsoc`, when your cpu has `iregion` feature, please use this one
