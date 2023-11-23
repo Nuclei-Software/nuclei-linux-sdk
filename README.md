@@ -650,7 +650,9 @@ has the `iregion` feature, you should use `evalsoc`, otherwise choose `demosoc`(
 If there is double float fpu and isa is rv64 in the bitstream supported, you should choose `ux600fd` or `ux900fd`.
 
 - Default cpu/periph freq and timer freq are 16MHz and 32768Hz for demosoc.
-- Default cpu/periph freq and timer freq are 50Mhz and 32768Hz for evalsoc.
+- Default cpu/periph freq and timer freq are 100Mhz and 32768Hz for evalsoc v1, ddr base 0xA0000000.
+
+For details SoC information, please check https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/2
 
 If the bitstream you get not matching above settings, please change co-reponsibing `conf/<SOC>/build.mk`'s `TIMER_HZ`/`CPU_HZ`/`PERIPH_HZ`.
 
@@ -720,7 +722,7 @@ Sample output in **UART @ 115200bps, Data 8bit, Parity None, Stop Bits 1bit, No 
 > **Flow control must be disabled in UART terminal**.
 
 > UART baudrate changed from 57600bps to 115200bps, due to evaluation SoC frequency by default
-> changed from 8MHz to 16MHz or 50MHz, and now uart can work correctly on 115200bps.
+> changed from 8MHz to 16MHz or 100MHz, and now uart can work correctly on 115200bps.
 
 ~~~
 OpenSBI v0.9
@@ -945,8 +947,6 @@ is necessary, please check [this link](https://buildroot.org/downloads/manual/ma
 
 * *conf/evalsoc/buildroot_initramfs_rv64imac_config*: The buildroot configuration for RISC-V ISA/ARCH is **rv64imac**, such as ux600 and ux900
 * *conf/evalsoc/buildroot_initramfs_rv64imafdc_config*: The buildroot configuration for for RISC-V ISA/ARCH is **rv64imafdc**, such as ux600fd and ux900fd
-* *conf/evalsoc/buildroot_initramfs_rv32imac_config*: The buildroot configuration for RISC-V ISA/ARCH is **rv32imac**, such as u900
-* *conf/evalsoc/buildroot_initramfs_rv32imafdc_config*: The buildroot configuration for for RISC-V ISA/ARCH is **rv32imafdc**, such as u900fd
 
 By default, we add many packages in buildroot default configuration, you can remove the packages
 you dont need in configuration to generate smaller rootfs, a full rebuild of SDK is required for
@@ -958,12 +958,8 @@ You can customize linux kernel configuration using command `make linux-menuconfi
 
 * *conf/evalsoc/linux_rv64imac_defconfig*: The linux kernel configuration for RISC-V rv64imac ARCH.
 * *conf/evalsoc/linux_rv64imafdc_defconfig*: The linux kernel configuration for  RISC-V rv64imafdc ARCH.
-* *conf/evalsoc/linux_rv32imac_defconfig*: The linux kernel configuration for RISC-V rv32imac ARCH.
-* *conf/evalsoc/linux_rv32imafdc_defconfig*: The linux kernel configuration for  RISC-V rv32imafdc ARCH.
 * *conf/evalsoc/nuclei_rv64imac.dts*: Device tree for RISC-V rv64imac ARCH used in hardware
 * *conf/evalsoc/nuclei_rv64imafdc.dts*: Device tree for RISC-V rv64imafdc ARCH used in hardware
-* *conf/evalsoc/nuclei_rv32imac.dts*: Device tree for RISC-V rv32imac ARCH used in hardware
-* *conf/evalsoc/nuclei_rv32imafdc.dts*: Device tree for RISC-V rv32imafdc ARCH used in hardware
 
 > `xlspike` dts are only used internally
 * *conf/evalsoc/nuclei_rv64imac_sim.dts*: Device tree for RISC-V rv64imac ARCH used in xlspike simulation
@@ -977,10 +973,6 @@ You can customize linux kernel configuration using command `make uboot-menuconfi
 * *conf/evalsoc/uboot_rv64imafdc_flash_config*: uboot configuration for RISC-V rv64imafdc ARCH, flash boot mode
 * *conf/evalsoc/uboot_rv64imac_sd_config*: uboot configuration for RISC-V rv64imac ARCH, flash boot mode
 * *conf/evalsoc/uboot_rv64imafdc_sd_config*: uboot configuration for RISC-V rv64imafdc ARCH, sd boot mode
-* *conf/evalsoc/uboot_rv32imac_flash_config*: uboot configuration for RISC-V rv32imac ARCH, flash boot mode
-* *conf/evalsoc/uboot_rv32imafdc_flash_config*: uboot configuration for RISC-V rv32imafdc ARCH, flash boot mode
-* *conf/evalsoc/uboot_rv32imac_sd_config*: uboot configuration for RISC-V rv32imac ARCH, flash boot mode
-* *conf/evalsoc/uboot_rv32imafdc_sd_config*: uboot configuration for RISC-V rv32imafdc ARCH, sd boot mode
 
 ### Remove generated boot images
 
@@ -1088,7 +1080,7 @@ For example, if you have an application called `coremark`, then you can directly
 For our current development evalsoc, we used the following resources:
 
 * RV64IMAC or RV64IMAFDC Core, with 16 PMP entries
-* DDR RAM: *0x80000000 - 0x100000000*, 2GB, DDR RAM is seperated to place opensbi, uboot, kernel, rootfs, dtb binaries.
+* DDR RAM: *0xA0000000 - 0x100000000*, 1.5GB, DDR RAM is seperated to place opensbi, uboot, kernel, rootfs, dtb binaries.
 * I/D Cache enabled
 * UART @ 0x10013000
 * PLIC @ 0x1C000000
@@ -1114,21 +1106,21 @@ To basically port this SDK to match your target, you can make a copy of `conf/ev
   * If you have qemu support, you can change your qemu machine options **QEMU_MACHINE_OPTS** to match your qemu machine.
   * If you are using AMP, **CORE1_APP_BIN**, **CORE2_APP_BIN**, **CORE3_APP_BIN**, **CORE4_APP_BIN**,
     **CORE5_APP_BIN**, **CORE6_APP_BIN** and **CORE7_APP_BIN** need to be configured, CORE1-CORE7 each memory is default 4MB(configured by **AMPFW_SIZE**)
-    and application base address is default offset 0x7E000000(configured by **AMPFW_START_OFFSET**) at DDR base, you can refer to https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/18 for how to use AMP demo.
+    and application base address is default offset 0x5E000000(configured by **AMPFW_START_OFFSET**) at DDR base, you can refer to https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/18 for how to use AMP demo.
     > Here each core memory is changed from 8M to 4M, due to only 32MB is reserved for amp binaries, and now we support 8 cores.
-    - **CORE1_APP_BIN** start offset is **DDR_BASE** + **0x7E000000**, such as `$(confdir)/amp/c1.bin`
-    - **CORE2_APP_BIN** start offset is **DDR_BASE** + **0x7E000000** + **4M**, such as `$(confdir)/amp/c2.bin`
-    - **CORE3_APP_BIN** start offset is **DDR_BASE** + **0x7E000000** + **4M*2**, such as `$(confdir)/amp/c3.bin`
-    - **CORE4_APP_BIN** start offset is **DDR_BASE** + **0x7E000000** + **4M*3**, such as `$(confdir)/amp/c4.bin`
-    - **CORE5_APP_BIN** start offset is **DDR_BASE** + **0x7E000000** + **4M*4**, such as `$(confdir)/amp/c5.bin`
-    - **CORE6_APP_BIN** start offset is **DDR_BASE** + **0x7E000000** + **4M*5**, such as `$(confdir)/amp/c6.bin`
-    - **CORE7_APP_BIN** start offset is **DDR_BASE** + **0x7E000000** + **4M*6**, such as `$(confdir)/amp/c7.bin`
+    - **CORE1_APP_BIN** start offset is **DDR_BASE** + **0x5E000000**, such as `$(confdir)/amp/c1.bin`
+    - **CORE2_APP_BIN** start offset is **DDR_BASE** + **0x5E000000** + **4M**, such as `$(confdir)/amp/c2.bin`
+    - **CORE3_APP_BIN** start offset is **DDR_BASE** + **0x5E000000** + **4M*2**, such as `$(confdir)/amp/c3.bin`
+    - **CORE4_APP_BIN** start offset is **DDR_BASE** + **0x5E000000** + **4M*3**, such as `$(confdir)/amp/c4.bin`
+    - **CORE5_APP_BIN** start offset is **DDR_BASE** + **0x5E000000** + **4M*4**, such as `$(confdir)/amp/c5.bin`
+    - **CORE6_APP_BIN** start offset is **DDR_BASE** + **0x5E000000** + **4M*5**, such as `$(confdir)/amp/c6.bin`
+    - **CORE7_APP_BIN** start offset is **DDR_BASE** + **0x5E000000** + **4M*6**, such as `$(confdir)/amp/c7.bin`
   * **TIMER_HZ**, **CPU_HZ**, **PERIPH_HZ** are used by `*.dts` files to generate correct timer, cpu, peripheral clock hz, if you directly
     set it in dts, not need for this variables.
 
 * *opensbi/*: Change the opensbi support code for your soc, all the files need to be modified.
 
-* *nuclei_rv32imac.dts*, *nuclei_rv32imafdc.dts*, *nuclei_rv64imac.dts*, *nuclei_rv64imafdc.dts* and *openocd.cfg*: Change these files to match your SoC design.
+* *nuclei_rv64imac.dts*, *nuclei_rv64imafdc.dts* and *openocd.cfg*: Change these files to match your SoC design.
   - Select the right dts which match your cpu isa, for example, if you are using rv64imafdc, please use `nuclei_rv64imafdc.dts`
   - External interrupts connected to plic interrupt number started from 1, 0 is reserved.
     For example, in evalsoc, interrupt id of UART0 is 32, then plic interrupt number is 33,
@@ -1140,7 +1132,6 @@ To basically port this SDK to match your target, you can make a copy of `conf/ev
 * *uboot.cmd*: Change to match your memory map.
 
 * *uboot_rv64imac_sd_config*, *uboot_rv64imac_flash_config*, *uboot_rv64imafdc_sd_config* and *uboot_rv64imafdc_flash_config*:
-* *uboot_rv32imac_sd_config*, *uboot_rv32imac_flash_config*, *uboot_rv32imafdc_sd_config* and *uboot_rv32imafdc_flash_config*:
   change **CONFIG_SYS_TEXT_BASE** and **CONFIG_BOOTCOMMAND** to match your uboot system text address and boot command address.
 
 * If you have a lot of changes in uboot or linux, please directly change code in it.
