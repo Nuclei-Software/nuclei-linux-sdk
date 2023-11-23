@@ -1,13 +1,13 @@
 ## Makefile Variable SOC
 ## SOC Supported:
 ## demosoc: Nuclei Demo SoC used for evaluation
-SOC ?= demosoc
+SOC ?= evalsoc
 
 ## Makefile Variable CORE
 ## CORE Supported:
 ## ux600/ux900: rv64imac, lp64
 ## ux600fd/ux900fd: rv64imafdc, lp64d
-CORE ?= ux600
+CORE ?= ux900fd
 
 ## Makefile Variable ARCH_EXT
 ## ARCH_EXT can be b/p/v, eg. bp, bpv, pv, v
