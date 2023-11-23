@@ -19,7 +19,7 @@ platform-runcmd = xl_spike \
   $(build_dir)/platform/nuclei/evalsoc/firmware/fw_payload.elf
 
 # Blobs to build
-FW_TEXT_START ?= 0x80000000
+FW_TEXT_START ?= 0xA0000000
 FW_DYNAMIC=y
 FW_JUMP=y
 
