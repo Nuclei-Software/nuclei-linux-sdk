@@ -60,12 +60,14 @@ ENV PATH "/home/$USER/prebuilt/qemu/bin:$PATH"
 
 RUN ldd `which qemu-system-riscv64`
 
-RUN git clone -b $BRANCH https://github.com/Nuclei-Software/nuclei-linux-sdk
+# do shallow clone for main repo
+RUN git clone --depth 5 -b $BRANCH https://github.com/Nuclei-Software/nuclei-linux-sdk
 
 # gitee mirror no longer works
 #RUN cd nuclei-linux-sdk && git remote add gitee https://gitee.com/Nuclei-Software/nuclei-linux-sdk
 
-RUN cd nuclei-linux-sdk && git submodule init && git submodule update --recursive --init
+# only do shallow clone for submodule to reduce clone size
+RUN cd nuclei-linux-sdk && git submodule init && git submodule update --recursive --init --depth 5
 
 RUN cd nuclei-linux-sdk && make freeloader bootimages
 
