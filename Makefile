@@ -118,15 +118,22 @@ uboot_elf := $(uboot_wrkdir)/u-boot
 uboot_mkimage := $(uboot_wrkdir)/tools/mkimage
 
 uboot_cmd := $(confdir)/uboot.cmd
+uboot_its := $(confdir)/uboot.its
 
 # Directory for boot images stored in sdcard
 boot_wrkdir := $(wrkdir)/boot
+# lz4 compressed kernel and initramfs
+boot_image := $(wrkdir)/Image.lz4
+boot_initrd := $(wrkdir)/Initrd.lz4
+
 boot_zip := $(wrkdir)/boot.zip
-boot_ubootscr := $(boot_wrkdir)/boot.scr
-boot_image := $(boot_wrkdir)/Image.lz4
+# processed by mkimage tool
 boot_uimage_lz4 := $(boot_wrkdir)/uImage.lz4
 boot_uinitrd_lz4 := $(boot_wrkdir)/uInitrd.lz4
+boot_ubootscr := $(boot_wrkdir)/boot.scr
 boot_kernel_dtb := $(boot_wrkdir)/kernel.dtb
+# FIT image processed by mkimage tool
+boot_fit_image := $(boot_wrkdir)/image.itb
 
 # qemu related disk image
 qemu_disk := $(wrkdir)/disk.img
@@ -386,24 +393,30 @@ $(boot_wrkdir):
 $(boot_ubootscr): $(uboot_cmd) $(uboot_mkimage)
 	$(uboot_mkimage) -A riscv -T script -O linux -C none -a 0 -e 0 -n "bootscript" -d $(uboot_cmd) $@
 
+$(boot_image): $(linux_image)
+	lz4 $< $(boot_image) -f -9
 # UIMAGE_AE_CMD is defined in conf/$(SOC)/build.mk
 # For DDR_BASE = 0xA0000000, eg.
 # UIMAGE_AE_CMD := -a 0xA0400000 -e 0xA0400000
 # uncompressed kernel can be as large as 25M, so we need to put kernel load addr to above 25M size
 # to allow when uncompress the kernel, it won't corrupt the compressed data, and affect uncompress process
-$(boot_uimage_lz4): $(linux_image)
-	lz4 $< $(boot_image) -f -9
+$(boot_uimage_lz4): $(boot_image)
 	$(uboot_mkimage) -A riscv -O linux -T kernel -C lz4 $(UIMAGE_AE_CMD) -n Linux -d $(boot_image) $@
-	rm -f $(boot_image)
 
-$(boot_uinitrd_lz4): $(initramfs)
-	lz4 $(initramfs) $(initramfs).lz4 -f -9 -l
-	$(uboot_mkimage) -A riscv -T ramdisk -C lz4 -n Initrd -d $(initramfs).lz4 $(boot_uinitrd_lz4)
+$(boot_initrd): $(initramfs)
+	lz4 $(initramfs) $(boot_initrd) -f -9 -l
+
+$(boot_uinitrd_lz4): $(boot_initrd)
+	$(uboot_mkimage) -A riscv -T ramdisk -C lz4 -n Initrd -d $(boot_initrd) $(boot_uinitrd_lz4)
 
 $(boot_kernel_dtb): $(platform_preproc_dts)
 	dtc -O dtb -o $(boot_kernel_dtb) $(platform_preproc_dts)
 
-$(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_lz4) $(boot_kernel_dtb)
+$(boot_fit_image): $(boot_initrd) $(boot_image) $(boot_kernel_dtb) $(uboot_its)
+	cp -f $(uboot_its) $(wrkdir)/uboot.its
+	cd $(wrkdir) && $(uboot_mkimage) -f uboot.its $@
+
+$(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_lz4) $(boot_kernel_dtb) $(boot_fit_image)
 	rm -f $(boot_zip)
 	cd $(boot_wrkdir) && zip -q -r $(boot_zip) .
 
@@ -511,7 +524,7 @@ clean: cleanfreeloader
 	rm -rf $(wrkdir)
 
 cleanboot:
-	rm -rf $(boot_wrkdir) $(boot_zip) $(initramfs) $(initramfs).lz4
+	rm -rf $(boot_wrkdir) $(boot_zip) $(initramfs) $(boot_image) $(boot_initrd) $(boot_fit_image)
 
 cleanlinux:
 	rm -rf $(linux_wrkdir) $(vmlinux_bin) $(vmlinux_sim_bin)
@@ -561,6 +574,7 @@ $(qemu_disk): $(boot_zip)
 	echo "Please make sure mformat version is >= 4.0.24, current version $(shell mformat --version)"
 	cd $(boot_wrkdir) && mformat -F -h 64 -s 32 -t $$(($(DISK_SIZE)-1)) :: -i $(qemu_disk) || rm -f $(qemu_disk)
 	cd $(boot_wrkdir) && mcopy -i $(qemu_disk) boot.scr kernel.dtb uImage.lz4 uInitrd.lz4 :: || rm -f $(qemu_disk)
+	cd $(boot_wrkdir) && if [ -f $(boot_fit_image) ] ; then mcopy -i $(qemu_disk) image.itb :: || rm -f $(qemu_disk) ; fi
 
 # workaround for demosoc: need to change TIMERCLK_FREQ for conf/demosoc/*.dts to 10000000
 # limited feature for simulation demosoc is supported, don't expect full feature of demosoc
