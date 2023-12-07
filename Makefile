@@ -11,7 +11,6 @@ SOC ?= evalsoc
 CORE ?= ux900fd
 
 ## Makefile Variable ARCH_EXT
-## ARCH_EXT can be b/p/v, eg. bp, bpv, pv, v
 ARCH_EXT ?=
 
 ## Makefile Variable BOOT_MODE
@@ -148,11 +147,7 @@ FILES2BACKUP := $(subst $(realpath $(srcdir))/,, $(realpath $(FILES2BACKUP)))
 # Include SoC related Makefile
 include $(confdir)/build.mk
 
-ifeq ($(XLEN),64)
-target := riscv-nuclei-linux-gnu
-else
-target := riscv32-buildroot-linux-gnu
-endif
+target := riscv64-unknown-linux-gnu
 CROSS_COMPILE := $(RISCV)/bin/$(target)-
 
 amp_bins = $(CORE1_APP_BIN) $(CORE2_APP_BIN) $(CORE3_APP_BIN) $(CORE4_APP_BIN) $(CORE5_APP_BIN) $(CORE6_APP_BIN) $(CORE7_APP_BIN)
