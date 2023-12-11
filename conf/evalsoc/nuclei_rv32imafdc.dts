@@ -38,7 +38,7 @@
       reg = <0>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv32imafdc";
+      riscv,isa = "rv32imafdcv";
       mmu-type = "riscv,sv32";
       clock-frequency = <CPUCLK_FREQ>;
       cpu0_intc: interrupt-controller {
@@ -52,7 +52,7 @@
       reg = <1>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv32imafdc";
+      riscv,isa = "rv32imafdcv";
       mmu-type = "riscv,sv32";
       clock-frequency = <CPUCLK_FREQ>;
       cpu1_intc: interrupt-controller {
@@ -66,7 +66,7 @@
       reg = <2>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv32imafdc";
+      riscv,isa = "rv32imafdcv";
       mmu-type = "riscv,sv32";
       clock-frequency = <CPUCLK_FREQ>;
       cpu2_intc: interrupt-controller {
@@ -80,7 +80,7 @@
       reg = <3>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv32imafdc";
+      riscv,isa = "rv32imafdcv";
       mmu-type = "riscv,sv32";
       clock-frequency = <CPUCLK_FREQ>;
       cpu3_intc: interrupt-controller {
@@ -94,7 +94,7 @@
       reg = <4>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv32imafdc";
+      riscv,isa = "rv32imafdcv";
       mmu-type = "riscv,sv32";
       clock-frequency = <CPUCLK_FREQ>;
       cpu4_intc: interrupt-controller {
@@ -108,7 +108,7 @@
       reg = <5>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv32imafdc";
+      riscv,isa = "rv32imafdcv";
       mmu-type = "riscv,sv32";
       clock-frequency = <CPUCLK_FREQ>;
       cpu5_intc: interrupt-controller {
@@ -122,7 +122,7 @@
       reg = <6>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv32imafdc";
+      riscv,isa = "rv32imafdcv";
       mmu-type = "riscv,sv32";
       clock-frequency = <CPUCLK_FREQ>;
       cpu6_intc: interrupt-controller {
@@ -136,7 +136,7 @@
       reg = <7>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv32imafdc";
+      riscv,isa = "rv32imafdcv";
       mmu-type = "riscv,sv32";
       clock-frequency = <CPUCLK_FREQ>;
       cpu7_intc: interrupt-controller {
