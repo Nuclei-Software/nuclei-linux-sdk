@@ -10,6 +10,7 @@ BR2_TOOLCHAIN_EXTERNAL_CUSTOM_GLIBC=y
 BR2_TOOLCHAIN_EXTERNAL_CXX=y
 BR2_TOOLCHAIN_EXTERNAL_FORTRAN=y
 BR2_TOOLCHAIN_EXTERNAL_OPENMP=y
+BR2_BACKUP_SITE="http://sources.buildroot.net"
 BR2_KERNEL_MIRROR="http://mirrors.163.com/kernel"
 BR2_GNU_MIRROR="https://mirrors.tuna.tsinghua.edu.cn/gnu"
 BR2_CPAN_MIRROR="https://mirrors.163.com/cpan"
