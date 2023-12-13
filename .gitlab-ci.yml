@@ -185,10 +185,6 @@ cache:
 .snippet_run_sdk_in_qemu: &snippet_run_sdk_in_qemu
     - echo ">>Run using qemu for $SOC - $CORE - $BOOT_MODE"
     - |
-        #if [ "x$SOC" != "xdemosoc" ] ; then
-        #    echo ">>Will not run qemu simulation for $SOC"
-        #    exit 0
-        #fi
         cd work/$SOC
         # show qemu version
         bash show_qemu.sh
@@ -283,13 +279,13 @@ cache:
 build_ux900_flash:
     stage: build
     variables:
-        SOC: "demosoc"
+        SOC: "evalsoc"
         CORE: "ux900"
         ARCH_EXT: ""
         BOOT_MODE: "flash"
     parallel:
         matrix:
-            - SOC: ["demosoc", "evalsoc"]
+            - SOC: ["evalsoc"]
     <<: *build_linux_sdk_job_def
 
 ## Job for build sdk
@@ -297,13 +293,13 @@ build_ux900_flash:
 build_ux900_sd:
     stage: build
     variables:
-        SOC: "demosoc"
+        SOC: "evalsoc"
         CORE: "ux900"
         ARCH_EXT: ""
         BOOT_MODE: "sd"
     parallel:
         matrix:
-            - SOC: ["demosoc", "evalsoc"]
+            - SOC: ["evalsoc"]
     <<: *build_linux_sdk_job_def
 
 # Manual job for ux900 sd
@@ -365,7 +361,7 @@ run_ux900_flash_xlspike:
     dependencies:
         - build_ux900_flash
     variables:
-        SOC: "demosoc"
+        SOC: "evalsoc"
         CORE: "ux900"
         BOOT_MODE: "flash"
     <<: *run_linux_sdk_xlspike_job_def
@@ -377,7 +373,7 @@ run_ux900_sd_xlspike:
     dependencies:
         - build_ux900_sd
     variables:
-        SOC: "demosoc"
+        SOC: "evalsoc"
         CORE: "ux900"
         BOOT_MODE: "sd"
     <<: *run_linux_sdk_xlspike_job_def
@@ -390,7 +386,7 @@ run_ux900_flash_qemu:
         - build_ux900_flash
     parallel:
         matrix:
-            - SOC: ["demosoc", "evalsoc"]
+            - SOC: ["evalsoc"]
     variables:
         CORE: "ux900"
         BOOT_MODE: "flash"
@@ -404,7 +400,7 @@ run_ux900_sd_qemu:
         - build_ux900_sd
     parallel:
         matrix:
-            - SOC: ["demosoc", "evalsoc"]
+            - SOC: ["evalsoc"]
     variables:
         CORE: "ux900"
         BOOT_MODE: "sd"
@@ -416,13 +412,13 @@ build_ux900fd_flash:
     stage: build
     dependencies:
     variables:
-        SOC: "demosoc"
+        SOC: "evalsoc"
         CORE: "ux900fd"
         ARCH_EXT: ""
         BOOT_MODE: "flash"
     parallel:
         matrix:
-            - SOC: ["demosoc", "evalsoc"]
+            - SOC: ["evalsoc"]
     <<: *build_linux_sdk_job_def
 
 ## Job for build sdk
@@ -431,13 +427,13 @@ build_ux900fd_sd:
     stage: build
     dependencies:
     variables:
-        SOC: "demosoc"
+        SOC: "evalsoc"
         CORE: "ux900fd"
         ARCH_EXT: ""
         BOOT_MODE: "sd"
     parallel:
         matrix:
-            - SOC: ["demosoc", "evalsoc"]
+            - SOC: ["evalsoc"]
     <<: *build_linux_sdk_job_def
 
 ## Job for build sdk
@@ -489,7 +485,7 @@ run_ux900fd_flash_xlspike:
     dependencies:
         - build_ux900fd_flash
     variables:
-        SOC: "demosoc"
+        SOC: "evalsoc"
         CORE: "ux900fd"
         BOOT_MODE: "flash"
     <<: *run_linux_sdk_xlspike_job_def
@@ -503,7 +499,7 @@ run_ux900fd_sd_xlspike:
     dependencies:
         - build_ux900fd_sd
     variables:
-        SOC: "demosoc"
+        SOC: "evalsoc"
         CORE: "ux900fd"
         BOOT_MODE: "sd"
     <<: *run_linux_sdk_xlspike_job_def
@@ -518,7 +514,7 @@ run_ux900fd_flash_qemu:
         - build_ux900fd_flash
     parallel:
         matrix:
-            - SOC: ["demosoc", "evalsoc"]
+            - SOC: ["evalsoc"]
     variables:
         CORE: "ux900fd"
         BOOT_MODE: "flash"
@@ -534,7 +530,7 @@ run_ux900fd_sd_qemu:
         - build_ux900fd_sd
     parallel:
         matrix:
-            - SOC: ["demosoc", "evalsoc"]
+            - SOC: ["evalsoc"]
     variables:
         CORE: "ux900fd"
         BOOT_MODE: "sd"
