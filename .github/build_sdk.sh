@@ -3,8 +3,8 @@
 SCRIPTDIR=$(dirname $(readlink -f $BASH_SOURCE))
 SCRIPTDIR=$(readlink -f $SCRIPTDIR)
 
-SOC=${SOC:-demosoc}
-CORE=${CORE:-ux900}
+SOC=${SOC:-evalsoc}
+CORE=${CORE:-ux900fd}
 BOOT_MODE=${BOOT_MODE:-sd}
 MAKEOPTS=${MAKEOPTS:-""}
 DRYRUN=${DRYRUN:-0}
