@@ -1,6 +1,5 @@
 # Makefile Variable SOC
 ## SOC Supported:
-## demosoc: Nuclei Demo SoC used for evaluation
 ## evalsoc: Nuclei Evaluation SoC
 SOC ?= evalsoc
 
@@ -69,7 +68,7 @@ RVPATH := $(RISCV)/bin:$(PATH)
 platform_dts := $(confdir)/nuclei_$(ISA).dts
 platform_preproc_dts := $(wrkdir)/nuclei_$(ISA).dts.preprocessed
 platform_dtb := $(wrkdir)/nuclei_$(ISA).dtb
-platform_sim_dts := $(confdir)/nuclei_$(ISA)_sim.dts
+platform_sim_dts := $(confdir)/nuclei_$(ISA).dts
 platform_preproc_sim_dts := $(wrkdir)/nuclei_$(ISA)_sim.dts.preprocessed
 platform_sim_dtb := $(wrkdir)/nuclei_$(ISA)_sim.dtb
 
@@ -224,18 +223,14 @@ help:
 	@echo "- cleanopensbi : clean opensbi workspace"
 	@echo "- backup : backup generated prebuilt images into $(backupdir) folder, you need to input backup message when this target is triggered"
 	@echo "- snapshot : snapshot linux sdk source code into $(snapshotdir) folder, this snapshot zip files will not contain any vcs control files"
-ifeq ($(SOC),demosoc)
 	@echo "- preboot : If you run sim target before, and want to change to bootimages target, run this to prepare environment"
-	@echo "- presim : If you run bootimages target before, and want to change to sim target, run this to prepare environment"
-	@echo "- sim : run opensbi + linux payload in simulation using xl_spike"
-endif
+	@echo "- presim : deprecated, If you run bootimages target before, and want to change to sim target, run this to prepare environment"
+	@echo "- sim : deprecated, run opensbi + linux payload in simulation using xl_spike"
 	@echo ""
 	@echo "Main targets used frequently depending on your user case"
 	@echo "If you want to run linux on development board, please run preboot, freeloader, bootimages targets"
-ifeq ($(SOC),demosoc)
-	@echo "If you want to run linux in simulation, please run presim, sim targets"
+	@echo "Deprecated: If you want to run linux in simulation using xlspike, please run presim, sim targets"
 	@echo "Deprecated: The xl-spike support will be deprecated in future release"
-endif
 
 
 $(target_gcc): buildroot_initramfs_sysroot
@@ -308,7 +303,6 @@ $(vmlinux_stripped): $(vmlinux)
 $(vmlinux_bin): $(vmlinux)
 	PATH=$(RVPATH) $(target)-objcopy -O binary $< $@
 
-ifeq ($(SOC),demosoc)
 $(vmlinux_sim): $(linux_wrkdir)/.config
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		CONFIG_INITRAMFS_SOURCE="$(confdir)/initramfs.txt $(buildroot_initramfs_sysroot)" \
@@ -322,7 +316,6 @@ $(vmlinux_sim): $(linux_wrkdir)/.config
 
 $(vmlinux_sim_bin): $(vmlinux_sim)
 	PATH=$(RVPATH) $(target)-objcopy -O binary $< $@
-endif
 
 .PHONY: linux-menuconfig gen-dts gen-simdts
 linux-menuconfig: $(linux_wrkdir)/.config
@@ -340,7 +333,7 @@ $(platform_preproc_sim_dts): gen-simdts
 	echo "Platform sim preprocessed dts located in $(platform_preproc_sim_dts), processed with defines $(DTS_DEFINES)"
 
 gen-simdts: $(platform_sim_dts) $(target_gcc)
-	$(target_gcc) -E -nostdinc -undef -x assembler-with-cpp $(DTS_DEFINES) $(platform_sim_dts) -o $(platform_preproc_sim_dts)
+	$(target_gcc) -E -nostdinc -undef -x assembler-with-cpp $(DTS_DEFINES) -DSIMULATION=2 $(platform_sim_dts) -o $(platform_preproc_sim_dts)
 
 $(platform_dtb) : $(platform_preproc_dts) $(target_gcc)
 	dtc -O dtb -o $(platform_dtb) $(platform_preproc_dts)
@@ -358,7 +351,7 @@ opensbi: $(target_gcc) $(opensbi_plat_deps)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
 		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM=nuclei/$(SOC)
 
-ifeq ($(SOC),demosoc)
+# internal usage for xlspike, deprecated
 $(opensbi_payload): $(opensbi_srcdir) $(vmlinux_sim_bin) $(platform_sim_dtb) $(opensbi_plat_deps)
 	rm -rf $(opensbi_wrkdir)
 	mkdir -p $(opensbi_wrkdir)
@@ -367,7 +360,6 @@ $(opensbi_payload): $(opensbi_srcdir) $(vmlinux_sim_bin) $(platform_sim_dtb) $(o
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
 		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM=nuclei/$(SOC) \
 		FW_PAYLOAD_PATH=$(vmlinux_sim_bin) FW_FDT_PATH=$(platform_sim_dtb)
-endif
 
 $(buildroot_initramfs_sysroot): $(buildroot_initramfs_sysroot_stamp)
 
@@ -542,16 +534,15 @@ preboot: prepare
 prepare:
 	rm -rf $(vmlinux_bin) $(vmlinux) $(linux_image) $(vmlinux_sim_bin) $(vmlinux_sim)
 
-ifeq ($(SOC),demosoc)
 .PHONY: sim opensbi_sim presim
 
 # If you change your make target from bootimages to sim, you need to run presim first
 presim: prepare
 opensbi_sim: $(opensbi_payload)
 
+# Deprecated, internal usage for xlspike
 sim: $(opensbi_payload)
 	$(xlspike) --isa=$(ISA) $(opensbi_payload)
-endif
 
 .PHONY: gendisk run_qemu
 
@@ -564,8 +555,6 @@ $(qemu_disk): $(boot_zip)
 	cd $(boot_wrkdir) && mformat -F -h 64 -s 32 -t $$(($(DISK_SIZE)-1)) :: -i $(qemu_disk) || rm -f $(qemu_disk)
 	cd $(boot_wrkdir) && mcopy -i $(qemu_disk) boot.scr kernel.dtb uImage.lz4 uInitrd.lz4 :: || rm -f $(qemu_disk)
 
-# workaround for demosoc: need to change TIMERCLK_FREQ for conf/demosoc/*.dts to 10000000
-# limited feature for simulation demosoc is supported, don't expect full feature of demosoc
 run_qemu: $(qemu_disk) $(freeloader_elf)
 	@echo "Run on qemu for simulation"
 	$(qemu) $(QEMU_MACHINE_OPTS) -cpu nuclei-$(CORE),ext=$(ARCH_EXT) -bios $(freeloader_elf) -nographic -drive file=$(qemu_disk),if=sd,format=raw
