@@ -150,8 +150,8 @@ cache:
         chmod +x $RUNQEMUSH
         chmod +x $SHOWQEMUSH
     - |
-        if [ "x$SOC" == "xdemosoc" ] ; then
-            echo ">>Will build xlspike simulation images only for demosoc"
+        if [ "x$SOC" == "xevalsoc" ] ; then
+            echo ">>Will build xlspike simulation images only for evalsoc"
             echo ">>Build simulation target for $SOC - $CORE - $BOOT_MODE"
             make presim && make -j opensbi_sim > >(tee build_opensbi_payload.log) || {
                 xz -f -z build_opensbi_payload.log
@@ -169,7 +169,7 @@ cache:
 
 .snippet_run_sdk_in_xlspike: &snippet_run_sdk_in_xlspike
     - |
-        if [ "x$SOC" != "xdemosoc" ] ; then
+        if [ "x$SOC" != "xevalsoc" ] ; then
             echo ">>Will not run xlspike simulation for $SOC"
             exit 0
         fi
