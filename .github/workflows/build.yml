@@ -13,7 +13,7 @@ on:
     - .gitlab-ci.yml
     - .gitignore
   pull_request:
-    branches: [ dev_nuclei_next ]
+    branches: [ dev_* ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        soc: [demosoc, evalsoc]
+        soc: [evalsoc]
         core: [ux900, ux900fd, u900, u900fd]
         boot_mode: [sd, flash]
 
@@ -74,7 +74,7 @@ jobs:
 
       # Build bootimages
       - name: Build bootimages for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
-        if: ${{ !( matrix.soc == 'demosoc' && startsWith(matrix.core, 'u900')) }}
+        if: ${{ !( matrix.soc == 'evalsoc' && startsWith(matrix.core, 'u900')) }}
         run: |
           export SOC=${{ matrix.soc }} CORE=${{ matrix.core }} BOOT_MODE=${{ matrix.boot_mode }}
           echo "Generate QEMU Disk"
@@ -105,7 +105,7 @@ jobs:
 
       # Run on qemu
       - name: Run and test on qemu for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
-        if: ${{ !( matrix.soc == 'demosoc' && startsWith(matrix.core, 'u900')) }}
+        if: ${{ !( matrix.soc == 'evalsoc' && startsWith(matrix.core, 'u900')) }}
         run: |
           QEMU_PATH=$(pwd)/prebuilt_tools/linux_qemu/bin:$(pwd)/prebuilt_tools/qemu/bin
           export PATH=${QEMU_PATH}:$PATH
@@ -122,7 +122,7 @@ jobs:
           }
 
       - name: Upload bootimages for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
-        if: ${{ !( matrix.soc == 'demosoc' && startsWith(matrix.core, 'u900')) }}
+        if: ${{ !( matrix.soc == 'evalsoc' && startsWith(matrix.core, 'u900')) }}
         uses: actions/upload-artifact@v3
         with:
           name: bootimages_${{ matrix.soc }}_${{ matrix.core }}_${{ matrix.boot_mode }}
@@ -132,7 +132,7 @@ jobs:
             work/${{ matrix.soc }}/buildstamp.txt
 
       - name: Upload qemu images for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
-        if: ${{ !( matrix.soc == 'demosoc' && startsWith(matrix.core, 'u900')) }}
+        if: ${{ !( matrix.soc == 'evalsoc' && startsWith(matrix.core, 'u900')) }}
         uses: actions/upload-artifact@v3
         with:
           name: qemu_images_${{ matrix.soc }}_${{ matrix.core }}_${{ matrix.boot_mode }}
