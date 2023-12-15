@@ -142,10 +142,10 @@ But if you want to change and adapt for your SoC, you need to understand the bui
 
 Here are the version numbers of sub projects used in Nuclei Linux SDK.
 
-* Linux 6.1.y
-* Uboot v2023.01
-* OpenSBI master > v1.2
-* Buildroot 2022.11
+* Linux 6.6.y
+* Uboot v2023.10
+* OpenSBI master >= v1.3.1
+* Buildroot 2023.08.4
 
 Our changes to support Nuclei Eval SoC are adapted based on above version.
 
@@ -162,13 +162,14 @@ We support four configurations for **CORE**, choose the right core according to 
 
 You can choose different SoC by modify `SOC ?= evalsoc` line in `Makefile`.
 
-* `demosoc`: **Deprecated**, the demostration SoC from nuclei.
 * `evalsoc`: The next generation of the `demosoc`, we call it `evalsoc`, when your cpu has `iregion` feature, please use this one
 * you can add your SoC support by adding configuration in `conf/$SOC` folder refer to `conf/evalsoc`
 
-> You can check the dts difference for evalsoc and demosoc, for more details, need to check the Nuclei RISC-V CPU ISA spec.
+> You can check the dts difference for evalsoc, for more details, need to check the Nuclei RISC-V CPU ISA spec.
 
-> - Default SoC changed from demosoc to evalsoc, and default CORE changed to ux900fd from 2023.06
+> **demosoc** support is removed
+
+> - Default SoC changed to evalsoc, and default CORE changed to ux900fd from 2023.06
 > - Now evalsoc default cpu/peripheral frequency change from 100M to 50MHz from 2023.06
 > - From 2023.06, evalsoc ddr base address changed from 0xA0000000 to 0x80000000, so previous release of 600 and 900 bitstream may not work on this sdk, please take care
 
@@ -184,10 +185,10 @@ For each SoC, in `conf/$SOC/`, it contains a `build.mk` you can specify qemu, ti
 * **TIMER_HZ**: implementation dependent, you can change timer frequency to different value to overwrite the one in dts.
 * **CPU_HZ**: implementation dependent, you can change cpu frequency to different value to overwrite the one in dts.
 * **PERIPH_HZ**: implementation dependent, you can change peripheral frequency to different value to overwrite the one in dts.
-* **SIMULATION**: implementation dependent, if SIMULATION=1, only the peripherals can be simulated in rtl will be present in dts, for demosoc/evalsoc, only uart will be present, qspi will not.
+* **SIMULATION**: implementation dependent, if SIMULATION=1, only the peripherals can be simulated in rtl will be present in dts, for evalsoc, only uart will be present, qspi will not.
 
 > `TIMER_HZ/CPU_HZ/PERIPH_HZ` are all implementation dependent, it required your SoC dts implement this feature, currently
-> demosoc/evalsoc all support this.
+> evalsoc support this.
 
 For each SoC, in `conf/$SOC`, it also contains a `freeloader.mk`, it is used to configure freeloader feature to set cpu configuration when bring up, such as configure cache, tlb, smp feature, for details, please refer to freeloader source code.
 
@@ -216,7 +217,7 @@ Here is sample output running in xl_spike:
 > Log is not up to date, and may not working.
 
 ~~~
-xl_spike --isa=rv64imac /home/hqfang/workspace/software/nuclei-linux-sdk/work/demosoc/opensbi/platform/nuclei/demosoc/firmware/fw_payload.elf
+xl_spike --isa=rv64imac /home/hqfang/workspace/software/nuclei-linux-sdk/work/evalsoc/opensbi/platform/generic/firmware/fw_payload.elf
 rv64 file
 call xl_spike_t construct function
 warning: tohost and fromhost symbols not in ELF; can't communicate with target
@@ -704,11 +705,11 @@ run linux on it, click [Nuclei FPGA Evaluation Board](https://nucleisys.com/deve
 Before compiling this source code, please make sure you have done the following changes.
 
 Now we have two version of SoC for customer to evaluate our RISC-V CPU IP, if the bitstream you get from us
-has the `iregion` feature, you should use `evalsoc`, otherwise choose `demosoc`(deprecated).
+has the `iregion` feature, you should use `evalsoc`, otherwise choose `demosoc`(deprecated and removed).
 
 If there is double float fpu and isa is rv64 in the bitstream supported, you should choose `ux600fd` or `ux900fd`.
 
-- Default cpu/periph freq and timer freq are 16MHz and 32768Hz for demosoc.
+- Removed now, default cpu/periph freq and timer freq are 16MHz and 32768Hz for demosoc.
 - Default cpu/periph freq and timer freq are 50Mhz and 32768Hz for evalsoc v2.
 
 About detailed SoC information, please check https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/2
