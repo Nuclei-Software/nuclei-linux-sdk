@@ -97,9 +97,10 @@ opensbi_srcdir := $(srcdir)/opensbi
 opensbi_wrkdir := $(wrkdir)/opensbi
 opensbi_plat_confdir := $(confdir)/opensbi
 opensbi_plat_srcdir := $(srcdir)/opensbi/platform/generic/nuclei/
-opensbi_payload := $(opensbi_wrkdir)/platform/generic/firmware/fw_payload.elf
-opensbi_jumpbin := $(opensbi_wrkdir)/platform/generic/firmware/fw_jump.bin
-opensbi_jumpelf := $(opensbi_wrkdir)/platform/generic/firmware/fw_jump.elf
+opensbi_firmware_wrkdir := $(opensbi_wrkdir)/platform/generic/firmware
+opensbi_payload := $(opensbi_firmware_wrkdir)/fw_payload.elf
+opensbi_jumpbin := $(opensbi_firmware_wrkdir)/fw_jump.bin
+opensbi_jumpelf := $(opensbi_firmware_wrkdir)/fw_jump.elf
 
 opensbi_plat_deps := $(wildcard $(addprefix $(opensbi_plat_confdir)/, *.mk *.c *.h))
 
@@ -495,7 +496,7 @@ run_openocd:
 	$(openocd) -f $(platform_openocd_cfg)
 
 
-.PHONY: distclean clean cleanboot cleanlinux cleanbuildroot cleansysroot cleanfreeloader  clean_freeloader cleanopensbi prepare presim preboot
+.PHONY: distclean clean cleanboot cleanlinux cleanbuildroot cleansysroot cleanfreeloader clean_freeloader cleanopensbi prepare presim preboot
 distclean:
 	rm -rf $(wrkdir_root)
 
@@ -525,12 +526,11 @@ cleanfreeloader:
 cleanopensbi:
 	rm -rf $(opensbi_wrkdir)
 
-
 # If you change your make target from sim to bootimages, you need to run preboot first
 preboot: prepare
 
 prepare:
-	rm -rf $(vmlinux_bin) $(vmlinux) $(linux_image) $(vmlinux_sim_bin) $(vmlinux_sim)
+	rm -rf $(vmlinux_bin) $(vmlinux) $(linux_image) $(vmlinux_sim_bin) $(vmlinux_sim) $(opensbi_firmware_wrkdir)
 
 .PHONY: sim opensbi_sim presim
 
