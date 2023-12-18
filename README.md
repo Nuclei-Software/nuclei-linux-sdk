@@ -165,6 +165,10 @@ You can choose different SoC by modify `SOC ?= evalsoc` line in `Makefile`.
 * `evalsoc`: The next generation of the `demosoc`, we call it `evalsoc`, when your cpu has `iregion` feature, please use this one
 * you can add your SoC support by adding configuration in `conf/$SOC` folder refer to `conf/evalsoc`
 
+> If you want to try risc-v vector feature, you need to change `riscv,isa` in dts file, such as `conf/evalsoc/nuclei_rv64imafdc.dts`, change all `rv64imafdc` to `rv64imafdcv`, and rebuild freeloader, no need to change linux configuration, vector is by default enabled.
+
+> If you want to run on qemu to try with vector feature, with above changes, and you also need to pass `ARCH_EXT=v` to enable extra extension passed to qemu when do `make run_qemu`, eg. `make ARCH_EXT=v run_qemu`
+
 > You can check the dts difference for evalsoc, for more details, need to check the Nuclei RISC-V CPU ISA spec.
 
 > **demosoc** support is removed
