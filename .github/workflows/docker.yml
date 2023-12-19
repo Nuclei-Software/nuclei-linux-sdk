@@ -45,4 +45,4 @@ jobs:
           DOCKER_REPO=docker.io/nucleisoftware/linuxsdk
           docker tag linuxsdk:${{github.ref_name}} ${DOCKER_REPO}:${{github.ref_name}}
           docker push ${DOCKER_REPO}:${{github.ref_name}}
-          echo "Docker image is pushed to https://hub.docker.com/repository/docker/nucleisoftware/linuxsdk, tag ${{github.ref_name}}"
+          echo "Docker image is pushed to https://hub.docker.com/r/nucleisoftware/linuxsdk , tag ${{github.ref_name}}"
