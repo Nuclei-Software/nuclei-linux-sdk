@@ -1,0 +1,281 @@
+/dts-v1/;
+
+#ifndef TIMERCLK_FREQ
+#define TIMERCLK_FREQ       32768
+#endif
+#ifndef CPUCLK_FREQ
+#define CPUCLK_FREQ         50000000
+#endif
+#ifndef PERIPHCLK_FREQ
+#define PERIPHCLK_FREQ      CPUCLK_FREQ
+#endif
+#ifndef SIMULATION
+#define SIMULATION          0
+#endif
+
+/ {
+  #address-cells = <2>;
+  #size-cells = <2>;
+  compatible = "nuclei,customsoc";
+  model = "nuclei,customsoc";
+  dma-noncoherent;
+  chosen {
+      bootargs = "earlycon=sbi console=ttyNUC0 clk_ignore_unused";
+      stdout-path = "serial0";
+  };
+
+  aliases {
+    serial0 = &uart0;
+  };
+
+  cpus {
+    #address-cells = <1>;
+    #size-cells = <0>;
+    timebase-frequency = <TIMERCLK_FREQ>;
+    cpu0: cpu@0 {
+      device_type = "cpu";
+      reg = <0>;
+      status = "okay";
+      compatible = "riscv";
+
+      riscv,isa = "rv64imafdc_zicbom_svpbmt";
+      riscv,cbom-block-size =<64>;
+      mmu-type = "riscv,sv39";
+      clock-frequency = <CPUCLK_FREQ>;
+      cpu0_intc: interrupt-controller {
+        #interrupt-cells = <1>;
+        interrupt-controller;
+        compatible = "riscv,cpu-intc";
+      };
+    };
+  };
+
+  memory@0 {
+    device_type = "memory";
+    reg = <0x0 0x00000000 0x0 0x3E000000>;
+  };
+
+  soc {
+    #address-cells = <2>;
+    #size-cells = <2>;
+    compatible = "nuclei,customsoc", "simple-bus";
+    ranges;
+  };
+
+  /* Used for Uboot SBI Console */
+  console {
+    compatible = "sbi,console";
+  };
+
+  hfclk: hfclk {
+    #clock-cells = <0>;
+    compatible = "fixed-clock";
+    clock-frequency = <PERIPHCLK_FREQ>;
+    clock-output-names = "hfclk";
+  };
+  
+  plic0: interrupt-controller@f84000000 {
+    #interrupt-cells = <1>;
+    compatible = "riscv,plic0";
+    interrupt-controller;
+    riscv,ndev = <31>;
+    interrupts-extended =
+          <&cpu0_intc 11 &cpu0_intc 9>;
+    reg = <0xf 0x84000000 0x0 0x4000000>;
+  };
+
+  clint0: clint@f80031000 {
+    #interrupt-cells = <1>;
+    compatible = "riscv,clint0";
+    reg = <0xf 0x80031000 0x0 0x10000>;
+    interrupts-extended =
+          <&cpu0_intc 3 &cpu0_intc 7>;
+    clocks = <&hfclk>;
+  };
+
+  uart0: serial@f8b110000 {
+    compatible = "nuclei,uart0";
+    reg = <0xf 0x8b110000 0x0 0x1000>;
+    interrupt-parent = <&plic0>;
+    interrupts = <3>;
+    clocks = <&hfclk>;
+    clock-frequency = <PERIPHCLK_FREQ>;
+    status = "okay";
+  };
+
+#if SIMULATION == 0
+  qspi0: spi@f8b120000 {
+    compatible = "nuclei,spi0";
+    reg = <0xf 0x8b120000 0x0 0x1000>;
+    interrupt-parent = <&plic0>;
+    interrupts = <4>;
+    num-cs = <1>;
+    #address-cells = <1>;
+    #size-cells = <0>;
+    clocks = <&hfclk>;
+    status = "okay";
+
+    flash@0 {
+      compatible = "jedec,spi-nor";
+      reg = <0>;
+      spi-max-frequency = <1000000>;
+      m25p,fast-read;
+      spi-tx-bus-width = <1>;
+      spi-rx-bus-width = <1>;
+    };
+  };
+
+  qspi2: spi@f8b122000 {
+    compatible = "nuclei,spi0";
+    reg = <0xf 0x8b122000 0x0 0x1000>;
+    interrupt-parent = <&plic0>;
+    interrupts = <6>;
+    num-cs = <1>;
+    #address-cells = <1>;
+    #size-cells = <0>;
+    clocks = <&hfclk>;
+    status = "disabled";
+
+    mmc@0 {
+      compatible = "mmc-spi-slot";
+      reg = <0>;
+      spi-max-frequency = <1000000>;
+      voltage-ranges = <3300 3300>;
+      disable-wp;
+      spi-tx-bus-width = <1>;
+      spi-rx-bus-width = <1>;
+    };
+  };
+#endif
+
+  vdd_panel: vdd-panel {
+      compatible = "regulator-fixed";
+      regulator-name = "vdd_panel";
+      regulator-min-microvolt = <3300000>;
+      regulator-max-microvolt = <3300000>;
+  };
+
+
+  panel_rgb: panel-rgb {
+      compatible = "gn,gn_480272_n043c4024";
+      power-supply = <&vdd_panel>;
+      status = "okay";
+      port {
+          panel_in_rgb: endpoint {
+              remote-endpoint = <&disp_out_rgb>;
+          };
+      };
+  };
+
+
+  disp: display-controller@f8b250000 {
+    compatible = "nuclei,nuclei-display";
+    reg = <0xf 0x8b250000 0x0 0x1000>;
+    interrupt-parent = <&plic0>;
+    interrupts = <22>;
+//  resets = <&rcc STM32F4_APB2_RESET(LTDC)>;
+    //clocks = <&hfclk>;
+    clocks = <&clkc 4>, <&clkc 5>;
+    clock-names = "disp_bus_clk", "disp_pix_clk";
+    status = "okay";
+    /*pinctrl-0 = <&disp_pins_a>;
+    pinctrl-names = "default";*/
+    port {
+        disp_out_rgb: endpoint {
+            remote-endpoint = <&panel_in_rgb>;
+        };
+    };
+  };
+
+  i2c0: i2c@f8b260000 {
+    compatible = "nuclei,i2c";
+    interrupt-parent = <&plic0>;
+    interrupts = <23>;
+    reg = <0xf 0x8b260000 0x0 0x1000>;
+    clocks = <&clkc 18>;
+    /* resets = */
+    /* pinctrl info TBD */
+    status = "okay";
+    clock-frequency = <100000>;
+
+    touchscreen {
+        compatible = "nsw,ns2009";
+        reg = <0x48>;
+        /*pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_tsc2007>;
+        interrupt-parent = <&gpio3>;
+        interrupts = <26 IRQ_TYPE_NONE>;
+        gpios = <&gpio3 26 GPIO_ACTIVE_LOW>;
+        ti,x-plate-ohms = <660>;
+        wakeup-source;*/
+    };
+  };
+
+  osc_clk_25m: osc_clk_25m {
+    #clock-cells = <0>;
+    compatible = "fixed-clock";
+    clock-frequency = <25000000>;
+  };
+  
+  osc_clk_16m: osc_clk_16m {
+    #clock-cells = <0>;
+    compatible = "fixed-clock";
+    clock-frequency = <16000000>;
+  };
+  
+  osc_clk_24m: osc_clk_24m {
+    #clock-cells = <0>;
+    compatible = "fixed-clock";
+    clock-frequency = <24000000>;
+  };
+  
+  pad_clk_25m: pad_clk_25m {
+    #clock-cells = <0>;
+    compatible = "fixed-clock";
+    clock-frequency = <25000000>;
+  };
+  
+  pad_clk_48m: pad_clk_48m {
+    #clock-cells = <0>;
+    compatible = "fixed-clock";
+    clock-frequency = <48000000>;
+  };
+
+  clkc: clkc@f8b300000 {
+    #clock-cells = <1>;
+    compatible = "nuclei,clkc";
+    reg = <0xf 0x8b300000 0x0 0x1000>;
+    clocks = <&osc_clk_16m>, <&osc_clk_25m>, <&osc_clk_24m>;
+  };
+  
+  udma0: dma@f8b100000 {
+    compatible = "nuclei,dmac";
+    #dma-cells = <3>;
+    reg = <0xf 0x8b100000 0x0 0x1000>;
+    interrupt-parent = <&plic0>;
+    interrupts = <2>;
+    clocks = <&clkc 20>;
+  };
+
+  xec0: xec@f8b160000 {
+    compatible = "nuclei,xec";
+    reg = <0xf 0x8b160000 0x0 0x1000>;
+    interrupt-parent = <&plic0>;
+    interrupts = <13>;
+    clocks = <&clkc 2>, <&clkc 23>;
+    local-mac-address = [00 2b 20 21 03 23];
+    phy-handle = <&rtl8211f>;
+    phy-mode = "rgmii";
+
+    mdio {
+        compatible = "snps,dwmac-mdio";
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        rtl8211f: ethernet-phy@2 {
+            compatible = "ethernet-phy-ieee802.3-c22";
+            reg = <2>;
+        };
+    };
+  };
+};
