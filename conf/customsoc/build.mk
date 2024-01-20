@@ -1,7 +1,7 @@
 FW_TEXT_START := 0x00000000
 UIMAGE_AE_CMD := -a 0x0400000 -e 0x0400000
-# qemu currently not work for evalsoc for qemu <= 2022.12
-QEMU_MACHINE_OPTS := -M nuclei_customsoc,download=flashxip -smp 1 -m 2G
+# qemu currently not work for customsoc, please don't use it
+#QEMU_MACHINE_OPTS := -M nuclei_customsoc,download=flashxip -smp 1 -m 2G
 # initramfs pre command before generate initrd ramfs
 INITRAMFS_PRECMD := bash $(confdir)/preramfs.sh $(confdir) $(buildroot_initramfs_sysroot) copyfiles.txt
 # eg. $(confdir)/amp/cx.bin
