@@ -261,6 +261,18 @@ cache:
         - make preboot
         - BUILDBOOTIMAGES=0 bash .github/build_sdk.sh
 
+## Job for build sdk for customsoc
+build_customsoc:
+    stage: build
+    variables:
+        SOC: "customsoc"
+        ARCH_EXT: ""
+    parallel:
+        matrix:
+            - CORE: ["ux900", "ux900fd"]
+              BOOT_MODE: ["sd", "flash"]
+    <<: *build_linux_sdk_job_def
+
 ## Job for build sdk
 # Build For ux900 Core, without FPU, flash boot mode
 build_ux900_flash:
