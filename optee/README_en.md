@@ -134,6 +134,10 @@ static TEE_Result pta_timer_set_timeout(uint32_t param_types,
 
 ```
 
+## Special Configure
+
+Some versions of Nuclei hardware have introduced shart csr, which can obtain hartids in S mode. If the hardware does not support this feature, Setting CFG_SHART_FEATURE Configure to n in the optee_os/core/arch/riscv/plat nuclei/conf.mk file. By default, CFG_SHART_FEATURE is enabled.
+
 ## Compile and Depoly
 
 optee compilation include optee-os, optee-client, optee-test, optee-example, have been integrated into top Mafile of Linux SDK. it will finish compile when build linux sdk. 

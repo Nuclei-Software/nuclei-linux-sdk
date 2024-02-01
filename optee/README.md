@@ -125,6 +125,10 @@ static TEE_Result pta_timer_set_timeout(uint32_t param_types,
 
 ```
 
+## 特殊配置
+
+Nuclei某些硬件版本引入了shart csr，能在S模式获取hartid。如果硬件不支持这个特性，可在optee_os/core/arch/riscv/plat-nuclei/conf.mk文件中设置CFG_SHART_FEATURE为n。默认情况下CFG_SHART_FEATURE 开启。
+
 ## 编译部署
 
 optee 仓库包括optee-os，optee-client，optee-test，optee-example编译和部署已集成到顶层Makefile中，编译SDK时会默认编译optee各部分，典型的编译如下：
