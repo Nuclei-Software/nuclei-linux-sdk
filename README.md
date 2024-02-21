@@ -143,9 +143,9 @@ But if you want to change and adapt for your SoC, you need to understand the bui
 Here are the version numbers of sub projects used in Nuclei Linux SDK.
 
 * Linux 6.6.y
-* Uboot v2023.10
-* OpenSBI master >= v1.3.1
-* Buildroot 2023.08.4
+* Uboot v2024.01
+* OpenSBI master >= v1.4
+* Buildroot 2023.11.x
 
 Our changes to support Nuclei Eval SoC are adapted based on above version.
 
