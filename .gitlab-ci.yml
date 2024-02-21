@@ -203,8 +203,7 @@ cache:
 .job_rules:
     interruptible: true
     rules:
-        - if: '$CI_PIPELINE_SOURCE == "push"'
-          changes:
+        - changes:
             - conf/**/*
             - .github/**/*
             - Makefile*
