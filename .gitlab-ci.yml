@@ -11,7 +11,7 @@ workflow:
     - if: $CI_COMMIT_MESSAGE =~ /draft|wip|stash/i
       when: never
     # open merge quest and request target branch is dev_nuclei*
-    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /dev_nuclei* && $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /dev_nuclei*/ && $CI_PIPELINE_SOURCE == "merge_request_event"
     # no open merge request and branch pipeline
     - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
       when: never
@@ -202,17 +202,18 @@ cache:
 
 .job_rules:
     interruptible: true
-    only:
-        changes:
-          - conf/**/*
-          - .github/**/*
-          - Makefile*
-          - .gitlab-ci.yml
-          - buildroot
-          - opensbi
-          - freeloader
-          - linux
-          - u-boot
+    rules:
+        - if: '$CI_PIPELINE_SOURCE == "push"'
+          changes:
+            - conf/**/*
+            - .github/**/*
+            - Makefile*
+            - .gitlab-ci.yml
+            - buildroot
+            - opensbi
+            - freeloader
+            - linux
+            - u-boot
     tags:
         - env::shell
         - net::outside
