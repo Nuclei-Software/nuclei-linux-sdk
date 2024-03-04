@@ -114,9 +114,16 @@ uboot_wrkdir := $(wrkdir)/u-boot
 uboot_config := $(confdir)/uboot_$(ISA)_$(BOOT_MODE)_config
 uboot_bin := $(uboot_wrkdir)/u-boot.bin
 uboot_elf := $(uboot_wrkdir)/u-boot
+uboot_spl_bin := $(uboot_wrkdir)/spl/u-boot-spl-nodtb.bin
+uboot_spl_elf := $(uboot_wrkdir)/spl/u-boot-spl
 uboot_mkimage := $(uboot_wrkdir)/tools/mkimage
 
 uboot_cmd := $(confdir)/uboot.cmd
+
+uboot_spl_srcdir := $(srcdir)/u-boot
+uboot_spl_wrkdir := $(wrkdir)/u-boot_spl
+uboot_spl_its := $(confdir)/uboot_spl.its
+uboot_spl_itb := $(uboot_spl_wrkdir)/uboot_spl.itb
 
 # Directory for boot images stored in sdcard
 boot_wrkdir := $(wrkdir)/boot
@@ -414,7 +421,16 @@ $(uboot_wrkdir)/.config: $(target_gcc) $(uboot_config)
 	cp $(uboot_config) $@
 	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) olddefconfig
 
-$(uboot_mkimage) $(uboot_bin): uboot
+$(uboot_spl_itb): $(target_gcc) $(uboot_spl_its) $(platform_dtb) opensbi uboot
+	mkdir -p $(uboot_spl_wrkdir)
+	rm -f $(uboot_spl_wrkdir)/*.*
+	cp -f $(opensbi_jumpbin) $(uboot_spl_wrkdir)/opensbi.bin
+	cp -f $(uboot_bin) $(uboot_spl_wrkdir)/u-boot.bin
+	cp -f $(platform_dtb) $(uboot_spl_wrkdir)/fdt.dtb
+	cp -f $(uboot_spl_its) $(uboot_spl_wrkdir)/spl.its
+	cd $(uboot_spl_wrkdir) && $(uboot_mkimage) -f spl.its $@
+
+$(uboot_mkimage) $(uboot_bin) $(uboot_spl_bin): uboot
 	@echo "Uboot binary is generated into $<"
 
 .PHONY: freeloader upload_freeloader debug_freeloader run_openocd
@@ -450,14 +466,14 @@ freeloader4m: prepare4m $(freeloader_elf)
 endif
 
 ifeq ($(BOOT_MODE),sd)
-$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb) $(amp_bins)
+$(freeloader_elf): $(freeloader_srcdir) $(uboot_spl_bin) $(uboot_spl_itb) $(platform_dtb) $(amp_bins)
 else
-$(freeloader_elf): $(freeloader_srcdir) $(uboot_bin) $(opensbi_jumpbin) $(platform_dtb) $(boot_zip) $(amp_bins)
+$(freeloader_elf): $(freeloader_srcdir) $(uboot_spl_bin) $(uboot_spl_itb) $(platform_dtb) $(boot_zip) $(amp_bins)
 endif
 	mkdir -p  $(freeloader_wrkdir)
 	$(MAKE) -C $(freeloader_srcdir) O=$(freeloader_wrkdir) ARCH=$(ISA) ABI=$(ABI) ARCH_EXT=$(ARCH_EXT) \
 		BOOT_MODE=$(BOOT_MODE) CROSS_COMPILE=$(CROSS_COMPILE) \
-		OPENSBI_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(platform_dtb) \
+		UBOOT_SPL_BIN=$(uboot_spl_bin) UBOOT_SPL_ITB=$(uboot_spl_itb) DTB=$(platform_dtb) \
 		KERNEL_BIN=$(boot_uimage_lz4) INITRD_BIN=$(boot_uinitrd_lz4) CONFIG_MK=$(freeloader_confmk)  \
 		CORE1_APP_BIN=$(CORE1_APP_BIN) CORE2_APP_BIN=$(CORE2_APP_BIN) CORE3_APP_BIN=$(CORE3_APP_BIN) \
 		CORE4_APP_BIN=$(CORE4_APP_BIN) CORE5_APP_BIN=$(CORE5_APP_BIN) CORE6_APP_BIN=$(CORE6_APP_BIN) CORE7_APP_BIN=$(CORE7_APP_BIN)
