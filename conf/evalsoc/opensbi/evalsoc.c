@@ -9,6 +9,8 @@
 
 #include <platform_override.h>
 #include <sbi/riscv_asm.h>
+#include <sbi/riscv_io.h>
+#include <sbi/sbi_console.h>
 #include <sbi_utils/fdt/fdt_helper.h>
 #include <sbi_utils/fdt/fdt_fixup.h>
 
@@ -21,6 +23,9 @@ static const struct fdt_match nuclei_evalsoc_match[] = {
 static int nuclei_evalsoc_final_init(bool cold_boot,
 				   const struct fdt_match *match)
 {
+	unsigned long smpcc_base = 0, smpcc_cfg;
+	unsigned long cc_ctrl;
+
 	if (cold_boot) { // Add cold boot initial steps
 	}
 
@@ -30,19 +35,39 @@ static int nuclei_evalsoc_final_init(bool cold_boot,
 		csr_write(0x1a0, 0x1f);
 		csr_write(0x1b0, 0xffffffff);
 	}
+	// disable mattri0 which is used to configure PMA of CLM
+	csr_write(mattri0_base, 0x0);
 
 	/*
-	 * If arch is rv32 or rv64 without svpbmt feature, you can use mattri to set ddr base:0xfd000000,size:0x10000 as non-cachable region.
+	 * If arch is rv32 or rv64 without svpbmt feature, you can use mattri to set ddr base:0xfd000000,size:0x10000 as non-cachable region. which is used for XEC(NUCLEI ethernet mac IP)
 	 * xec dts node should contain desc_mem region from base:0xfd000000,size:0x10000; which is reserved region used to store xec descriptors.
 	 * if rv64 with svpbmt feature, xec dts node must not contain desc_mem property.
 	 */
 #if __riscv_xlen == 32
-	#define mattri1_base 0x7f5
-	#define mattri1_mask 0x7f6
-
 	csr_write(mattri1_mask, 0xffff0000);
 	csr_write(mattri1_base, 0xfd000005);
 #endif
+	// Check mcfg_info.smp to see whether smp present
+	// if present, disable clm and enable l2 cache for boot hart
+	if (csr_read(0xfc2) & (0x1 << 11) && cold_boot) {
+		smpcc_base = csr_read(0x7f7) >> 10;
+		smpcc_base = (smpcc_base << 10) + 0x40000;
+		smpcc_cfg = readl((volatile void *)(smpcc_base + 0x4));
+		sbi_printf("SMPCC BASE=0x%lx\n", smpcc_base);
+		sbi_printf("SMPCC SMP_CFG=0x%lx\n", smpcc_cfg);
+		if (smpcc_cfg & 0x1) { // L2 Cache Present
+			sbi_printf("Disable CLM and enable L2 Cache\n");
+			// Now Cluster Local Memory is not used any more since uboot spl stage is already done
+			// We just disable this Cluster Local Memory feature and make it all L2 cache
+			// set CLM_WAY_EN = 0x0
+			writel(0, (volatile void *)(smpcc_base + 0xd8));
+			// Enable L2
+			// set CC_CTRL = 0x1
+			cc_ctrl = readl((volatile void *)(smpcc_base + 0x10));
+			cc_ctrl |= 1;
+			writel(cc_ctrl, (volatile void *)(smpcc_base + 0x10));
+		}
+	}
 
 	return 0;
 }

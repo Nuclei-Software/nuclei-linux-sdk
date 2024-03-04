@@ -1,0 +1,66 @@
+#define KERNEL_IMG_LOAD_ADDR	(SOC_DDR_BASE + 0x400000)
+#define KERNEL_DTB_LOAD_ADDR	(SOC_DDR_BASE + 0x9000000)
+
+/dts-v1/;
+
+/ {
+        description = "U-boot FIT image";
+        #address-cells = <2>;
+
+        images {
+
+                kernel {
+                        description = "Linux kernel";
+                        data = /incbin/("Image.lz4");
+                        type = "kernel";
+                        arch = "riscv";
+                        os = "linux";
+                        load =  /bits/ 64 <KERNEL_IMG_LOAD_ADDR>;
+                        entry = /bits/ 64 <KERNEL_IMG_LOAD_ADDR>;
+                        compression = "lz4";
+                        hash-1 {
+                                algo = "sha256";
+                        };
+                };
+
+                ramdisk {
+                        description = "buildroot initramfs";
+                        data = /incbin/("Initrd.lz4");
+                        type = "ramdisk";
+                        arch = "riscv";
+                        os = "linux";
+                        compression = "none";
+                        hash-1 {
+                                algo = "sha256";
+                        };
+                };
+                /*
+                 *Use dtb from spl.itb primarily, here kernel.dtb as a backup that can be used when needed.
+                */
+                /*fdt {
+                        description = "second dtb";
+                        data = /incbin/("kernel.dtb");
+                        type = "flat_dt";
+                        arch = "riscv";
+                        load = /bits/ 64 <KERNEL_DTB_LOAD_ADDR>;
+                        compression = "none";
+                        hash-1 {
+                                algo = "sha256";
+                        };
+                };*/
+        };
+
+        configurations {
+                default = "boot";
+
+                boot {
+                        description = "Boot Image with ramdisk";
+                        kernel = "kernel";
+                        /* here fdt defination is together with above fdt */
+                        /*fdt = "fdt";*/
+                        ramdisk = "ramdisk";
+                };
+
+        };
+};
+

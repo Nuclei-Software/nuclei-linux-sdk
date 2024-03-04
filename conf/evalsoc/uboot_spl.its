@@ -1,0 +1,65 @@
+#include <generated/autoconf.h>
+
+#define DTB_LOAD_ADDR	(CONFIG_SPL_OPENSBI_LOAD_ADDR + 0x8000000)
+
+/dts-v1/;
+
+/ {
+        description = "UBoot SPL Image";
+        #address-cells = <2>;
+
+        images {
+
+                opensbi {
+                        description = "OpenSBI Dynamic Firmaware";
+                        data = /incbin/("opensbi.bin");
+                        type = "firmware";
+                        arch = "riscv";
+                        os = "opensbi";
+                        load =  /bits/ 64 <CONFIG_SPL_OPENSBI_LOAD_ADDR>;
+                        entry = /bits/ 64 <CONFIG_SPL_OPENSBI_LOAD_ADDR>;
+                        compression = "none";
+                        hash-1 {
+                                algo = "sha256";
+                        };
+                };
+
+                uboot {
+                        description = "U-Boot";
+                        data = /incbin/("u-boot.bin");
+                        type = "standalone";
+                        arch = "riscv";
+                        os = "U-Boot";
+                        load = /bits/ 64 <CONFIG_TEXT_BASE>;
+                        compression = "none";
+                        hash-1 {
+                                algo = "sha256";
+                        };
+                };
+
+                fdt {
+                        description = "Firmware DTB";
+                        data = /incbin/("fdt.dtb");
+                        type = "flat_dt";
+                        arch = "riscv";
+                        load = /bits/ 64 <DTB_LOAD_ADDR>;
+                        compression = "none";
+                        hash-1 {
+                                algo = "sha256";
+                        };
+                };
+        };
+
+        configurations {
+                default = "boot";
+
+                boot {
+                        description = "UBoot SPL";
+                        firmware = "opensbi";
+                        loadables = "uboot";
+                        fdt = "fdt";
+                };
+
+        };
+};
+
