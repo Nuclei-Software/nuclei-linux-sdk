@@ -147,6 +147,240 @@ linux系统需要配置TEE driver，dts需要配置optee节点，以便启动时
 
 > 如编译optee 碰到错误，请检查错误提示的模块是否安装，例如python3的 pyelftools cryptography等模块，编译optee需要的基础环境可参考(https://optee.readthedocs.io/en/latest/building/prerequisites.html)
 
+## 移植新平台
+
+### 移植前提假设
+
+软件假设：
+
+- 假设linux 5.10(opensbi v0.9)系统可以在新平台上运行到控制台，假定从SD卡加载kernel rootfs。
+- linux 系统的移植请参考：`linux_sdk/README.md`。
+- 假设移植optee时，linux_sdk/conf 下的用户配置文件为custsoc，其内容可参考linux optee_5.10 分支中的conf/evalsoc。
+
+硬件假设：
+- cpu：900系列。
+- device：spi_xip, uart, norflash。
+- pmp entry 框架至少需要4个（opensbi，optee_os, optee_shmem, linux os），相比没有optee的linux sdk多了两个pmp entry，目前nuclei demo中有6个pmp entry。
+- shartid 在optee os中默认使用，如果cpu core 版本低于v2.8.0 则可以在optee对应的platform下修改conf.mk。
+
+    ```
+    $(call force,CFG_SHART_FEATURE,n)  -->不使用shartid
+    ```
+
+- plic 中断控制器，在M模式中断源pending 位可写，S模式不能修改M 模式使能的中断。
+- 如果硬件支持WG安全特性，对应的linux sdk 分支是optee_5.10_wg, 不支持这一特性的linux sdk 是optee_5.10。
+
+### linux sdk 主要镜像在ddr内存中布局
+
+文件：`linux_sdk/freeloader/freeloader.S`
+
+该文件描述各镜像的内存布局，这一布局用于纯norflash启动方式，如果是sd卡启动，则kernel，rootfs的加载地址会有差别，其定义在conf/custsoc/uboot.cmd。不管哪种启动方式，opensbi，optee，uboot的内存位置是相同的。移植optee os需要先规划好各镜像的加载地址，evalsoc 主要镜像加载地址如下：
+
+ddr_base: 0xa0000000
+
+|  image name       | base addr             | maxsize(byte) |
+|  ----             | ----                  | ----      |
+| opensbi           | ddr_base + 0x0        |  2M       |
+| optee_os_shmem    | ddr_base + 0x200000   |  2M       |
+| optee_os_tzdram   | ddr_base + 0x800000   |  8M       |
+| uboot             | ddr_base + 0x1000000  |  4M       |
+| kernel            | ddr_base + 0x1400000  |  50M      |
+| fdt               | ddr_base + 0x8000000  |  1M       |
+| rootfs            | ddr_base + 0x8300000  |  up to mem top  |
+
+opensbi：常驻内存运行在M模式
+
+optee_os_shmem: optee os 与 linux os的共享内存区域
+
+optee_os_tzdram: optee os 镜像，常驻内存运行在S模式
+
+uboot：运行在S模式，启动内核前运行，内核启动完成后，其内存可被占用
+
+kernel：运行在S模式，常驻内存，此区域只是内核的加载区域，运行地址在conf/evalsoc/build.mk中配置
+
+fdt：设备树，供uboot，kernel使用的设备信息数据。
+
+rootfs：根文件系统，运行在U模式
+
+### 配置optee 编译参数
+
+**文件**：`linux_sdk/Makefile`
+
+该文件定义了optee platform及optee os 的编译地址，用户可以根据SOC地址修改以下配置，其他默认不用修改。
+
+- 配置optee os platform
+
+    ```
+    optee_os_platform := nuclei
+    ```
+
+对应linux_sdk/optee/optee_os/core/arch/riscv/plat-nuclei 文件夹中nuclei的名字。
+
+比如在linux_sdk/optee/optee_os/core/arch/riscv/ 目录下
+porting 新platfrom : plat-cust，则optee_os_platform := cust，此处的名字与conf 目录下的配置文件名没有关系。
+
+- 配置optee os 及share memory的编译地址
+
+```
+optee_os_tzdram_start := 0xA0800000
+optee_os_tzdram_size := 0x800000
+optee_os_shmem_start := 0xA0200000
+optee_os_shmem_size := 0x200000
+```
+
+编译地址会覆盖`linux_sdk/optee/optee_os/core/arch/riscv/plat-nuclei/conf.mk`中的配置
+
+**文件**：`linux_sdk/conf/custsoc/build.mk`
+
+根据optee 规划的内存配置kernel运行地址，下面是evalsoc的配置
+
+```
+UIMAGE_AE_CMD := -a 0xA1200000 -e 0xA1200000
+```
+
+**文件**：`conf/custsoc/linux_rv64xx_defconfig`
+
+添加内核配置项
+
+```
+CONFIG_TEE=y
+CONFIG_OPTEE=y
+```
+
+**文件**：`conf/custsoc/nuclei_rv64xx.dts`
+
+- 修改memory dts 节点，将opensbi、optee 内存区域不包含在memory节点中，不接受内核管理。
+下面是evalsoc的配置值
+
+```
+memory@A0000000 {
+    device_type = "memory";
+    reg = <0x0 0xA1000000 0x0 0x5D000000>;
+};
+```
+
+- 增加optee dts 节点
+
+```
+firmware {
+    optee {
+    compatible = "linaro,optee-tz";
+    method = "smc";
+    };
+};
+```
+
+**文件**：`conf/custsoc/opensbi/config.mk`
+
+该文件定义了opensbi payload的地址，optee运行地址，参考evalsoc及镜像内存布局修改以下配置
+
+```
+FW_JUMP_ADDR
+FW_JUMP_FDT_ADDR
+FW_OPTEE_TZDRAM_BASE
+FW_OPTEE_TZDRAM_SIZE
+FW_OPTEE_SHMEM_BASE
+FW_OPTEE_SHMEM_SIZE
+```
+
+**文件**： `conf/custsoc/uboot.cmd`
+
+sd卡加载kernel时，该文件定义了kernel，rootfs加载到内存的位置，参考evalsoc修改。
+
+**文件**： `conf/custsoc/uboot_rv64xx_config`
+
+该文件定义了uboot 编译配置，主要参考用户内存布局修改uboot的运行地址，下面是evalsoc的配置
+
+```
+CONFIG_SYS_TEXT_BASE=0xA1000000
+```
+
+**文件**：`linux_sdk/freeloader/freeloader.S`
+
+该文件定义了optee os的运行地址，用户按需修改，此地址和前面的memory mapping及 optee 编译地址保持一致。下面是evalsoc的配置
+
+```
+#define OPTEEOS_START_BASE  (DDR_BASE + 0x800000)
+```
+
+### 支持安全特性的内存区域配置
+
+**此章节仅针对支持安全功能的cpu core，不支持这个硬件特性的可跳过**，配合的linux sdk 分支是optee_5.10_wg。通过mattri_base, mattri_mask csr寄存器，配置安全与非安全的内存共享区域。
+mattri_base 用例设置基地址，mattri_mask用来设置区域大小，具体用法参考Nuclei_RISC-V_ISA_Spec.pdf 文档。
+
+**文件**：`freeloader/freeloader.S`
+
+设置uboot，fdt 加载的内存为安全与非安全共享区域，这里0xA0000000 就是opensbi的基地址，也是DDR的基地址，用户根据具体情况修改。
+mattri_base地址需要以共享区域大小对齐，比如共享区域为0xa0000000~0xb0000000,大小为0x10000000，mattri_base 就要256MB对齐
+和前面的[镜像内存布局有关](#linux-sdk-主要镜像在ddr内存中布局)，用户根据具体情况修改。
+
+```
+    li a0, 0xF0000000
+    csrw CSR_MATTRI3_MASK, a0
+    li a0, 0xA0000000
+    addi a0, a0, SECSHARE_REGION_ATTR
+    csrw CSR_MATTRI3_BASE, a0
+```
+
+```
+    li a0, 0xFFF00000
+    csrw CSR_MATTRI3_MASK, a0
+    li a0, FDT_START_BASE
+    addi a0, a0, SECSHARE_REGION_ATTR
+    csrw CSR_MATTRI3_BASE, a0
+```
+
+**文件**：`opensbi/firmware/fw_base.S`
+
+配置非boot hart的安全非安全共享区域,0xA1000000 是uboot 的加载地址，和前面的[镜像内存布局有关](#linux-sdk-主要镜像在ddr内存中布局)，用户根据具体情况修改。
+
+```
+	/*
+	 * Config share memory for other harts,
+	 * hart0 have been config by freeloader.
+	 */
+	li a4, 0xFF000000
+	csrw CSR_MATTRI0_MASK, a4
+	li a4, 0xA1000000
+	addi a4, a4, SECSHARE_REGION_ATTR
+	csrw CSR_MATTRI0_BASE, a4
+```
+
+**文件**：`lib/sbi/optee/opteed_common.c`
+
+设置shmem的安全非安全共享区域0xA0200000~0xA0400000，和前面的[镜像内存布局有关](#linux-sdk-主要镜像在ddr内存中布局)，用户根据具体情况修改。
+
+```
+	csr_write(CSR_MATTRI1_MASK, 0xFFF00000);
+	csr_write(CSR_MATTRI1_BASE, 0xA0200000 | SECSHARE_REGION_ATTR);
+	csr_write(CSR_MATTRI2_MASK, 0xFFF00000);
+	csr_write(CSR_MATTRI2_BASE, 0xA0300000 | SECSHARE_REGION_ATTR);
+
+```
+
+### 移植一个plat
+
+plat 移植和arm的基本一致，以移植plat-cust 为例。
+
+在 `linux_sdk/optee/optee_os/core/arch/riscv/` 下创建plat-cust, 可参考plat-nuclei。
+
+1). 根据[optee编译配置](#配置optee-编译参数)中的说明，修改参数
+
+2). 创建如下文件结构
+
+```
+.
+├── conf.mk
+├── drivers
+│   └── sub.mk
+├── kern.ld.S
+├── main.c
+├── platform_config.h
+└── sub.mk
+```
+
+main.c 主要是用户客制化的函数，conf.mk 是optee os编译选项配置文件，platform_config.h 中定义了RISCV MTIME的速率，客制化时候需要加上此文件中的内容。本例中是做了timer设备中断处理，这个例子只是内部测试用，main.c 实现的功能可以参考ARM的其他方案。
+
 ## 启动运行日志
 
 下面的打印包括SMP系统的启动过程及运行的应用程序，运行了2个CA(client application)应用程序：optee_example_hello_world，optee_example_demo.
