@@ -6,6 +6,11 @@
 
 Please check [about each branch feature](https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/2) to learn which branch you should choose.
 
+> [!Note]
+> - Only CORE=ux900fd rv64imafdc configuration supported
+> - Only BOOT_MODE=sd supported
+> - AMP not supported
+
 ## Tested Configurations
 
 ### Docker
