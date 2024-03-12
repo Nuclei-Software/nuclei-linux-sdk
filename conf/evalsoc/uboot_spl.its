@@ -1,0 +1,61 @@
+/dts-v1/;
+
+/ {
+        description = "UBoot SPL Image";
+        #address-cells = <2>;
+
+        images {
+
+                opensbi {
+                        description = "OpenSBI Dynamic Firmaware";
+                        data = /incbin/("opensbi.bin");
+                        type = "firmware";
+                        arch = "riscv";
+                        os = "opensbi";
+                        load =  <0x0 0x80000000>;
+                        entry = <0x0 0x80000000>;
+                        compression = "none";
+                        hash-1 {
+                                algo = "sha256";
+                        };
+                };
+
+                uboot {
+                        description = "U-Boot";
+                        data = /incbin/("u-boot.bin");
+                        type = "standalone";
+                        arch = "riscv";
+                        os = "U-Boot";
+                        load = <0x0 0x80200000>;
+                        compression = "none";
+                        hash-1 {
+                                algo = "sha256";
+                        };
+                };
+
+                fdt {
+                        description = "Firmware DTB";
+                        data = /incbin/("fdt.dtb");
+                        type = "flat_dt";
+                        arch = "riscv";
+                        load = <0x0 0x88000000>;
+                        compression = "none";
+                        hash-1 {
+                                algo = "sha256";
+                        };
+                };
+        };
+
+        configurations {
+                default = "boot";
+
+                boot {
+                        description = "UBoot SPL";
+                        firmware = "opensbi";
+                        loadables = "uboot";
+                        fdt = "fdt";
+                };
+
+        };
+};
+
