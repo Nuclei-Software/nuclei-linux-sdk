@@ -7,9 +7,12 @@
 Please check [about each branch feature](https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/2) to learn which branch you should choose.
 
 > [!Note]
+> - This branch is a reference support for uboot spl bringup.
 > - Only CORE=ux900fd rv64imafdc configuration supported
 > - Only BOOT_MODE=sd supported
 > - AMP not supported
+> - Below document is not yet update for uboot spl.
+> - For how to use, see https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/24
 
 ## Tested Configurations
 
