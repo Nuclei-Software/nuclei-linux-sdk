@@ -71,6 +71,7 @@ platform_sim_dts := $(confdir)/nuclei_$(ISA).dts
 platform_preproc_sim_dts := $(wrkdir)/nuclei_$(ISA)_sim.dts.preprocessed
 platform_sim_dtb := $(wrkdir)/nuclei_$(ISA)_sim.dtb
 
+
 platform_openocd_cfg := $(confdir)/openocd.cfg
 
 buildroot_initramfs_config := $(confdir)/buildroot_initramfs_$(ISA)_config
@@ -124,14 +125,15 @@ uboot_spl_srcdir := $(srcdir)/u-boot
 uboot_spl_wrkdir := $(wrkdir)/u-boot_spl
 uboot_spl_its := $(confdir)/uboot_spl.its
 uboot_spl_itb := $(uboot_spl_wrkdir)/uboot_spl.itb
+uboot_spl_dtb := $(uboot_spl_wrkdir)/spl.dtb
 
 # Directory for boot images stored in sdcard
 boot_wrkdir := $(wrkdir)/boot
 boot_zip := $(wrkdir)/boot.zip
-boot_ubootscr := $(boot_wrkdir)/boot.scr
 boot_image := $(boot_wrkdir)/Image.lz4
-boot_uimage_lz4 := $(boot_wrkdir)/uImage.lz4
-boot_uinitrd_lz4 := $(boot_wrkdir)/uInitrd.lz4
+boot_initrd := $(boot_wrkdir)/Initrd.lz4
+
+
 boot_kernel_dtb := $(boot_wrkdir)/kernel.dtb
 
 # qemu related disk image
@@ -380,31 +382,31 @@ bootimages: $(boot_zip)
 $(boot_wrkdir):
 	mkdir -p $@
 
-$(boot_ubootscr): $(uboot_cmd) $(uboot_mkimage)
-	$(uboot_mkimage) -A riscv -T script -O linux -C none -a 0 -e 0 -n "bootscript" -d $(uboot_cmd) $@
+$(boot_image): $(linux_image)
+	lz4 $< $@ -f -9
 
-# UIMAGE_AE_CMD is defined in conf/$(SOC)/build.mk
-# For DDR_BASE = 0x80000000, eg.
-# UIMAGE_AE_CMD := -a 0x80400000 -e 0x80400000
-$(boot_uimage_lz4): $(linux_image)
-# For xlen = 32 target, the uncompressed kernel image is 25M, but for rv64, it is only 15M
-# compressed kernel image, facing an uncompress error -93 in Uncompressing Kernel Image stage
-# when decompressed to 0x810000000, which only left 15.75M space, so we changed kernel decompress
-# address to 0x83000000, to left about 48M space to decompress
-	lz4 $< $(boot_image) -f -9
-	$(uboot_mkimage) -A riscv -O linux -T kernel -C lz4 $(UIMAGE_AE_CMD) -n Linux -d $(boot_image) $@
-	rm -f $(boot_image)
-
-$(boot_uinitrd_lz4): $(initramfs)
-	lz4 $(initramfs) $(initramfs).lz4 -f -9 -l
-	$(uboot_mkimage) -A riscv -T ramdisk -C lz4 -n Initrd -d $(initramfs).lz4 $(boot_uinitrd_lz4)
+$(boot_initrd): $(initramfs)
+	lz4 $(initramfs) $@ -f -9 -l
 
 $(boot_kernel_dtb): $(platform_preproc_dts)
 	dtc -O dtb -o $(boot_kernel_dtb) $(platform_preproc_dts)
 
-$(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_lz4) $(boot_kernel_dtb)
+$(boot_zip): $(boot_wrkdir) $(boot_image) $(boot_initrd) $(boot_kernel_dtb) $(uboot_mkimage)
 	rm -f $(boot_zip)
+	mkdir -p $(wrkdir)/keys
+	# generate spl rsa key and x509 crt
+	if [ ! -f $(wrkdir)/keys/spl.crt ]; then cd $(wrkdir) && openssl genpkey -algorithm RSA -out keys/spl.key -pkeyopt rsa_keygen_bits:2048 -pkeyopt rsa_keygen_pubexp:65537 ; fi;
+	cd $(wrkdir) && openssl req -batch -new -x509 -key keys/spl.key -out keys/spl.crt
+
+	# generate uboot rsa key and x509 crt
+	if [ ! -f $(wrkdir)/keys/uboot.crt ]; then cd $(wrkdir) && openssl genpkey -algorithm RSA -out keys/uboot.key -pkeyopt rsa_keygen_bits:2048 -pkeyopt rsa_keygen_pubexp:65537 ; fi;
+	cd $(wrkdir) && openssl req -batch -new -x509 -key keys/uboot.key -out keys/uboot.crt
+
+	cp -f $(confdir)/kernel.its $(boot_wrkdir)/kernel.its
+	# store uboot pubkey to boot_kernel_dtb
+	cd $(boot_wrkdir) && $(uboot_mkimage) -f kernel.its -K $(boot_kernel_dtb) -k $(wrkdir)/keys -r kernel.itb
 	cd $(boot_wrkdir) && zip -q -r $(boot_zip) .
+	rm -f $(boot_image) $(boot_initrd) $(boot_wrkdir)/kernel.its
 
 .PHONY: uboot uboot-menuconfig
 uboot: $(uboot_wrkdir)/.config $(platform_dtb)
@@ -421,14 +423,17 @@ $(uboot_wrkdir)/.config: $(target_gcc) $(uboot_config)
 	cp $(uboot_config) $@
 	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) olddefconfig
 
-$(uboot_spl_itb): $(target_gcc) $(uboot_spl_its) $(platform_dtb) opensbi uboot
+$(uboot_spl_itb): $(target_gcc) $(uboot_spl_its) $(platform_dtb) opensbi uboot $(boot_zip)
 	mkdir -p $(uboot_spl_wrkdir)
 	rm -f $(uboot_spl_wrkdir)/*.*
 	cp -f $(opensbi_jumpbin) $(uboot_spl_wrkdir)/opensbi.bin
 	cp -f $(uboot_bin) $(uboot_spl_wrkdir)/u-boot.bin
-	cp -f $(platform_dtb) $(uboot_spl_wrkdir)/fdt.dtb
+	cp -f $(boot_kernel_dtb) $(uboot_spl_wrkdir)/fdt.dtb
+	rm -f $(boot_kernel_dtb)
+	cp -f $(platform_dtb) $(uboot_spl_dtb)
 	cp -f $(uboot_spl_its) $(uboot_spl_wrkdir)/spl.its
-	cd $(uboot_spl_wrkdir) && $(uboot_mkimage) -f spl.its $@
+	# store spl pubkey to spl.dtb
+	cd $(uboot_spl_wrkdir) && $(uboot_mkimage) -f spl.its -K $(uboot_spl_dtb) -k $(wrkdir)/keys -r $@
 
 $(uboot_mkimage) $(uboot_bin) $(uboot_spl_bin): uboot
 	@echo "Uboot binary is generated into $<"
@@ -473,8 +478,8 @@ endif
 	mkdir -p  $(freeloader_wrkdir)
 	$(MAKE) -C $(freeloader_srcdir) O=$(freeloader_wrkdir) ARCH=$(ISA) ABI=$(ABI) ARCH_EXT=$(ARCH_EXT) \
 		BOOT_MODE=$(BOOT_MODE) CROSS_COMPILE=$(CROSS_COMPILE) \
-		UBOOT_SPL_BIN=$(uboot_spl_bin) UBOOT_SPL_ITB=$(uboot_spl_itb) DTB=$(platform_dtb) \
-		KERNEL_BIN=$(boot_uimage_lz4) INITRD_BIN=$(boot_uinitrd_lz4) CONFIG_MK=$(freeloader_confmk)  \
+		UBOOT_SPL_BIN=$(uboot_spl_bin) UBOOT_SPL_ITB=$(uboot_spl_itb) DTB=$(uboot_spl_dtb) \
+		KERNEL_BIN=$(boot_image) INITRD_BIN=$(boot_initrd) CONFIG_MK=$(freeloader_confmk)  \
 		CORE1_APP_BIN=$(CORE1_APP_BIN) CORE2_APP_BIN=$(CORE2_APP_BIN) CORE3_APP_BIN=$(CORE3_APP_BIN) \
 		CORE4_APP_BIN=$(CORE4_APP_BIN) CORE5_APP_BIN=$(CORE5_APP_BIN) CORE6_APP_BIN=$(CORE6_APP_BIN) CORE7_APP_BIN=$(CORE7_APP_BIN)
 
@@ -567,7 +572,7 @@ $(qemu_disk): $(boot_zip)
 	cd $(boot_wrkdir) && dd if=/dev/zero of=$(qemu_disk) bs=$(DISK_SIZE)M count=1
 	echo "Please make sure mformat version is >= 4.0.24, current version $(shell mformat --version)"
 	cd $(boot_wrkdir) && mformat -F -h 64 -s 32 -t $$(($(DISK_SIZE)-1)) :: -i $(qemu_disk) || rm -f $(qemu_disk)
-	cd $(boot_wrkdir) && mcopy -i $(qemu_disk) boot.scr kernel.dtb uImage.lz4 uInitrd.lz4 :: || rm -f $(qemu_disk)
+	cd $(boot_wrkdir) && mcopy -i $(qemu_disk) kernel.itb :: || rm -f $(qemu_disk)
 
 run_qemu: $(qemu_disk) $(freeloader_elf)
 	@echo "Run on qemu for simulation"
