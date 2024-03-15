@@ -133,6 +133,7 @@ boot_zip := $(wrkdir)/boot.zip
 boot_image := $(boot_wrkdir)/Image.lz4
 boot_initrd := $(boot_wrkdir)/Initrd.lz4
 
+boot_fitimage := $(boot_wrkdir)/kernel.itb
 
 boot_kernel_dtb := $(boot_wrkdir)/kernel.dtb
 
@@ -479,7 +480,7 @@ endif
 	$(MAKE) -C $(freeloader_srcdir) O=$(freeloader_wrkdir) ARCH=$(ISA) ABI=$(ABI) ARCH_EXT=$(ARCH_EXT) \
 		BOOT_MODE=$(BOOT_MODE) CROSS_COMPILE=$(CROSS_COMPILE) \
 		UBOOT_SPL_BIN=$(uboot_spl_bin) UBOOT_SPL_ITB=$(uboot_spl_itb) DTB=$(uboot_spl_dtb) \
-		KERNEL_BIN=$(boot_image) INITRD_BIN=$(boot_initrd) CONFIG_MK=$(freeloader_confmk)  \
+		KERNEL_BIN=$(boot_fitimage) CONFIG_MK=$(freeloader_confmk)  \
 		CORE1_APP_BIN=$(CORE1_APP_BIN) CORE2_APP_BIN=$(CORE2_APP_BIN) CORE3_APP_BIN=$(CORE3_APP_BIN) \
 		CORE4_APP_BIN=$(CORE4_APP_BIN) CORE5_APP_BIN=$(CORE5_APP_BIN) CORE6_APP_BIN=$(CORE6_APP_BIN) CORE7_APP_BIN=$(CORE7_APP_BIN)
 
@@ -572,7 +573,7 @@ $(qemu_disk): $(boot_zip)
 	cd $(boot_wrkdir) && dd if=/dev/zero of=$(qemu_disk) bs=$(DISK_SIZE)M count=1
 	echo "Please make sure mformat version is >= 4.0.24, current version $(shell mformat --version)"
 	cd $(boot_wrkdir) && mformat -F -h 64 -s 32 -t $$(($(DISK_SIZE)-1)) :: -i $(qemu_disk) || rm -f $(qemu_disk)
-	cd $(boot_wrkdir) && mcopy -i $(qemu_disk) kernel.itb :: || rm -f $(qemu_disk)
+	mcopy -i $(qemu_disk) $(boot_fitimage) :: || rm -f $(qemu_disk)
 
 run_qemu: $(qemu_disk) $(freeloader_elf)
 	@echo "Run on qemu for simulation"
