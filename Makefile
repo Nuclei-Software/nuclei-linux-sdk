@@ -395,13 +395,12 @@ $(boot_kernel_dtb): $(platform_preproc_dts)
 $(boot_zip): $(boot_wrkdir) $(boot_image) $(boot_initrd) $(boot_kernel_dtb) $(uboot_mkimage)
 	rm -f $(boot_zip)
 	mkdir -p $(wrkdir)/keys
-	# generate spl rsa key and x509 crt
-	if [ ! -f $(wrkdir)/keys/spl.crt ]; then cd $(wrkdir) && openssl genpkey -algorithm RSA -out keys/spl.key -pkeyopt rsa_keygen_bits:2048 -pkeyopt rsa_keygen_pubexp:65537 ; fi;
-	cd $(wrkdir) && openssl req -batch -new -x509 -key keys/spl.key -out keys/spl.crt
 
 	# generate uboot rsa key and x509 crt
 	if [ ! -f $(wrkdir)/keys/uboot.crt ]; then cd $(wrkdir) && openssl genpkey -algorithm RSA -out keys/uboot.key -pkeyopt rsa_keygen_bits:2048 -pkeyopt rsa_keygen_pubexp:65537 ; fi;
 	cd $(wrkdir) && openssl req -batch -new -x509 -key keys/uboot.key -out keys/uboot.crt
+
+	if [ ! -f $(wrkdir)/keys/aes256key_uboot.bin ]; then dd if=/dev/urandom of=$(wrkdir)/keys/aes256key_uboot.bin bs=1 count=32; fi
 
 	cp -f $(confdir)/kernel.its $(boot_wrkdir)/kernel.its
 	# store uboot pubkey to boot_kernel_dtb
@@ -433,6 +432,12 @@ $(uboot_spl_itb): $(target_gcc) $(uboot_spl_its) $(platform_dtb) opensbi uboot $
 	rm -f $(boot_kernel_dtb)
 	cp -f $(platform_dtb) $(uboot_spl_dtb)
 	cp -f $(uboot_spl_its) $(uboot_spl_wrkdir)/spl.its
+	# generate spl rsa key and x509 crt
+	if [ ! -f $(wrkdir)/keys/spl.crt ]; then cd $(wrkdir) && openssl genpkey -algorithm RSA -out keys/spl.key -pkeyopt rsa_keygen_bits:2048 -pkeyopt rsa_keygen_pubexp:65537 ; fi;
+	cd $(wrkdir) && openssl req -batch -new -x509 -key keys/spl.key -out keys/spl.crt
+	# generate aes256 cipher key
+	if [ ! -f $(wrkdir)/keys/aes256key_spl.bin ]; then dd if=/dev/urandom of=$(wrkdir)/keys/aes256key_spl.bin bs=1 count=32; fi
+
 	# store spl pubkey to spl.dtb
 	cd $(uboot_spl_wrkdir) && $(uboot_mkimage) -f spl.its -K $(uboot_spl_dtb) -k $(wrkdir)/keys -r $@
 
