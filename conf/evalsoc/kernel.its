@@ -17,6 +17,10 @@
             compression = "lz4";
             load = <0x80400000>;
             entry = <0x80400000>;
+            cipher {
+                algo = "aes256";
+                key-name-hint = "aes256key_uboot";
+            };
             signature {
                 algo = "sha256,rsa2048";
                 key-name-hint = "uboot";
@@ -30,6 +34,10 @@
             os = "linux";
             load = <0x0>;
             entry = <0x0>;
+            cipher {
+                algo = "aes256";
+                key-name-hint = "aes256key_uboot";
+            };
             signature {
                 algo = "sha256,rsa2048";
                 key-name-hint = "uboot";

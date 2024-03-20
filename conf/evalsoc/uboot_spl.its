@@ -14,6 +14,10 @@
                         load =  <0x0 0x80000000>;
                         entry = <0x0 0x80000000>;
                         compression = "none";
+                        cipher {
+                                algo = "aes256";
+                                key-name-hint = "aes256key_spl";
+                        };
                         signature {
                                 algo = "sha256,rsa2048";
                                 key-name-hint = "spl";
@@ -28,6 +32,10 @@
                         os = "U-Boot";
                         load = <0x0 0x80200000>;
                         compression = "none";
+                        cipher {
+                                algo = "aes256";
+                                key-name-hint = "aes256key_spl";
+                        };
                         signature {
                                 algo = "sha256,rsa2048";
                                 key-name-hint = "spl";
@@ -41,6 +49,10 @@
                         arch = "riscv";
                         load = <0x0 0x88000000>;
                         compression = "none";
+                        cipher {
+                                algo = "aes256";
+                                key-name-hint = "aes256key_spl";
+                        };
                         signature {
                                 algo = "sha256,rsa2048";
                                 key-name-hint = "spl";
