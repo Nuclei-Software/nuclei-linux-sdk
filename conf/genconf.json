@@ -1,0 +1,21 @@
+{
+    "general_config": {
+        "sdram": {
+            "base": "0x80000000",
+            "size": "0x80000000"
+        },
+        "norflash": {
+            "base": "0x20000000",
+            "size": "32M"
+        },
+        "iregion": {
+            "base": "0x18000000"
+        },
+        "cpu_freq": "50000000",
+        "timer_freq": "32768"
+    },
+
+    "uboot_config": {
+        "CONFIG_TEXT_BASE": "0x80200000"
+    }
+}
