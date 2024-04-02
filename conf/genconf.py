@@ -155,6 +155,29 @@ def replace_in_file(file_path, old_string, new_string):
     with open(file_path, 'w') as file:
         file.write(file_data)
 
+def parse_size(size_str, output_format='numeric'):
+    units = {'K': 1024, 'M': 1024 ** 2, 'G': 1024 ** 3, 'T': 1024 ** 4}
+
+    match = re.match(r'^(?![0xX])(\d+)([KMGT]?)$', size_str)
+    if match:
+        num_part, unit_part = match.groups()
+        size_num = int(num_part, 0) * units.get(unit_part, 1)
+    else:
+        try:
+            size_num = int(size_str, 0)# 0 indicates automatic detection of decimal or hexadecimal.
+        except ValueError:
+            raise ValueError(f"Invalid size format: {size_str}")
+
+    if output_format == 'numeric':
+        return size_num
+    elif output_format == 'string':
+        for unit, multiplier in reversed(units.items()):
+            if size_num >= multiplier:
+                return f"{size_num // multiplier}{unit}"
+        return str(size_num)
+    else:
+        raise ValueError("Invalid output_format, must be 'numeric' or 'string'")
+
 if len(sys.argv) < 4:
     print("Usage: genconf.py conf.json custsoc refsoc\n"
           "       conf.json: json config file.\n"
@@ -216,19 +239,18 @@ try:
         if 'CONFIG_TEXT_BASE' not in uboot_config:
             uboot_config['CONFIG_TEXT_BASE'] = "0x80200000"  # 或其他合适的默认值
 
-    uboot_text_base = uboot_config['CONFIG_TEXT_BASE']
-    uboot_cust_sys_init_sp_addr = uboot_config['CONFIG_TEXT_BASE']
-    uboot_sys_load_addr = uboot_config['CONFIG_TEXT_BASE']
+    uboot_text_base =  uboot_config['CONFIG_TEXT_BASE']
+    uboot_cust_sys_init_sp_addr = uboot_text_base
+    uboot_sys_load_addr = uboot_text_base
     board_sdram_base = sdram_config['base']
-    board_sdram_size = sdram_config['size']
+    board_sdram_size = hex(parse_size(sdram_config['size']))
     board_flash_base = norflash_config['base']
-    board_flash_size = norflash_config['size']
+    board_flash_size = parse_size(norflash_config['size'], 'string')
     board_iregion_base = iregion_config['base']
-    board_ampfw_size = general_config['ampfw_size']
+    board_ampfw_size = hex(parse_size(general_config['ampfw_size']))
     board_ampcore_num = general_config['amp_core']
     board_cpu_freq = general_config['cpu_freq']
     board_timer_freq = general_config['timer_freq']
-
     if ((int(board_sdram_base, 16) & 0xF0000000) != (int(uboot_text_base, 16) & 0xF0000000)
         or (int(board_sdram_base, 16) & 0xF0000000) != (int(uboot_cust_sys_init_sp_addr, 16) & 0xF0000000)
         or (int(board_sdram_base, 16) & 0xF0000000) != (int(uboot_sys_load_addr, 16) & 0xF0000000)):
@@ -280,7 +302,15 @@ try:
 
     makefile_path = 'freeloader.mk'
     variable_name = 'AMPFW_START_OFFSET'
-    amp_start_offset = int(board_sdram_size,16) - int(board_ampcore_num) * int(board_ampfw_size,16)
+    if int(board_sdram_size,16) >  int(board_ampcore_num) * int(board_ampfw_size,16):
+        amp_start_offset = int(board_sdram_size,16) - int(board_ampcore_num) * int(board_ampfw_size,16)
+    else:
+        print("generate failed!\n")
+        print("Warning: sdram size is less than amp core memory requirements")
+        print("sdram size:%s amp core:%s ampfw size:%s" %(hex(int(board_sdram_size,16)), int(board_ampcore_num), hex(int(board_ampfw_size,16))))
+        os.chdir(os.path.dirname(config_file_path))
+        shutil.rmtree(generated_file_path)
+        exit(1)
     update_freeloader_variable(makefile_path, variable_name, hex(amp_start_offset))
 
     # update build.mk
