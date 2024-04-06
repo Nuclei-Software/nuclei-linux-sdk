@@ -78,13 +78,12 @@ def update_dts_clk_freq(dts_file_path, macro_name, new_freq_value):
         f.write(updated_text)
     print("%s: Updated %s to %s" %(dts_file_path, macro_name, new_freq_value))
 
-def update_dts_node(dts_file_path, node_name, new_base_address, new_reg_values):
+def update_dts_node(dts_file_path, node_name, new_base_address, new_reg_values, new_interrupts=None):
     with open(dts_file_path, 'r') as f:
         dts_content = f.read()
 
     # 构造正则表达式以匹配整个节点
-    pattern_node = re.compile(
-        r'({}@(\w+))\s*{{.*?reg\s*=\s*<([^>]*)>;.*?}}'.format(re.escape(node_name)),
+    pattern_node = re.compile(	r'({}(?:\s*:\s*(\w+))?@(\w+))\s*{{(?:.*?reg\s*=\s*<([^>]*)>;)?(?:.*?interrupts\s*=\s*<([^>]*)>;)?.*?}}'.format(re.escape(node_name)),
         re.DOTALL
     )
 
@@ -93,24 +92,29 @@ def update_dts_node(dts_file_path, node_name, new_base_address, new_reg_values):
 
     if match:
         # 提取旧的基地址
-        old_base_address = match.group(2)
+        old_base_address = match.group(3)
 
         # 构造新的节点名和准备替换reg属性值
-        new_node_name = f"{node_name}@{new_base_address}"
+        node_name_full = re.sub(r'@.*$', '', match.group(1))
+        new_node_name = f"{node_name_full}@{new_base_address}"
         # 匹配并替换节点名（如果需要同时替换节点名的话）
         dts_content = dts_content.replace(match.group(1), new_node_name, 1)
 
         # 构造用于替换reg属性的新字符串，并确保只替换目标节点的reg
-        reg_pattern = re.compile(rf'reg\s*=\s*<{match.group(3)}>;', re.MULTILINE)
+        reg_pattern = re.compile(rf'reg\s*=\s*<{match.group(4)}>;', re.MULTILINE)
         new_reg_content = reg_pattern.sub(f"reg = <{new_reg_values}>;", dts_content, count=1)
+        # 如果提供了新的interrupts值，则更新interrupts属性
+        if new_interrupts is not None:
+            old_interrupts = match.group(5)
+            new_reg_content = re.sub(rf'interrupts\s*=\s*<{old_interrupts}>;', f"interrupts = <{new_interrupts}>;", new_reg_content, count=1)
 
         # 将新的内容写回文件
         with open(dts_file_path, 'w') as f:
             f.write(new_reg_content)
         print(f"{dts_file_path}: Updated  {node_name}@{old_base_address} to {new_node_name}, and updated reg value.")
+
     else:
         print("Node not found!")
-
 
 def update_build_variable(makefile_path, variable_name, new_value):
     with open(makefile_path, 'r') as file:
@@ -225,6 +229,30 @@ try:
             iregion_config = general_config['iregion']
             if 'base' not in iregion_config:
                 iregion_config['base'] = "0x18000000"  # 或其他合适的默认值
+        if 'uart0' in general_config:
+            uart0_config = general_config['uart0']
+            if 'base' not in uart0_config:
+                uart0_config['base'] = "0x10013000"  # 或其他合适的默认值
+            if 'irq' not in uart0_config:
+                uart0_config['irq'] = "33"  # 设置默认值
+        if 'uart1' in general_config:
+            uart1_config = general_config['uart1']
+            if 'base' not in uart1_config:
+                uart1_config['base'] = "0x10023000"  # 或其他合适的默认值
+            if 'irq' not in uart1_config:
+                uart1_config['irq'] = "34"  # 设置默认值
+        if 'qspi0' in general_config:
+            qspi0_config = general_config['qspi0']
+            if 'base' not in qspi0_config:
+                qspi0_config['base'] = "0x10014000"  # 或其他合适的默认值
+            if 'irq' not in qspi0_config:
+                qspi0_config['irq'] = "35"  # 设置默认值
+        if 'qspi2' in general_config:
+            qspi2_config = general_config['qspi2']
+            if 'base' not in qspi2_config:
+                qspi2_config['base'] = "0x10034000"  # 或其他合适的默认值
+            if 'irq' not in qspi2_config:
+                qspi2_config['irq'] = "37"  # 设置默认值
         if 'cpu_freq' not in general_config:
             general_config['cpu_freq'] = "50000000"  # 或其他合适的默认值
         if 'timer_freq' not in general_config:
@@ -247,6 +275,14 @@ try:
     board_flash_base = norflash_config['base']
     board_flash_size = parse_size(norflash_config['size'], 'string')
     board_iregion_base = iregion_config['base']
+    board_uart0_base = uart0_config['base']
+    board_uart0_irq = uart0_config['irq']
+    board_uart1_base = uart1_config['base']
+    board_uart1_irq = uart1_config['irq']
+    board_qspi0_base = qspi0_config['base']
+    board_qspi0_irq = qspi0_config['irq']
+    board_qspi2_base = qspi2_config['base']
+    board_qspi2_irq = qspi2_config['irq']
     board_ampfw_size = hex(parse_size(general_config['ampfw_size']))
     board_ampcore_num = general_config['amp_core']
     board_cpu_freq = general_config['cpu_freq']
@@ -358,6 +394,30 @@ try:
         clint_reg_val = f"0x0 0x{clint_base_hex.lstrip('0x')} 0x0 0x{clint_size_hex.lstrip('0x')}"
         update_dts_node(dts_file, 'clint', clint_base_hex.lstrip('0x'), clint_reg_val)
 
+        # update uart0 dts node
+        uart0_base_hex = hex(int(board_uart0_base, 16))
+        uart0_size_hex = hex(0x1000)
+        uart0_reg_val = f"0x0 0x{uart0_base_hex.lstrip('0x')} 0x0 0x{uart0_size_hex.lstrip('0x')}"
+        update_dts_node(dts_file, 'uart0', uart0_base_hex.lstrip('0x'), uart0_reg_val, board_uart0_irq)
+
+        # update uart1 dts node
+        uart1_base_hex = hex(int(board_uart1_base, 16))
+        uart1_size_hex = hex(0x1000)
+        print(">>>>>>> %s" % uart1_base_hex)
+        uart1_reg_val = f"0x0 0x{uart1_base_hex.lstrip('0x')} 0x0 0x{uart1_size_hex.lstrip('0x')}"
+        update_dts_node(dts_file, 'uart1', uart1_base_hex.lstrip('0x'), uart1_reg_val, board_uart1_irq)
+
+        # update qspi0 dts node
+        qspi0_base_hex = hex(int(board_qspi0_base, 16))
+        qspi0_size_hex = hex(0x1000)
+        qspi0_reg_val = f"0x0 0x{qspi0_base_hex.lstrip('0x')} 0x0 0x{qspi0_size_hex.lstrip('0x')}"
+        update_dts_node(dts_file, 'qspi0', qspi0_base_hex.lstrip('0x'), qspi0_reg_val, board_qspi0_irq)
+
+        # update qspi2 dts node
+        qspi2_base_hex = hex(int(board_qspi2_base, 16))
+        qspi2_size_hex = hex(0x1000)
+        qspi2_reg_val = f"0x0 0x{qspi2_base_hex.lstrip('0x')} 0x0 0x{qspi2_size_hex.lstrip('0x')}"
+        update_dts_node(dts_file, 'qspi2', qspi2_base_hex.lstrip('0x'), qspi2_reg_val, board_qspi2_irq)
     # update uboot.cmd
     uboot_cmd_file = 'uboot.cmd'
     kernel_load_addr = hex(int(board_sdram_base, 16) + 0x3000000)
