@@ -28,6 +28,7 @@
             "irq": "37"
         },
         "cpu_freq": "50000000",
-        "timer_freq": "32768"
+        "timer_freq": "32768",
+        "irqmax": "1023"
     }
 }

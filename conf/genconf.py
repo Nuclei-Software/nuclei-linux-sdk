@@ -198,6 +198,44 @@ def parse_size(size_str, output_format='numeric'):
     else:
         raise ValueError("Invalid output_format, must be 'numeric' or 'string'")
 
+def align_to_power_of_two(value):
+    if value == 0:
+        return 1
+    else:
+        return 1 << (value - 1).bit_length()
+
+def find_max_interrupts(dts_content):
+    interrupts_re = re.compile(r'interrupts\s*=\s*<(\d+)>;')
+    max_interrupts = 0
+    for match in interrupts_re.finditer(dts_content):
+        interrupts_value = int(match.group(1))
+        max_interrupts = max(max_interrupts, interrupts_value)
+    return max_interrupts
+
+def modify_plic_node(dts_content, aligned_value):
+    plic_node_re = re.compile(rf'riscv,ndev\s*=\s*<(\d+)>;', re.DOTALL)
+    modified_content = plic_node_re.sub(rf'riscv,ndev = <{aligned_value}>;', dts_content)
+    return modified_content
+
+def update_plic_intr_num(dts_file_path, irqmax=None):
+    with open(dts_file_path, 'r') as f:
+        dts_content = f.read()
+    max_interrupts = find_max_interrupts(dts_content)
+    if max_interrupts > 1024:
+        print("Error: irqmax in %s file is more than 1024." %(args.conf))
+        shutil.rmtree(cust_file)
+        sys.exit(1)
+    aligned_value = align_to_power_of_two(max_interrupts)
+    if irqmax is None:
+        aligned_value = min(aligned_value, 1024)
+    else:
+        aligned_value = min(int(irqmax), aligned_value, 1024)
+    modified_content = modify_plic_node(dts_content, aligned_value)
+
+    print("Update  plic riscv,ndev to %s" %aligned_value)
+    with open(dts_file_path, 'w') as f:
+        f.write(modified_content)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate configuration files based on a reference SOC."
@@ -256,6 +294,7 @@ if __name__ == "__main__":
     board_ampcore_num = None
     board_cpu_freq = None
     board_timer_freq = None
+    board_irqmax = None
 
     try:
         cust_file = args.custsoc
@@ -315,6 +354,8 @@ if __name__ == "__main__":
                 general_config['ampfw_size'] = "0x400000"
             if 'amp_core' not in general_config:
                 general_config['amp_core'] = "8"
+            if 'irqmax' in general_config:
+                board_irqmax = general_config['irqmax']
         else:
             print("Warning: json config file maybe empty! use basic default value.")
             ddr_config['base'] = "0x80000000"
@@ -464,6 +505,8 @@ if __name__ == "__main__":
                 qspi2_size_hex = hex(0x1000)
                 qspi2_reg_val = f"0x0 0x{qspi2_base_hex.lstrip('0x')} 0x0 0x{qspi2_size_hex.lstrip('0x')}"
                 update_dts_node(dts_file, 'qspi2', qspi2_base_hex.lstrip('0x'), qspi2_reg_val, board_qspi2_irq)
+            update_plic_intr_num(dts_file, board_irqmax)
+
         print("\n>>>Updating uboot.cmd...")
         # update uboot.cmd
         uboot_cmd_file = "%s/uboot.cmd" %(cust_file)
