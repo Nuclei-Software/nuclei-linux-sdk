@@ -42,9 +42,14 @@ if google repo sync cannot success,you can try tuna repo, please refer to https:
 $git clone git@github.com:Nuclei-Software/aosp_device_nuclei_fpga.git
 $mkdir -p aosp_prj/device/nuclei/fpga
 $cp -rf aosp_device_nuclei_fpga/* aosp_prj/device/nuclei/fpga/
+
 $git clone git@github.com:Nuclei-Software/aosp_hardware_nuclei.git
 $mkdir -p aosp_prj/hardware/nuclei
 $cp -rf aosp_hardware_nuclei/* aosp_prj/hardware/nuclei/
+
+$git clone git@github.com:Nuclei-Software/aosp_external_mesa3d.git
+$rm aosp_prj/external/mesa3d/* -rf
+$cp -rf aosp_external_mesa3d/* aosp_prj/external/mesa3d/
 ```
 
 ### 2.3. build android image
@@ -120,6 +125,17 @@ fdisk p command show partition result:
 /dev/loop13p3      2361344  2623487   262144  128M 83 Linux
 /dev/loop13p4      2623488 16777215 14153728  6.8G 83 Linux
 ```
+
+**Note** : due to Android source code updates, some files were not generated in vendor.img, but exist in vendor directory.
+```shell
+android20240417/out/target/product/fpga/vendor/lib64/dri$ tree
+.
+├── kms_swrast_dri.so -> libgallium_dri.so
+├── libgallium_dri.so
+├── libgallium_dri.so.0 -> libgallium_dri.so
+└── swrast_dri.so -> libgallium_dri.so
+```
+if swrast_dri.so and kms_swrast_dri.so are exist in vendor.img, please create them by yourself.
 
 ## 4.run android image on qemu
 
