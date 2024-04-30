@@ -1,6 +1,7 @@
 UIMAGE_AE_CMD := -a 0x200400000 -e 0x200400000
-# Need Nuclei Qemu >= 2023.10
-QEMU_MACHINE_OPTS := -M nuclei_evalsoc,download=flashxip -smp 8 -m 2G
+# Need Nuclei Qemu >= 2024.04.29
+# download it from https://download.nucleisys.com/upload/files/toolchain/qemu/nuclei-qemu-2024.04.29-linux-x64.tar.gz
+QEMU_MACHINE_OPTS := -M nuclei_evalsoc,download=flashxip,soc-cfg=conf/evalsoc/evalsoc.json -smp 8 -m 2G
 # initramfs pre command before generate initrd ramfs
 INITRAMFS_PRECMD := bash $(confdir)/preramfs.sh $(confdir) $(buildroot_initramfs_sysroot) copyfiles.txt
 # eg. $(confdir)/amp/cx.bin
