@@ -50,6 +50,10 @@ $cp -rf aosp_hardware_nuclei/* aosp_prj/hardware/nuclei/
 $git clone git@github.com:Nuclei-Software/aosp_external_mesa3d.git
 $rm aosp_prj/external/mesa3d/* -rf
 $cp -rf aosp_external_mesa3d/* aosp_prj/external/mesa3d/
+
+$git clone git@github.com:Nuclei-Software/aosp_vendor_arpi_rplauncher.git
+$mkdir -p aosp_prj/vendor/arpi/RpLauncher
+$cp -rf aosp_vendor_arpi_rplauncher/* aosp_prj/vendor/arpi/RpLauncher/
 ```
 
 ### 2.3. build android image
@@ -128,14 +132,14 @@ fdisk p command show partition result:
 
 **Note** : due to Android source code updates, some files were not generated in vendor.img, but exist in vendor directory.
 ```shell
-android20240417/out/target/product/fpga/vendor/lib64/dri$ tree
-.
-├── kms_swrast_dri.so -> libgallium_dri.so
-├── libgallium_dri.so
-├── libgallium_dri.so.0 -> libgallium_dri.so
-└── swrast_dri.so -> libgallium_dri.so
+android20240417$ ls out/target/product/fpga/vendor/lib64/dri/ -l
+total 9184
+lrwxrwxrwx 1 user user      17 5月   6 12:57 kms_swrast_dri.so -> libgallium_dri.so
+-rwxr-xr-x 1 user user 9401760 5月   6 12:57 libgallium_dri.so
+lrwxrwxrwx 1 user user      17 5月   6 12:57 libgallium_dri.so.0 -> libgallium_dri.so
+lrwxrwxrwx 1 user user      17 5月   6 12:57 swrast_dri.so -> libgallium_dri.so
 ```
-if swrast_dri.so and kms_swrast_dri.so are exist in vendor.img, please create them by yourself.
+if swrast_dri.so and kms_swrast_dri.so are exist in vendor.img, please create them and add execute permission by yourself.
 
 ## 4.run android image on qemu
 
