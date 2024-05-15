@@ -1,0 +1,44 @@
+/dts-v1/;
+
+/ {
+        description = "U-boot FIT image";
+        #address-cells = <2>;
+
+        images {
+                kernel {
+                        description = "Linux kernel";
+                        data = /incbin/("Image.lz4");
+                        type = "kernel";
+                        arch = "riscv";
+                        os = "linux";
+                        load =  <0x0 0x80400000>;
+                        entry = <0x0 0x80400000>;
+                        compression = "lz4";
+                        hash-1 {
+                            algo = "sha1";
+                        };
+                };
+
+                ramdisk {
+                        description = "buildroot initramfs";
+                        data = /incbin/("Initrd.lz4");
+                        type = "ramdisk";
+                        arch = "riscv";
+                        os = "linux";
+                        compression = "none";
+                        hash-1 {
+                            algo = "sha1";
+                        };
+                };
+        };
+
+        configurations {
+                default = "boot";
+                boot {
+                        description = "Boot Image with ramdisk";
+                        kernel = "kernel";
+                        ramdisk = "ramdisk";
+                };
+        };
+};
+
