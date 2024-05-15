@@ -1,6 +1,6 @@
 {
     "general_config": {
-        "sdram": {
+        "ddr": {
             "base": "0x80000000",
             "size": "0x80000000"
         },
@@ -28,10 +28,7 @@
             "irq": "37"
         },
         "cpu_freq": "50000000",
-        "timer_freq": "32768"
-    },
-
-    "uboot_config": {
-        "CONFIG_TEXT_BASE": "0x80200000"
+        "timer_freq": "32768",
+        "irqmax": "1023"
     }
 }
