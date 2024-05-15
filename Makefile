@@ -118,15 +118,13 @@ uboot_elf := $(uboot_wrkdir)/u-boot
 uboot_mkimage := $(uboot_wrkdir)/tools/mkimage
 
 uboot_cmd := $(confdir)/uboot.cmd
-
 # Directory for boot images stored in sdcard
 boot_wrkdir := $(wrkdir)/boot
 boot_zip := $(wrkdir)/boot.zip
 boot_ubootscr := $(boot_wrkdir)/boot.scr
 boot_image := $(boot_wrkdir)/Image.lz4
-boot_uimage_lz4 := $(boot_wrkdir)/uImage.lz4
-boot_uinitrd_lz4 := $(boot_wrkdir)/uInitrd.lz4
-boot_kernel_dtb := $(boot_wrkdir)/kernel.dtb
+boot_initrd := $(boot_wrkdir)/Initrd.lz4
+boot_fitimage := $(boot_wrkdir)/kernel_rootfs.itb
 
 # qemu related disk image
 qemu_disk := $(wrkdir)/disk.img
@@ -386,26 +384,18 @@ $(boot_wrkdir):
 $(boot_ubootscr): $(uboot_cmd) $(uboot_mkimage)
 	$(uboot_mkimage) -A riscv -T script -O linux -C none -a 0 -e 0 -n "bootscript" -d $(uboot_cmd) $@
 
-# UIMAGE_AE_CMD is defined in conf/$(SOC)/build.mk
-# For DDR_BASE = 0xA0000000, eg.
-# UIMAGE_AE_CMD := -a 0xA0400000 -e 0xA0400000
-# uncompressed kernel can be as large as 25M, so we need to put kernel load addr to above 25M size
-# to allow when uncompress the kernel, it won't corrupt the compressed data, and affect uncompress process
-$(boot_uimage_lz4): $(linux_image)
-	lz4 $< $(boot_image) -f -9
-	$(uboot_mkimage) -A riscv -O linux -T kernel -C lz4 $(UIMAGE_AE_CMD) -n Linux -d $(boot_image) $@
-	rm -f $(boot_image)
+$(boot_image): $(linux_image)
+	lz4 $< $@ -f -9
 
-$(boot_uinitrd_lz4): $(initramfs)
-	lz4 $(initramfs) $(initramfs).lz4 -f -9 -l
-	$(uboot_mkimage) -A riscv -T ramdisk -C lz4 -n Initrd -d $(initramfs).lz4 $(boot_uinitrd_lz4)
+$(boot_initrd): $(initramfs)
+	lz4 $(initramfs) $@ -f -9 -l
 
-$(boot_kernel_dtb): $(platform_preproc_dts)
-	dtc -O dtb -o $(boot_kernel_dtb) $(platform_preproc_dts)
-
-$(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_uimage_lz4) $(boot_uinitrd_lz4) $(boot_kernel_dtb)
+$(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_image) $(boot_initrd) $(uboot_mkimage)
 	rm -f $(boot_zip)
+	cp -f $(confdir)/kernel_rootfs.its $(boot_wrkdir)/kernel_rootfs.its
+	cd $(boot_wrkdir) && $(uboot_mkimage) -f kernel_rootfs.its kernel_rootfs.itb
 	cd $(boot_wrkdir) && zip -q -r $(boot_zip) .
+	rm -f $(boot_image) $(boot_initrd) $(boot_wrkdir)/kernel_rootfs.its
 
 .PHONY: uboot uboot-menuconfig
 uboot: $(uboot_wrkdir)/.config
@@ -465,7 +455,7 @@ endif
 	$(MAKE) -C $(freeloader_srcdir) O=$(freeloader_wrkdir) ARCH=$(ISA) ABI=$(ABI) ARCH_EXT=$(ARCH_EXT) \
 		BOOT_MODE=$(BOOT_MODE) CROSS_COMPILE=$(CROSS_COMPILE) \
 		OPENSBI_BIN=$(opensbi_jumpbin) UBOOT_BIN=$(uboot_bin) DTB=$(platform_dtb) \
-		KERNEL_BIN=$(boot_uimage_lz4) INITRD_BIN=$(boot_uinitrd_lz4) CONFIG_MK=$(freeloader_confmk)  \
+		KERNEL_BIN=$(boot_fitimage) CONFIG_MK=$(freeloader_confmk)  \
 		CORE1_APP_BIN=$(CORE1_APP_BIN) CORE2_APP_BIN=$(CORE2_APP_BIN) CORE3_APP_BIN=$(CORE3_APP_BIN) \
 		CORE4_APP_BIN=$(CORE4_APP_BIN) CORE5_APP_BIN=$(CORE5_APP_BIN) CORE6_APP_BIN=$(CORE6_APP_BIN) CORE7_APP_BIN=$(CORE7_APP_BIN)
 
@@ -501,7 +491,6 @@ debug_sbipayload:
 run_openocd:
 	@echo "Start openocd server"
 	$(openocd) -f $(platform_openocd_cfg)
-
 
 .PHONY: distclean clean cleanboot cleanlinux cleanbuildroot cleansysroot cleanfreeloader  clean_freeloader cleanopensbi prepare presim preboot
 distclean:
@@ -560,7 +549,7 @@ $(qemu_disk): $(boot_zip)
 	cd $(boot_wrkdir) && dd if=/dev/zero of=$(qemu_disk) bs=$(DISK_SIZE)M count=1
 	echo "Please make sure mformat version is >= 4.0.24, current version $(shell mformat --version)"
 	cd $(boot_wrkdir) && mformat -F -h 64 -s 32 -t $$(($(DISK_SIZE)-1)) :: -i $(qemu_disk) || rm -f $(qemu_disk)
-	cd $(boot_wrkdir) && mcopy -i $(qemu_disk) boot.scr kernel.dtb uImage.lz4 uInitrd.lz4 :: || rm -f $(qemu_disk)
+	mcopy -i $(qemu_disk) $(boot_ubootscr) $(boot_fitimage) :: || rm -f $(qemu_disk)
 
 # workaround for demosoc: need to change TIMERCLK_FREQ for conf/demosoc/*.dts to 10000000
 # limited feature for simulation demosoc is supported, don't expect full feature of demosoc
