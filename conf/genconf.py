@@ -39,9 +39,8 @@ def update_uboot_defconfig(config_file):
         elif 'CONFIG_BOOTCOMMAND=' in line: #update flashboot config bootm
             if is_uboot_flash_config_format(config_file):
                 kernel_addr = hex(int(board_ddr_base, 16) + 0x3000000)
-                rootfs_addr = hex(int(board_ddr_base, 16) + 0x8300000)
                 fdt_addr = hex(int(board_ddr_base, 16) + 0x8000000)
-                line = f'CONFIG_BOOTCOMMAND="bootm {kernel_addr} {rootfs_addr} {fdt_addr}"\n'
+                line = f'CONFIG_BOOTCOMMAND="bootm {kernel_addr}:kernel {kernel_addr}:ramdisk {fdt_addr}"\n'
                 print("Update with %s" %(line))
         updated_content.append(line)
 
@@ -56,21 +55,13 @@ def update_uboot_cmd(file_path, kernel_load_address, rootfs_load_address, fdt_lo
     new_line = r'\g<1>' + kernel_load_address + r' \g<2>'
     updated_content = re.sub(load_kernel_pattern, new_line, file_content, flags=re.MULTILINE)
 
-    load_rootfs_pattern = r'(fatload mmc 0 )0x[0-9a-fA-F]+ (\${rootfsimg})'
-    new_line = r'\g<1>' + rootfs_load_address + r' \g<2>'
-    updated_content = re.sub(load_rootfs_pattern, new_line, updated_content, flags=re.MULTILINE)
-
-    load_fdt_pattern = r'(fatload mmc 0 )0x[0-9a-fA-F]+ (\${dtbimg})'
-    new_line = r'\g<1>' + fdt_load_address + r' \g<2>'
-    updated_content = re.sub(load_fdt_pattern, new_line, updated_content, flags=re.MULTILINE)
-
-    bootm_pattern = r'bootm 0x[0-9a-fA-F]+ 0x[0-9a-fA-F]+ 0x[0-9a-fA-F]+'
-    new_line = fr'bootm {kernel_load_address} {rootfs_load_address} {fdt_load_address}'
+    bootm_pattern = r'bootm\s+0x[0-9a-fA-F]+:kernel\s+0x[0-9a-fA-F]+:ramdisk\s+0x[0-9a-fA-F]+$'
+    new_line = fr'bootm {kernel_load_address}:kernel {kernel_load_address}:ramdisk {fdt_load_address}'
     updated_content = re.sub(bootm_pattern, new_line, updated_content)
 
     with open(file_path, 'w') as f:
         f.write(updated_content)
-    print("Update kernel_addr to %s, rootfs_addr to %s, fdt_addr to %s" %(kernel_load_address, rootfs_load_address, fdt_load_address))
+    print("Update  kernel fit addr to %s, fdt_addr to %s" %(kernel_load_address, fdt_load_address))
 
 def update_dts_clk_freq(dts_file_path, macro_name, new_freq_value):
     if new_freq_value is None:
@@ -235,6 +226,37 @@ def update_plic_intr_num(dts_file_path, irqmax=None):
     print("Update  plic riscv,ndev to %s" %aligned_value)
     with open(dts_file_path, 'w') as f:
         f.write(modified_content)
+
+def update_kernel_its(its_file_path, new_load, new_entry):
+    with open(its_file_path, 'r') as f:
+        its_content = f.read()
+
+    # 构造正则表达式以匹配整个节点
+    pattern = re.compile(r'kernel\s*{\s*(.*?)\s*}', re.DOTALL | re.MULTILINE)
+
+    def replace_kernel_node(match):
+        # 提取 kernel 节点内的内容
+        kernel_content = match.group(1)
+
+        # 提取 load 和 entry 的值（这里假设它们是唯一的）
+        load_pattern = re.compile(r'load\s*=\s*<([^>]+)>;', re.MULTILINE)
+        entry_pattern = re.compile(r'entry\s*=\s*<([^>]+)>;', re.MULTILINE)
+
+        load_match = load_pattern.search(kernel_content)
+        entry_match = entry_pattern.search(kernel_content)
+
+        if load_match and entry_match:
+            # 替换 load 和 entry 的值
+            new_kernel_content = load_pattern.sub(f'load = <{new_load}>;', kernel_content, count=1)
+            new_kernel_content = entry_pattern.sub(f'entry = <{new_entry}>;', new_kernel_content, count=1)
+            return match.group(0).replace(kernel_content, new_kernel_content, 1)
+        else:
+            # 如果没有找到 load 或 entry，返回原始匹配内容
+            return match.group(0)
+
+    new_content = pattern.sub(replace_kernel_node, its_content)
+    with open(its_file_path, 'w') as f:
+        f.write(new_content)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -436,14 +458,6 @@ if __name__ == "__main__":
         update_build_variable(makefile_path, variable_name, board_ddr_base)
 
         makefile_path = "%s/build.mk" %(cust_file)
-        variable_name = 'UIMAGE_AE_CMD'
-        kernel_offset = 0x00400000
-        load_addr = int(board_ddr_base, 16) + kernel_offset
-        entry_point = int(board_ddr_base, 16) + kernel_offset
-        uimage_ae_cmd_val = f"-a 0x{load_addr:08X} -e 0x{entry_point:08X}"
-        update_build_variable(makefile_path, variable_name, uimage_ae_cmd_val)
-
-        makefile_path = "%s/build.mk" %(cust_file)
         variable_name = 'QEMU_MACHINE_OPTS'
         update_build_variable(makefile_path, variable_name, "-M nuclei_evalsoc,soc-cfg=conf/%s,download=flashxip -smp 8" %(cust_json_file))
 
@@ -461,49 +475,54 @@ if __name__ == "__main__":
 
             # update memory dts node
             ddr_base_hex = hex(int(board_ddr_base, 16))
-            ddr_size_hex = hex(int(board_ddr_size, 16) - reserve_ampmem)
-            memory_reg_val = f"0x0 0x{ddr_base_hex.lstrip('0x')} 0x0 0x{ddr_size_hex.lstrip('0x')}"
+            ddr_base_hex_int = int(board_ddr_base, 16)
+            ddr_base_hex_high = hex((ddr_base_hex_int >> 32) & 0xFFFFFFFF)[2:].zfill(8)
+            ddr_base_hex_low = hex(ddr_base_hex_int & 0xFFFFFFFF)[2:].zfill(8)
+            ddr_size_hex = int(board_ddr_size, 16) - reserve_ampmem
+            ddr_size_hex_high = hex((ddr_size_hex >> 32) & 0xFFFFFFFF)[2:].zfill(8)
+            ddr_size_hex_low = hex(ddr_size_hex & 0xFFFFFFFF)[2:].zfill(8)
+            memory_reg_val = f"0x{ddr_base_hex_high} 0x{ddr_base_hex_low} 0x{ddr_size_hex_high} 0x{ddr_size_hex_low}"
             update_dts_node(dts_file, 'memory', ddr_base_hex.lstrip('0x'), memory_reg_val)
 
             if board_iregion_base is not None:
                 # update plic dts node
                 plic_base_hex = hex(int(board_iregion_base, 16) + 0x4000000)
                 plic_size_hex = hex(0x4000000)
-                plic_reg_val = f"0x0 0x{plic_base_hex.lstrip('0x')} 0x0 0x{plic_size_hex.lstrip('0x')}"
+                plic_reg_val = f"0x0 {plic_base_hex} 0x0 {plic_size_hex}"
                 update_dts_node(dts_file, 'interrupt-controller', plic_base_hex.lstrip('0x'), plic_reg_val)
 
                 # update clint dts node
                 clint_base_hex = hex(int(board_iregion_base, 16) + 0x31000)
                 clint_size_hex = hex(0xC000)
-                clint_reg_val = f"0x0 0x{clint_base_hex.lstrip('0x')} 0x0 0x{clint_size_hex.lstrip('0x')}"
+                clint_reg_val = f"0x0 {clint_base_hex} 0x0 {clint_size_hex}"
                 update_dts_node(dts_file, 'clint', clint_base_hex.lstrip('0x'), clint_reg_val)
 
             if board_uart0_base is not None:
                 # update uart0 dts node
                 uart0_base_hex = hex(int(board_uart0_base, 16))
                 uart0_size_hex = hex(0x1000)
-                uart0_reg_val = f"0x0 0x{uart0_base_hex.lstrip('0x')} 0x0 0x{uart0_size_hex.lstrip('0x')}"
+                uart0_reg_val = f"0x0 {uart0_base_hex} 0x0 {uart0_size_hex}"
                 update_dts_node(dts_file, 'uart0', uart0_base_hex.lstrip('0x'), uart0_reg_val, board_uart0_irq)
 
             if board_uart1_base is not None:
                 # update uart1 dts node
                 uart1_base_hex = hex(int(board_uart1_base, 16))
                 uart1_size_hex = hex(0x1000)
-                uart1_reg_val = f"0x0 0x{uart1_base_hex.lstrip('0x')} 0x0 0x{uart1_size_hex.lstrip('0x')}"
+                uart1_reg_val = f"0x0 {uart1_base_hex} 0x0 {uart1_size_hex}"
                 update_dts_node(dts_file, 'uart1', uart1_base_hex.lstrip('0x'), uart1_reg_val, board_uart1_irq)
 
             if board_qspi0_base is not None:
                 # update qspi0 dts node
                 qspi0_base_hex = hex(int(board_qspi0_base, 16))
                 qspi0_size_hex = hex(0x1000)
-                qspi0_reg_val = f"0x0 0x{qspi0_base_hex.lstrip('0x')} 0x0 0x{qspi0_size_hex.lstrip('0x')}"
+                qspi0_reg_val = f"0x0 {qspi0_base_hex} 0x0 {qspi0_size_hex}"
                 update_dts_node(dts_file, 'qspi0', qspi0_base_hex.lstrip('0x'), qspi0_reg_val, board_qspi0_irq)
 
             if board_qspi2_base is not None:
                 # update qspi2 dts node
                 qspi2_base_hex = hex(int(board_qspi2_base, 16))
                 qspi2_size_hex = hex(0x1000)
-                qspi2_reg_val = f"0x0 0x{qspi2_base_hex.lstrip('0x')} 0x0 0x{qspi2_size_hex.lstrip('0x')}"
+                qspi2_reg_val = f"0x0 {qspi2_base_hex} 0x0 {qspi2_size_hex}"
                 update_dts_node(dts_file, 'qspi2', qspi2_base_hex.lstrip('0x'), qspi2_reg_val, board_qspi2_irq)
             update_plic_intr_num(dts_file, board_irqmax)
 
@@ -514,6 +533,16 @@ if __name__ == "__main__":
         rootfs_load_addr = hex(int(board_ddr_base, 16) + 0x8300000)
         fdt_load_addr = hex(int(board_ddr_base, 16) + 0x8000000)
         update_uboot_cmd(uboot_cmd_file, kernel_load_addr, rootfs_load_addr, fdt_load_addr)
+
+        print("\n>>>Updating kernel_rootfs.its...")
+        # update kernel_rootfs.its
+        kernel_its_file = "%s/kernel_rootfs.its" %(cust_file)
+        kernel_its_load_addr_int = int(board_ddr_base, 16) + 0x400000
+        kernel_its_load_addr_high = hex((kernel_its_load_addr_int >> 32) & 0xFFFFFFFF)
+        kernel_its_load_addr_low = hex(kernel_its_load_addr_int & 0xFFFFFFFF)
+        kernel_its_addr_val = f"{kernel_its_load_addr_high} {kernel_its_load_addr_low}"
+        print("Update  kernel load to <%s>, entry to <%s>" %(kernel_its_addr_val, kernel_its_addr_val))
+        update_kernel_its(kernel_its_file, kernel_its_addr_val, kernel_its_addr_val)
 
         print("===generate successfully!===\n")
         print("Here are the reference build commands for compiling Linux SDK for you:")
