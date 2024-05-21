@@ -162,7 +162,7 @@ We support four configurations for **CORE**, choose the right core according to 
 
 You can choose different SoC by modify `SOC ?= evalsoc` line in `Makefile`.
 
-* `demosoc`: **Deprecated**, the demostration SoC from nuclei.
+* `demosoc`: **Deprecated** and **removed**, the demostration SoC from nuclei.
 * `evalsoc`: The next generation of the `demosoc`, we call it `evalsoc`, when your cpu has `iregion` feature, please use this one
 * you can add your SoC support by adding configuration in `conf/$SOC` folder refer to `conf/evalsoc`
 
@@ -704,14 +704,14 @@ run linux on it, click [Nuclei FPGA Evaluation Board](https://nucleisys.com/deve
 Before compiling this source code, please make sure you have done the following changes.
 
 Now we have two version of SoC for customer to evaluate our RISC-V CPU IP, if the bitstream you get from us
-has the `iregion` feature, you should use `evalsoc`, otherwise choose `demosoc`(deprecated).
+has the `iregion` feature, you should use `evalsoc`, otherwise choose `demosoc`(deprecated and removed now).
 
 If there is double float fpu and isa is rv64 in the bitstream supported, you should choose `ux600fd` or `ux900fd`.
 
-- Default cpu/periph freq and timer freq are 16MHz and 32768Hz for demosoc.
-- Default cpu/periph freq and timer freq are 50Mhz and 32768Hz for evalsoc v2.
-
 About detailed SoC information, please check https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/2
+
+- Default cpu/periph freq and timer freq are 16MHz and 32768Hz for demosoc, no longer supported.
+- Default cpu/periph freq and timer freq are 50Mhz and 32768Hz for evalsoc v2.
 
 If the bitstream you get not matching above settings, please change co-reponsibing `conf/<SOC>/build.mk`'s `TIMER_HZ`/`CPU_HZ`/`PERIPH_HZ`.
 
@@ -1180,7 +1180,7 @@ For example, if you have an application called `coremark`, then you can directly
 
 ## Port to your target
 
-> demosoc is deprecated, please take evalsoc as example.
+> demosoc is deprecated and removed, please take evalsoc as example.
 
 For our current development evalsoc, we used the following resources:
 
