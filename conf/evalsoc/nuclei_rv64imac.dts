@@ -185,6 +185,7 @@
   pmu {
     compatible = "riscv,pmu";
     /* https://perf.wiki.kernel.org/index.php/Tutorial#Events */
+    /* eg. perf stat -B coremark */
     /* eg. perf stat -e cycles -e instructions -e cache-misses -e branches -e branch-misses coremark */
     /* eg. perf stat -e cycles -e instructions -e L1-icache-load-misses -e L1-dcache-load-misses -e iTLB-load-misses -e dTLB-load-misses coremark */
     riscv,event-to-mhpmevent =
@@ -209,7 +210,7 @@
     /* make hpm3-6 counter available for all hardware events */
     riscv,event-to-mhpmcounters =
       <0x00001 0x00000007 0x00000078>,
-      <0x10009 0x00010021 0x00000078>;
+      <0x10001 0x00010022 0x00000078>;
     /* Raw event: eg. perf stat -e cycles -e instructions -e r00000190 -e r00000010 coremark */
     riscv,raw-event-to-mhpmcounters =
       /* instruction commit events - 0x1 Cycle count */
