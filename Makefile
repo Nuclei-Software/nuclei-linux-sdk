@@ -257,6 +257,7 @@ buildroot_busybox-menuconfig: $(buildroot_initramfs_wrkdir)/.config $(buildroot_
 $(buildroot_initramfs_sysroot_stamp): $(buildroot_initramfs_tar)
 	mkdir -p $(buildroot_initramfs_sysroot)
 	tar -xpf $< -C $(buildroot_initramfs_sysroot) --exclude ./dev --exclude ./usr/share/locale
+	[ -f $(confdir)/S03net ] && cp -af $(confdir)/S03net $(buildroot_initramfs_sysroot)/etc/init.d/
 	touch $@
 
 .PHONY: initrd linux
