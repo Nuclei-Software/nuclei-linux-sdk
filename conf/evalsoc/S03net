@@ -2,10 +2,8 @@
 # config nuclei xec disable autoneg, setting 100M, fduplex mode.
 
 start() {
-	echo "config eth0 to 100Mbps,Full Duplex"
 	ethtool -s eth0 autoneg off speed 100 duplex full
 	ifconfig lo up
-	echo "runing udhcpc..."
 	udhcpc
 }
 

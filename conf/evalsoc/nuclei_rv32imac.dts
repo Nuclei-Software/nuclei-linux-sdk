@@ -171,6 +171,19 @@
     reg = <0x0 0x80000000 0x0 0x7E000000>;
   };
 
+  reserved-memory {
+    #address-cells = <2>;
+    #size-cells = <2>;
+    ranges;
+
+    noncachable_memory: region@FD000000 {
+        /* reserve 64KB memroy as non-cachable region */
+        no-map;
+        reg = <0x0 0xFD000000 0x0 0x10000>;
+        status = "disabled";
+    };
+  };
+
   soc {
     #address-cells = <2>;
     #size-cells = <2>;
@@ -303,7 +316,8 @@
     /*local-mac-address = [00 2b 20 21 03 23];*/
     phy-handle = <&rtl8211f>;
     phy-mode = "rgmii";
-    desc_mem = <0x0 0x90000000 0x0 0x10000>;
+    desc_mem = <&noncachable_memory>;
+    status = "disabled";
     mdio {
         compatible = "snps,dwmac-mdio";
         #address-cells = <1>;

@@ -33,14 +33,16 @@ static int nuclei_evalsoc_final_init(bool cold_boot,
 
 	/*
 	 * If arch is rv32 or rv64 without svpbmt feature, you can use mattri to set DLM as non-cachable region.
-	 * xec dts node should contain desc_mem = <0x0 0x90000000 0x0 0x10000>; which is DLM region used to store xec descriptors.
+	 * xec dts node should contain desc_mem region; which is DLM region used to store xec descriptors.
 	 * if rv64 with svpbmt feature, xec dts node must not contain desc_mem property.
 	 */
-
+#ifdef NUCLEI_XEC_USING_NONCACHABLE
 	#define mattri1_base 0x7f5
 	#define mattri1_mask 0x7f6
+
 	csr_write(mattri1_mask, 0xffff0000);
-	csr_write(mattri1_base, 0x90000005);
+	csr_write(mattri1_base, 0xfd000005);
+#endif
 
 	return 0;
 }
