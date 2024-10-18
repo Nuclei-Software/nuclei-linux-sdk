@@ -12,8 +12,8 @@
                         type = "firmware";
                         arch = "riscv";
                         os = "opensbi";
-                        load =  <0x0 0x80000000>;
-                        entry = <0x0 0x80000000>;
+                        load =  <0x0 0x00000000>;
+                        entry = <0x0 0x00000000>;
                         compression = "none";
                         hash-1 {
                                 algo = "sha256";
@@ -26,7 +26,7 @@
                         type = "standalone";
                         arch = "riscv";
                         os = "U-Boot";
-                        load = <0x0 0x80200000>;
+                        load = <0x0 0x00200000>;
                         compression = "none";
                         hash-1 {
                                 algo = "sha256";
@@ -38,7 +38,7 @@
                         data = /incbin/("fdt.dtb");
                         type = "flat_dt";
                         arch = "riscv";
-                        load = <0x0 0x88000000>;
+                        load = <0x0 0x08000000>;
                         compression = "none";
                         hash-1 {
                                 algo = "sha256";
