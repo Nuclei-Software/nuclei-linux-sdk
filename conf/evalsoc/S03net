@@ -2,9 +2,9 @@
 # config nuclei xec disable autoneg, setting 100M, fduplex mode.
 
 start() {
-	ethtool -s eth0 autoneg off speed 100 duplex full
-	ifconfig lo up
-	udhcpc
+	ethtool -s eth0 autoneg off speed 100 duplex full &
+	ifconfig lo up &
+	udhcpc &
 }
 
 case "$1" in
