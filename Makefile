@@ -286,7 +286,7 @@ linux: $(linux_wrkdir)/.config
 initrd: $(buildroot_initramfs_sysroot) $(linux_image)
 	$(INITRAMFS_PRECMD)
 	# Copy files required for xec network startup
-	[ -f $(confdir)/S03net ] && cp -af $(confdir)/S03net $(buildroot_initramfs_sysroot)/etc/init.d/
+	[ -f $(confdir)/S03net ] && cp -af $(confdir)/S03net $(buildroot_initramfs_sysroot)/etc/init.d/ || true
 	cd $(linux_wrkdir) && \
 		$(linux_gen_initramfs) \
 		-o $(initramfs) -u $(shell id -u) -g $(shell id -g) \
@@ -557,7 +557,7 @@ $(qemu_disk): $(boot_zip)
 
 run_qemu: $(qemu_disk) $(freeloader_elf)
 	@echo "Run on qemu for simulation"
-	$(qemu) $(QEMU_MACHINE_OPTS) -cpu nuclei-$(CORE),ext=$(ARCH_EXT) -bios $(freeloader_elf) -nographic -drive file=$(qemu_disk),if=sd,format=raw
+	$(qemu) $(QEMU_MACHINE_OPTS) -cpu nuclei-$(CORE),ext=$(ARCH_EXT)_zicbom_svpbmt_sscof -bios $(freeloader_elf) -nographic -drive file=$(qemu_disk),if=sd,format=raw
 
 .PHONY: backup snapshot genstamp genboot
 # backup your build
