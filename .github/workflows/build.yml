@@ -65,7 +65,7 @@ jobs:
             python3 python3-pip mtools
           sudo pip3 install git-archive-all
           mkdir -p buildroot/dl
-          QEMUVER=2023.10
+          QEMUVER=2024.06
           if [ ! -f buildroot/dl/nuclei-qemu-${QEMUVER}-linux-x64.tar.gz ] ; then
             wget --progress=dot -P buildroot/dl https://nucleisys.com/upload/files/toochain/qemu/nuclei-qemu-${QEMUVER}-linux-x64.tar.gz
           fi
@@ -94,7 +94,7 @@ jobs:
           fi
           echo "which $qemucmd" > $SHOWQEMUSH
           echo "$qemucmd --version" >> $SHOWQEMUSH
-          echo "$qemucmd -M nuclei_${SOC},download=flashxip -cpu nuclei-${CORE},ext=$ARCH_EXT -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
+          echo "$qemucmd -M nuclei_${SOC},download=flashxip -cpu nuclei-${CORE},ext=${ARCH_EXT}_zicbom_svpbmt_sscof -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
           chmod +x $RUNQEMUSH
           chmod +x $SHOWQEMUSH
           unset TIMER_HZ
