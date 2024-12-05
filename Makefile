@@ -257,7 +257,6 @@ buildroot_busybox-menuconfig: $(buildroot_initramfs_wrkdir)/.config $(buildroot_
 $(buildroot_initramfs_sysroot_stamp): $(buildroot_initramfs_tar)
 	mkdir -p $(buildroot_initramfs_sysroot)
 	tar -xpf $< -C $(buildroot_initramfs_sysroot) --exclude ./dev --exclude ./usr/share/locale
-	[ -f $(confdir)/S03net ] && cp -af $(confdir)/S03net $(buildroot_initramfs_sysroot)/etc/init.d/
 	touch $@
 
 .PHONY: initrd linux
@@ -272,8 +271,8 @@ $(vmlinux): linux
 $(linux_image): linux
 	@echo "Linux image is generated $@"
 
-initrd: $(initramfs)
-	@echo "initramfs cpio file is generated into $<"
+$(initramfs): initrd
+	@echo "initramfs cpio file is generated into $@"
 
 linux: $(linux_wrkdir)/.config
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
@@ -284,11 +283,13 @@ linux: $(linux_wrkdir)/.config
 		PATH=$(RVPATH) \
 		vmlinux Image
 
-$(initramfs): $(buildroot_initramfs_sysroot) $(linux_image)
+initrd: $(buildroot_initramfs_sysroot) $(linux_image)
 	$(INITRAMFS_PRECMD)
+	# Copy files required for xec network startup
+	[ -f $(confdir)/S03net ] && cp -af $(confdir)/S03net $(buildroot_initramfs_sysroot)/etc/init.d/
 	cd $(linux_wrkdir) && \
 		$(linux_gen_initramfs) \
-		-o $@ -u $(shell id -u) -g $(shell id -g) \
+		-o $(initramfs) -u $(shell id -u) -g $(shell id -g) \
 		$(confdir)/initramfs.txt \
 		$(buildroot_initramfs_sysroot)
 
