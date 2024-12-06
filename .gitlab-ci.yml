@@ -253,9 +253,7 @@ cache:
 .build_linux_sdk_manual_template: &build_linux_sdk_manual_job_def
     extends: .job_rules
     rules:
-        # manual trigger this deploy job on not merge request pipeline
-        - if: '$CI_PIPELINE_SOURCE != "merge_request_event"'
-          when: manual
+        - when: manual
     artifacts:
         name: "bootimages-${SOC}-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
         paths:
