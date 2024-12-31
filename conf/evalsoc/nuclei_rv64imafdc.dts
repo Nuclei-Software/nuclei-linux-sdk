@@ -25,7 +25,7 @@
   #size-cells = <2>;
   compatible = "nuclei,evalsoc";
   model = "nuclei,evalsoc";
-
+  dma-noncoherent;
   chosen {
 #if SIMULATION == 2
       bootargs = "earlycon=sbi console=hvc0";
@@ -49,7 +49,8 @@
       reg = <0>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc";
+      riscv,isa = "rv64imafdc_zicbom_svpbmt";
+      riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu0_intc: interrupt-controller {
@@ -61,9 +62,10 @@
     cpu1: cpu@1 {
       device_type = "cpu";
       reg = <1>;
-      status = "okay";
+      status = "disabled";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc";
+      riscv,isa = "rv64imafdc_zicbom_svpbmt";
+      riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu1_intc: interrupt-controller {
@@ -75,9 +77,10 @@
     cpu2: cpu@2 {
       device_type = "cpu";
       reg = <2>;
-      status = "okay";
+      status = "disabled";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc";
+      riscv,isa = "rv64imafdc_zicbom_svpbmt";
+      riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu2_intc: interrupt-controller {
@@ -89,9 +92,10 @@
     cpu3: cpu@3 {
       device_type = "cpu";
       reg = <3>;
-      status = "okay";
+      status = "disabled";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc";
+      riscv,isa = "rv64imafdc_zicbom_svpbmt";
+      riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu3_intc: interrupt-controller {
@@ -103,9 +107,10 @@
     cpu4: cpu@4 {
       device_type = "cpu";
       reg = <4>;
-      status = "okay";
+      status = "disabled";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc";
+      riscv,isa = "rv64imafdc_zicbom_svpbmt";
+      riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu4_intc: interrupt-controller {
@@ -117,9 +122,10 @@
     cpu5: cpu@5 {
       device_type = "cpu";
       reg = <5>;
-      status = "okay";
+      status = "disabled";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc";
+      riscv,isa = "rv64imafdc_zicbom_svpbmt";
+      riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu5_intc: interrupt-controller {
@@ -131,9 +137,10 @@
     cpu6: cpu@6 {
       device_type = "cpu";
       reg = <6>;
-      status = "okay";
+      status = "disabled";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc";
+      riscv,isa = "rv64imafdc_zicbom_svpbmt";
+      riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu6_intc: interrupt-controller {
@@ -145,9 +152,10 @@
     cpu7: cpu@7 {
       device_type = "cpu";
       reg = <7>;
-      status = "okay";
+      status = "disabled";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc";
+      riscv,isa = "rv64imafdc_zicbom_svpbmt";
+      riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu7_intc: interrupt-controller {
@@ -158,9 +166,9 @@
     };
   };
 
-  memory@80000000 {
+  memory@c0000000 {
     device_type = "memory";
-    reg = <0x0 0x80000000 0x0 0x7E000000>;
+    reg = <0x0 0xc0000000 0x0 0x3E000000>;
   };
 
   soc {
@@ -182,7 +190,7 @@
     clock-output-names = "hfclk";
   };
 
-  plic0: interrupt-controller@1c000000 {
+  plic0: interrupt-controller@4000000 {
     #interrupt-cells = <1>;
     compatible = "riscv,plic0";
     interrupt-controller;
@@ -196,13 +204,13 @@
            &cpu5_intc 11 &cpu5_intc 9
            &cpu6_intc 11 &cpu6_intc 9
            &cpu7_intc 11 &cpu7_intc 9>;
-    reg = <0x0 0x1c000000 0x0 0x4000000>;
+    reg = <0x0 0x4000000 0x0 0x4000000>;
   };
 
-  clint0: clint@18031000 {
+  clint0: clint@31000 {
     #interrupt-cells = <1>;
     compatible = "riscv,clint0";
-    reg = <0x0 0x18031000 0x0 0xC000>;
+    reg = <0x0 0x031000 0x0 0xC000>;
     interrupts-extended =
           <&cpu0_intc 3 &cpu0_intc 7
            &cpu1_intc 3 &cpu1_intc 7
@@ -215,32 +223,32 @@
     clocks = <&hfclk>;
   };
 
-  uart0: serial@10013000 {
+  uart0: serial@90120000 {
     compatible = "nuclei,uart0";
-    reg = <0x0 0x10013000 0x0 0x1000>;
+    reg = <0x0 0x90120000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
-    interrupts = <33>;
+    interrupts = <3>;
     clocks = <&hfclk>;
     clock-frequency = <PERIPHCLK_FREQ>;
     status = "okay";
   };
 
-  uart1: serial@10023000 {
+  uart1: serial@90122000 {
     compatible = "nuclei,uart0";
-    reg = <0x0 0x10023000 0x0 0x1000>;
+    reg = <0x0 0x90122000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
-    interrupts = <34>;
+    interrupts = <4>;
     clocks = <&hfclk>;
     clock-frequency = <PERIPHCLK_FREQ>;
     status = "disabled";
   };
 
 #if SIMULATION == 0
-  qspi0: spi@10014000 {
+  qspi0: spi@90180000 {
     compatible = "nuclei,spi0";
-    reg = <0x0 0x10014000 0x0 0x1000>;
+    reg = <0x0 0x90180000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
-    interrupts = <35>;
+    interrupts = <6>;
     num-cs = <1>;
     #address-cells = <1>;
     #size-cells = <0>;
@@ -257,11 +265,11 @@
     };
   };
 
-  qspi2: spi@10034000 {
+  qspi2: spi@901a0000 {
     compatible = "nuclei,spi0";
-    reg = <0x0 0x10034000 0x0 0x1000>;
+    reg = <0x0 0x901a0000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
-    interrupts = <37>;
+    interrupts = <8>;
     num-cs = <1>;
     #address-cells = <1>;
     #size-cells = <0>;
@@ -271,7 +279,7 @@
     mmc@0 {
       compatible = "mmc-spi-slot";
       reg = <0>;
-      spi-max-frequency = <20000000>;
+      spi-max-frequency = <2500000>;
       voltage-ranges = <3300 3300>;
       disable-wp;
       spi-tx-bus-width = <1>;
@@ -279,4 +287,18 @@
     };
   };
 #endif
+  mailbox: mailbox@97000000 {
+    compatible = "nuclei,nuclei-mbox";
+    reg = <0x0 0x97000000 0x0 0x3000>;
+    interrupt-parent = <&plic0>;
+    interrupts = <21>;
+    #mbox-cells = <1>;
+    status = "okay";
+  };
+
+  crypto {
+    compatible = "nuclei,nuclei-crypto";
+    mboxes = <&mailbox 0>;
+    status = "okay";
+  };
 };

@@ -1,60 +1,56 @@
+/*
+ * Simple U-Boot uImage source file containing a single kernel and FDT blob
+ */
 /dts-v1/;
 
 / {
-        description = "U-boot FIT image";
-        #address-cells = <2>;
+    description = "Simple image with single Linux kernel and FDT blob";
+    #address-cells = <1>;
 
-        images {
-
-                kernel {
-                        description = "Linux kernel";
-                        data = /incbin/("Image.lz4");
-                        type = "kernel";
-                        arch = "riscv";
-                        os = "linux";
-                        load =  <0x2 0x00400000>;
-                        entry = <0x2 0x00400000>;
-                        compression = "lz4";
-                        hash-1 {
-                                algo = "sha256";
-                        };
-                };
-
-                ramdisk {
-                        description = "buildroot initramfs";
-                        data = /incbin/("Initrd.lz4");
-                        type = "ramdisk";
-                        arch = "riscv";
-                        os = "linux";
-                        load = <0x2 0x08300000>;
-                        compression = "none";
-                        hash-1 {
-                                algo = "sha256";
-                        };
-                };
-
-                fdt {
-                        data = /incbin/("boot/kernel.dtb");
-                        type = "flat_dt";
-                        arch = "riscv";
-                        load = <0x2 0x08000000>;
-                        compression = "none";
-                        hash-1 {
-                                algo = "sha256";
-                        };
-                };
+    images {
+        kernel {
+            description = "Linux kernel";
+            data = /incbin/("Image.lz4");
+            type = "kernel";
+            arch = "riscv";
+            os = "linux";
+            compression = "lz4";
+            load = <0xc0400000>;
+            entry = <0xc0400000>;
+            cipher {
+                algo = "aes256";
+                key-name-hint = "aes256key_uboot";
+            };
+            signature {
+                algo = "sha256,rsa2048";
+                key-name-hint = "uboot";
+            };
         };
-
-        configurations {
-                default = "boot";
-
-                boot {
-                        description = "Boot Image with ramdisk with dtb";
-                        kernel = "kernel";
-                        fdt = "fdt";
-                        ramdisk = "ramdisk";
-                };
-
+        ramdisk{
+            description = "Ramdisk";
+            data = /incbin/("Initrd.lz4");
+            type = "ramdisk";
+            arch = "riscv";
+            os = "linux";
+            load = <0x0>;
+            entry = <0x0>;
+            cipher {
+                algo = "aes256";
+                key-name-hint = "aes256key_uboot";
+            };
+            signature {
+                algo = "sha256,rsa2048";
+                key-name-hint = "uboot";
+            };
         };
+    };
+
+    configurations {
+        default = "conf-1";
+        conf-1 {
+            description = "Boot Linux kernel with FDT blob";
+            kernel = "kernel";
+            ramdisk = "ramdisk";
+        };
+    };
 };
-
