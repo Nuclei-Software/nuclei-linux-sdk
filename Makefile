@@ -402,11 +402,11 @@ $(boot_zip): $(boot_wrkdir) $(boot_image) $(boot_initrd) $(boot_kernel_dtb) $(ub
 
 	if [ ! -f $(wrkdir)/keys/aes256key_uboot.bin ]; then dd if=/dev/urandom of=$(wrkdir)/keys/aes256key_uboot.bin bs=1 count=32; fi
 
-	cp -f $(confdir)/kernel.its $(boot_wrkdir)/kernel.its
+	cp -f $(confdir)/uboot.its $(boot_wrkdir)/uboot.its
 	# store uboot pubkey to boot_kernel_dtb
-	cd $(boot_wrkdir) && $(uboot_mkimage) -f kernel.its -K $(boot_kernel_dtb) -k $(wrkdir)/keys -r kernel.itb
+	cd $(boot_wrkdir) && $(uboot_mkimage) -f uboot.its -K $(boot_kernel_dtb) -k $(wrkdir)/keys -r kernel.itb
 	cd $(boot_wrkdir) && zip -q -r $(boot_zip) .
-	rm -f $(boot_image) $(boot_initrd) $(boot_wrkdir)/kernel.its
+	rm -f $(boot_image) $(boot_initrd) $(boot_wrkdir)/uboot.its
 
 .PHONY: uboot uboot-menuconfig
 uboot: $(uboot_wrkdir)/.config $(platform_dtb)
