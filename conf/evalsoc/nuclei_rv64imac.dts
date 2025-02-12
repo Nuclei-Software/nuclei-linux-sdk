@@ -405,9 +405,9 @@
         #address-cells = <1>;
         #size-cells = <0>;
 
-        rtl8211f: ethernet-phy@2 {
+        rtl8211f: ethernet-phy@0 {
             compatible = "ethernet-phy-ieee802.3-c22";
-            reg = <2>;
+            reg = <0>;
         };
     };
   };
