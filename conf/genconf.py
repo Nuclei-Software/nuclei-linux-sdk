@@ -191,7 +191,7 @@ def parse_size(size_str, output_format='numeric'):
     if output_format == 'numeric':
         return size_num
     elif output_format == 'string':
-        for unit, multiplier in reversed(units.items()):
+        for unit, multiplier in reversed(list(units.items())):
             if size_num >= multiplier:
                 return f"{size_num // multiplier}{unit}"
         return str(size_num)
