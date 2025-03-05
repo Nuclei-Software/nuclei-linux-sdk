@@ -14,17 +14,117 @@
 #include <sbi_utils/fdt/fdt_helper.h>
 #include <sbi_utils/fdt/fdt_fixup.h>
 
+#define IOMUX_BASE 0xf8bc00000
+
+#define REG32(p)                       (*(volatile uint32_t *) ((uintptr_t)(p)))
+#define LS_SRC_SEL_OFS                 0x0000
+#define HS_CHNL_SEL_OFS                0x4000
+#define LS_SRC0_IVAL_SEL_OFS           0x8000
+
+#define PHY_CNTRL_OFS                  0xC000
+#define CNTRL_SEL_OFS                  0x10000
+
+#define DO_SEL_HS                      32
+#define OE_SEL_HS_CHANNEL              8
+#define IE_SEL                         1
+
 static const struct fdt_match nuclei_evalsoc_match[] = {
 	{ .compatible = "nuclei,evalsoc" },
 	{ .compatible = "nuclei,eval-soc" },
 	{ },
 };
 
+void iomux_ls_iof_oval_cfg(unsigned long IO_MUX_BASE, uint32_t per_iof_num,uint32_t pad_num, uint8_t hs_ls,uint8_t  phy_cntr_sel,uint32_t phy_cntr)
+{
+   switch(hs_ls)
+   {
+       case 0:
+            REG32((IO_MUX_BASE + LS_SRC_SEL_OFS    + 0x4 * pad_num))= per_iof_num ;
+            REG32((IO_MUX_BASE + HS_CHNL_SEL_OFS + 0x4 * pad_num))= hs_ls ;
+            REG32((IO_MUX_BASE + CNTRL_SEL_OFS + 0x4 * pad_num)) |=  DO_SEL_HS | OE_SEL_HS_CHANNEL ;
+            break;
+        case 1:
+        case 2:
+        case 3:
+            REG32((IO_MUX_BASE + HS_CHNL_SEL_OFS + 0x4 * per_iof_num))= hs_ls ;
+            REG32((IO_MUX_BASE + CNTRL_SEL_OFS + 0x4 * per_iof_num))|=  DO_SEL_HS | OE_SEL_HS_CHANNEL;
+            break;
+
+        default:
+            break;
+    }
+}
+
+void iomux_ls_iof_ival_cfg(unsigned long IO_MUX_BASE, uint32_t per_iof_num,uint32_t pad_num, uint8_t hs_ls ,uint8_t  phy_cntr_sel,uint32_t phy_cntr)
+{
+     switch(hs_ls)
+    {
+        case 0:
+            REG32((IO_MUX_BASE + LS_SRC0_IVAL_SEL_OFS + 0x4 * per_iof_num))= pad_num ;
+            REG32((IO_MUX_BASE + CNTRL_SEL_OFS + 0x4 * pad_num))|= 0x1 ;
+            break;
+        case 1:
+        case 2:
+        case 3:
+            REG32((IO_MUX_BASE + HS_CHNL_SEL_OFS + 0x4 * per_iof_num))= hs_ls ;
+            REG32((IO_MUX_BASE + CNTRL_SEL_OFS + 0x4 * per_iof_num))|=  DO_SEL_HS |  IE_SEL;
+            break;
+        default:
+            break;
+    }
+}
+
+static void xec_iomux_config(void)
+{
+    //XEC_GEN20_GMII_TXD_BIT0_IOF_OVAL
+    iomux_ls_iof_oval_cfg(IOMUX_BASE,97, 97, 1, 0, 0);
+    //XEC_GEN20_GMII_TXD_BIT1_IOF_OVAL
+    iomux_ls_iof_oval_cfg(IOMUX_BASE,98, 98, 1, 0, 0);
+    //XEC_GEN20_GMII_TXD_BIT2_IOF_OVAL
+    iomux_ls_iof_oval_cfg(IOMUX_BASE,99, 99, 1, 0, 0);
+    //XEC_GEN20_GMII_TXD_BIT3_IOF_OVAL
+    iomux_ls_iof_oval_cfg(IOMUX_BASE,100, 100, 1, 0, 0);
+    //XEC_GEN20_GMII_TXEN_IOF_OVAL
+    iomux_ls_iof_oval_cfg(IOMUX_BASE,109, 109, 1, 0, 0);
+    //XEC_GEN20_GMII_TXER_IOF_OVAL
+    iomux_ls_iof_oval_cfg(IOMUX_BASE,110, 110, 1, 0, 0);
+    //XEC_GEN20_XMII_TXC_IOF_OVAL
+    iomux_ls_iof_ival_cfg(IOMUX_BASE,95, 95, 1, 0, 0);
+    //XEC_GEN20_GMII_CRS_IOF_OVAL
+    iomux_ls_iof_ival_cfg(IOMUX_BASE,105, 105, 1, 0, 0);
+    //XEC_GEN20_GMII_COL_IOF_OVAL
+    iomux_ls_iof_ival_cfg(IOMUX_BASE,106, 106, 1, 0, 0);
+    //XEC_GEN20_GMII_RXC_IOF_IVAL
+    iomux_ls_iof_ival_cfg(IOMUX_BASE,96, 96, 1, 0, 0);
+    //XEC_GEN20_GMII_RXD_BIT0_IOF_IVAL
+    iomux_ls_iof_ival_cfg(IOMUX_BASE,101, 101, 1, 0, 0);
+    //XEC_GEN20_GMII_RXD_BIT1_IOF_IVAL
+    iomux_ls_iof_ival_cfg(IOMUX_BASE,102, 102, 1, 0, 0);
+    //XEC_GEN20_GMII_RXD_BIT2_IOF_IVAL
+    iomux_ls_iof_ival_cfg(IOMUX_BASE,103, 103, 1, 0, 0);
+    //XEC_GEN20_GMII_RXD_BIT3_IOF_IVAL
+    iomux_ls_iof_ival_cfg(IOMUX_BASE,104, 104, 1, 0, 0);
+    //XEC_GEN20_GMII_RXDV_IOF_IVAL
+    iomux_ls_iof_ival_cfg(IOMUX_BASE,107, 107, 1, 0, 0);
+    //XEC_GEN20_GMII_RXER_IOF_IVAL
+    iomux_ls_iof_ival_cfg(IOMUX_BASE,108, 108, 1, 0, 0);
+    //XEC_GEN20_GMII_RXC_IOF_IVAL
+    iomux_ls_iof_ival_cfg(IOMUX_BASE,96, 96, 1, 0, 0);
+
+    //GEN20 MDIO oval
+    iomux_ls_iof_oval_cfg(IOMUX_BASE,19, 18, 0, 0, 0);
+    //GEN20 MDC oval
+    iomux_ls_iof_oval_cfg(IOMUX_BASE,20, 19, 0, 0, 0);
+    //GEN20 MDIO ival
+    iomux_ls_iof_ival_cfg(IOMUX_BASE,19, 18, 0, 0, 0);
+}
+
 static int nuclei_evalsoc_final_init(bool cold_boot,
 				   const struct fdt_match *match)
 {
 	unsigned long smpcc_base = 0, smpcc_cfg;
 	if (cold_boot) { // Add cold boot initial steps
+		xec_iomux_config();
 	}
 
 	// Check mcfg_info.tee to see whether tee present

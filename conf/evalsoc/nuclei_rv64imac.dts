@@ -157,7 +157,7 @@
 
   memory@0 {
     device_type = "memory";
-    reg = <0x0 0x00000000 0x0 0x3E000000>;
+    reg = <0x0 0x00000000 0x0 0x7E000000>;
   };
 
   soc {
@@ -200,6 +200,12 @@
     #clock-cells = <0>;
     compatible = "fixed-clock";
     clock-frequency = <20000000>;
+  };
+
+  xecclk: xecclk {
+    #clock-cells = <0>;
+    compatible = "fixed-clock";
+    clock-frequency = <25000000>;
   };
 
   rst: rstmgr@f8b300000 {
@@ -311,5 +317,28 @@
     /*broken-cd;*/
     cap-sd-highspeed;
     status = "okay";
+  };
+
+  xec0: xec@f8b160000 {
+    compatible = "nuclei,xec";
+    reg = <0xf 0x8b160000 0x0 0x1000>;
+    interrupt-parent = <&plic0>;
+    interrupts = <13>;
+    clocks = <&xecclk>;
+    /*local-mac-address = [00 2b 20 21 03 23];*/
+    phy-handle = <&rtl82xx>;
+    phy-mode = "mii";
+
+    status = "okay";
+    mdio {
+        compatible = "snps,dwmac-mdio";
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        rtl82xx: ethernet-phy@0 {
+            compatible = "ethernet-phy-ieee802.3-c22";
+            reg = <0>;
+        };
+    };
   };
 };
