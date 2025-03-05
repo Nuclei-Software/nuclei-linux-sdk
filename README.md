@@ -1,8 +1,8 @@
 # Nuclei Linux SDK
 
-[![Build and Test Linux SDK](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/build.yml/badge.svg?branch=dev_nuclei_6.6_v2)](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/build.yml)
+[![Build and Test Linux SDK](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/build.yml/badge.svg?branch=dev_nuclei_6.6_v3)](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/build.yml)
 
-[![Build Linux SDK Docker Image](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/docker.yml/badge.svg?branch=dev_nuclei_6.6_v2)](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/docker.yml)
+[![Build Linux SDK Docker Image](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/docker.yml/badge.svg?branch=dev_nuclei_6.6_v3)](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/docker.yml)
 
 Please check [about each branch feature](https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/2) to learn which branch you should choose.
 
@@ -22,7 +22,7 @@ See [How to evaluate Nuclei Linux SDK in docker](https://github.com/Nuclei-Softw
 - Build dependencies
   - packages: see [apt.txt](.github/apt.txt)
   - python pip packages: [pipreq.txt](.github/pipreq.txt)
-- Get prebuilt qemu and openocd 2023.10 from [Nuclei Development Tools](https://nucleisys.com/download.php#tools)
+- Get prebuilt qemu and openocd 2025.02 from [Nuclei Development Tools](https://nucleisys.com/download.php#tools)
 - Setup qemu and openocd and add it into **PATH**
 - mtools version >= 4.0.24
 
@@ -70,10 +70,10 @@ existing issues not address your problem, please [create a new issue](https://gi
 
 * Checkout this repository using `git`.
 
-> Change the below `dev_nuclei_6.6_v2` to your desired branch.
+> Change the below `dev_nuclei_6.6_v3` to your desired branch.
 
   - If you have good network access to github, you can clone this repo using command
-    `git clone -b dev_nuclei_6.6_v2 https://github.com/Nuclei-Software/nuclei-linux-sdk`
+    `git clone -b dev_nuclei_6.6_v3 https://github.com/Nuclei-Software/nuclei-linux-sdk`
   - Otherwise, you can try methods provided https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/10
   - If https is not stable, you can try ssh, please search about git clone ssh/https difference
 
@@ -95,8 +95,8 @@ existing issues not address your problem, please [create a new issue](https://gi
   and get expected output as below:
 
   ~~~
-  On branch dev_nuclei_6.6_v2
-  Your branch is up to date with 'origin/dev_nuclei_6.6_v2'.
+  On branch dev_nuclei_6.6_v3
+  Your branch is up to date with 'origin/dev_nuclei_6.6_v3'.
 
   nothing to commit, working tree clean
   ~~~
@@ -115,13 +115,13 @@ source repository).
 
 Update source code if there are new commits in this repo.
 
-Assume currently you are in `dev_nuclei_6.6_v2` branch, and the working tree is clean.
+Assume currently you are in `dev_nuclei_6.6_v3` branch, and the working tree is clean.
 
 Then you run the following command to update this repo:
 
 ~~~shell
 # Pull lastest source code and rebase your local commits onto it
-git pull --rebase origin dev_nuclei_6.6_v2
+git pull --rebase origin dev_nuclei_6.6_v3
 # Update git submodules
 git submodule update
 # Check workspace status to see whether it is clean
@@ -145,7 +145,7 @@ Here are the version numbers of sub projects used in Nuclei Linux SDK.
 * Linux 6.6.y
 * Uboot v2024.01
 * OpenSBI master >= v1.4
-* Buildroot 2023.11.x
+* Buildroot 2024.08.x
 
 Our changes to support Nuclei Eval SoC are adapted based on above version.
 
@@ -446,7 +446,7 @@ If you want to remove the login, and directly enter to bash, please check [**Kno
 
 When the required changes has been done, then you can run `make run_qemu` to run riscv linux on Nuclei QEMU, here are the sample output.
 
-> You can check latest output in github action https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/build.yml?query=branch%3Adev_nuclei_6.6_v2
+> You can check latest output in github action https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/build.yml?query=branch%3Adev_nuclei_6.6_v3
 
 > This may be out of date.
 
