@@ -15,15 +15,15 @@
             arch = "riscv";
             os = "linux";
             compression = "lz4";
-            load = <0xc0400000>;
-            entry = <0xc0400000>;
+            load = <0xc1000000>;
+            entry = <0xc1000000>;
             cipher {
                 algo = "aes256";
-                key-name-hint = "aes256key_uboot";
+                key-name-hint = "aes_spl";
             };
             signature {
                 algo = "sha256,rsa2048";
-                key-name-hint = "uboot";
+                key-name-hint = "rsa_spl";
             };
         };
         ramdisk{
@@ -36,13 +36,29 @@
             entry = <0x0>;
             cipher {
                 algo = "aes256";
-                key-name-hint = "aes256key_uboot";
+                key-name-hint = "aes_spl";
             };
             signature {
                 algo = "sha256,rsa2048";
-                key-name-hint = "uboot";
+                key-name-hint = "rsa_spl";
             };
         };
+        fdt {
+            description = "Firmware DTB";
+            data = /incbin/("kernel.dtb");
+            type = "flat_dt";
+            arch = "riscv";
+            load = <0x0 0xc8000000>;
+            compression = "none";
+            cipher {
+                algo = "aes256";
+                key-name-hint = "aes_spl";
+            };
+            signature {
+                algo = "sha256,rsa2048";
+                key-name-hint = "rsa_spl";
+             };
+         };
     };
 
     configurations {
@@ -51,6 +67,7 @@
             description = "Boot Linux kernel with FDT blob";
             kernel = "kernel";
             ramdisk = "ramdisk";
+            fdt = "fdt";
         };
     };
 };

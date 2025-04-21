@@ -16,11 +16,30 @@
                         compression = "none";
                         cipher {
                                 algo = "aes256";
-                                key-name-hint = "aes256key_spl";
+                                key-name-hint = "aes_spl";
                         };
                         signature {
                                 algo = "sha256,rsa2048";
-                                key-name-hint = "spl";
+                                key-name-hint = "rsa_spl";
+                        };
+                };
+
+                optee {
+                        description = "OP-TEE";
+                        data = /incbin/("optee.bin");
+                        type = "standalone";
+                        arch = "riscv";
+                        os = "tee";
+                        load = <0x0 0xc0800000>;
+                        entry = <0x0 0xc0800000>;
+                        compression = "none";
+                        cipher {
+                                algo = "aes256";
+                                key-name-hint = "aes_spl";
+                        };
+                        signature {
+                                algo = "sha256,rsa2048";
+                                key-name-hint = "rsa_spl";
                         };
                 };
 
@@ -30,32 +49,16 @@
                         type = "standalone";
                         arch = "riscv";
                         os = "U-Boot";
-                        load = <0x0 0xc0200000>;
+                        load = <0x0 0xc1200000>;
+                        entry = <0x0 0xc1200000>;
                         compression = "none";
                         cipher {
                                 algo = "aes256";
-                                key-name-hint = "aes256key_spl";
+                                key-name-hint = "aes_spl";
                         };
                         signature {
                                 algo = "sha256,rsa2048";
-                                key-name-hint = "spl";
-                        };
-                };
-
-                fdt {
-                        description = "Firmware DTB";
-                        data = /incbin/("fdt.dtb");
-                        type = "flat_dt";
-                        arch = "riscv";
-                        load = <0x0 0xc8000000>;
-                        compression = "none";
-                        cipher {
-                                algo = "aes256";
-                                key-name-hint = "aes256key_spl";
-                        };
-                        signature {
-                                algo = "sha256,rsa2048";
-                                key-name-hint = "spl";
+                                key-name-hint = "rsa_spl";
                         };
                 };
         };
@@ -66,8 +69,7 @@
                 boot {
                         description = "UBoot SPL";
                         firmware = "opensbi";
-                        loadables = "uboot";
-                        fdt = "fdt";
+                        loadables = "uboot","optee";
                 };
         };
 };

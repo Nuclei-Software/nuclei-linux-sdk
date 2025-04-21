@@ -1,5 +1,9 @@
 FW_TEXT_START := 0xc0000000
-UIMAGE_AE_CMD := -a 0xc0400000 -e 0xc0400000
+OPTEE_OS_TZDRAM_START := 0xc0800000
+OPTEE_OS_TZDRAM_SIZE := 0x800000
+OPTEE_OS_SHMEM_START := 0xc0200000
+OPTEE_OS_SHMEM_SIZE := 0x200000
+OPTEE_PLIC_BASE := 0x4000000
 # Need Nuclei Qemu >= 2023.10
 QEMU_MACHINE_OPTS := -M nuclei_evalsoc,download=flashxip -smp 8 -m 2G
 # initramfs pre command before generate initrd ramfs
