@@ -127,6 +127,34 @@ uboot_spl_its := $(confdir)/uboot_spl.its
 uboot_spl_itb := $(uboot_spl_wrkdir)/uboot_spl.itb
 uboot_spl_dtb := $(uboot_spl_wrkdir)/spl.dtb
 
+# OPTEE gits compile config
+optee_os_srcdir := $(srcdir)/optee/optee_os
+optee_os_wrkdir := $(wrkdir)/optee/optee_os
+optee_os_platform := nuclei
+
+optee_os_bin := $(optee_os_wrkdir)/core/tee-pager_v2.bin
+optee_os_export := $(optee_os_wrkdir)/export-ta_rv64/
+
+optee_client_srcdir := $(srcdir)/optee/optee_client
+optee_client_wrkdir := $(wrkdir)/optee/optee_client
+optee_client_export := $(optee_client_wrkdir)/export/usr
+optee_client_supplicant := $(optee_client_wrkdir)/tee-supplicant/tee-supplicant
+
+optee_test_srcdir := $(srcdir)/optee/optee_test
+optee_test_wrkdir := $(wrkdir)/optee/optee_test
+optee_test_xtest := $(optee_test_wrkdir)/xtest/xtest
+optee_test_tadir := $(optee_test_wrkdir)/ta
+optee_test_plugindir := $(optee_test_wrkdir)/supp_plugin
+
+optee_example_srcdir := $(srcdir)/optee/optee_examples
+optee_example_wrkdir := $(wrkdir)/optee/optee_examples
+optee_example_cadir := $(optee_example_wrkdir)/out/ca
+optee_example_tadir := $(optee_example_wrkdir)/out/ta
+optee_example_plugindir := $(optee_example_wrkdir)/out/plugins
+
+optee_benchmark_srcdir := $(srcdir)/optee/optee_benchmark
+optee_benchmark_wrkdir := $(wrkdir)/optee/optee_benchmark
+optee_benchmark_elf := $(optee_benchmark_wrkdir)/out/benchmark
 # Directory for boot images stored in sdcard
 boot_wrkdir := $(wrkdir)/boot
 boot_zip := $(wrkdir)/boot.zip
@@ -219,12 +247,14 @@ help:
 	@echo "- linux : build linux image"
 	@echo "- opensbi : build opensbi jump binary"
 	@echo "- uboot : build uboot and generate uboot binary"
+	@echo "- optee : build optee os/client/test/example and generate binary"
 	@echo "- clean : clean this full workspace"
 	@echo "- cleanboot : clean generated boot images"
 	@echo "- cleanlinux : clean linux workspace"
 	@echo "- cleanbuildroot : clean buildroot workspace"
 	@echo "- cleansysroot : clean buildroot sysroot files"
 	@echo "- cleanuboot : clean u-boot workspace"
+	@echo "- cleanoptee : clean optee os/client/test/example output files"
 	@echo "- cleanfreeloader : clean freeloader generated objects"
 	@echo "- cleanopensbi : clean opensbi workspace"
 	@echo "- backup : backup generated prebuilt images into $(backupdir) folder, you need to input backup message when this target is triggered"
@@ -238,8 +268,9 @@ help:
 	@echo "Deprecated: If you want to run linux in simulation using xlspike, please run presim, sim targets"
 	@echo "Deprecated: The xl-spike support will be deprecated in future release"
 
-
-$(target_gcc): buildroot_initramfs_sysroot
+# First level toolchain build
+$(target_gcc): $(buildroot_srcdir) $(buildroot_initramfs_wrkdir)/.config $(buildroot_initramfs_config)
+	$(MAKE) -C $(buildroot_srcdir) RISCV=$(RISCV) O=$(buildroot_initramfs_wrkdir) toolchain
 
 $(wrkdir):
 	mkdir -p $@
@@ -251,7 +282,7 @@ $(buildroot_initramfs_wrkdir)/.config:
 	$(MAKE) -C ${buildroot_srcdir} RISCV=$(RISCV) O=$(buildroot_initramfs_wrkdir) olddefconfig
 
 # buildroot_initramfs provides gcc
-$(buildroot_initramfs_tar): $(buildroot_srcdir) $(buildroot_initramfs_wrkdir)/.config $(buildroot_initramfs_config)
+$(buildroot_initramfs_tar): $(buildroot_srcdir) $(buildroot_initramfs_wrkdir)/.config $(buildroot_initramfs_config) $(target_gcc)
 	$(MAKE) -C $< RISCV=$(RISCV) O=$(buildroot_initramfs_wrkdir)
 
 .PHONY: buildroot_initramfs-menuconfig
@@ -264,11 +295,14 @@ buildroot_initramfs-menuconfig: $(buildroot_initramfs_wrkdir)/.config $(buildroo
 buildroot_busybox-menuconfig: $(buildroot_initramfs_wrkdir)/.config $(buildroot_srcdir) $(target_gcc)
 	$(MAKE) -C $(dir $<) O=$(buildroot_initramfs_wrkdir) busybox-menuconfig
 
+# 2th level buildroot build
 $(buildroot_initramfs_sysroot_stamp): $(buildroot_initramfs_tar)
 	mkdir -p $(buildroot_initramfs_sysroot)
 	tar -xpf $< -C $(buildroot_initramfs_sysroot) --exclude ./dev --exclude ./usr/share/locale
+	if [ -f $(confdir)/S30optee ]; then cp -af $(confdir)/S30optee $(buildroot_initramfs_sysroot)/etc/init.d/; fi
 	touch $@
 
+# 2th level vmlinux build
 .PHONY: initrd linux
 
 $(linux_wrkdir)/.config: $(linux_defconfig) $(target_gcc)
@@ -284,7 +318,7 @@ $(linux_image): linux
 initrd: $(initramfs)
 	@echo "initramfs cpio file is generated into $<"
 
-linux: $(linux_wrkdir)/.config
+linux: $(linux_wrkdir)/.config $(target_gcc)
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		CONFIG_INITRAMFS_ROOT_UID=$(shell id -u) \
 		CONFIG_INITRAMFS_ROOT_GID=$(shell id -g) \
@@ -293,7 +327,8 @@ linux: $(linux_wrkdir)/.config
 		PATH=$(RVPATH) \
 		vmlinux Image
 
-$(initramfs): $(buildroot_initramfs_sysroot) $(linux_image)
+# 4th level initramfs build
+$(initramfs): $(buildroot_initramfs_sysroot) $(linux_image) optee_test optee_client optee_example
 	$(INITRAMFS_PRECMD)
 	cd $(linux_wrkdir) && \
 		$(linux_gen_initramfs) \
@@ -339,12 +374,14 @@ $(platform_preproc_sim_dts): gen-simdts
 gen-simdts: $(platform_sim_dts) $(target_gcc)
 	$(target_gcc) -E -nostdinc -undef -x assembler-with-cpp $(DTS_DEFINES) -DSIMULATION=2 $(platform_sim_dts) -o $(platform_preproc_sim_dts)
 
+# 2th level dtb build
 $(platform_dtb) : $(platform_preproc_dts) $(target_gcc)
 	dtc -O dtb -o $(platform_dtb) $(platform_preproc_dts)
 
 $(platform_sim_dtb) : $(platform_preproc_sim_dts) $(target_gcc)
 	dtc -O dtb -o $(platform_sim_dtb) $(platform_preproc_sim_dts)
 
+# 2th level opensbi build
 .PHONY: opensbi opensbi_cp_plat
 
 $(opensbi_jumpbin): opensbi
@@ -354,7 +391,9 @@ opensbi: $(target_gcc) $(opensbi_plat_deps)
 	cp -u $(opensbi_plat_confdir)/* $(opensbi_plat_srcdir)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) BUILD_INFO=y \
 		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM_RISCV_XLEN=$(XLEN) \
-		PLATFORM=generic FW_TEXT_START=$(FW_TEXT_START)
+		PLATFORM=generic FW_TEXT_START=$(FW_TEXT_START) FW_OPTEE_SHMEM_BASE=$(OPTEE_OS_SHMEM_START) \
+		FW_OPTEE_SHMEM_SIZE=$(OPTEE_OS_SHMEM_SIZE) FW_OPTEE_TZDRAM_BASE=$(OPTEE_OS_TZDRAM_START) \
+		FW_OPTEE_TZDRAM_SIZE=$(OPTEE_OS_TZDRAM_SIZE) FW_OPTEE_PLIC_BASE=$(OPTEE_PLIC_BASE)
 
 # internal usage for xlspike, deprecated
 $(opensbi_payload): $(opensbi_srcdir) $(vmlinux_sim_bin) $(platform_sim_dtb) $(opensbi_plat_deps)
@@ -369,7 +408,7 @@ $(opensbi_payload): $(opensbi_srcdir) $(vmlinux_sim_bin) $(platform_sim_dtb) $(o
 
 $(buildroot_initramfs_sysroot): $(buildroot_initramfs_sysroot_stamp)
 
-.PHONY: buildroot_initramfs_sysroot vmlinux
+#.PHONY: buildroot_initramfs_sysroot vmlinux
 buildroot_initramfs_sysroot: $(buildroot_initramfs_sysroot)
 vmlinux: $(vmlinux)
 
@@ -394,20 +433,59 @@ $(boot_kernel_dtb): $(platform_preproc_dts)
 
 $(boot_zip): $(boot_wrkdir) $(boot_image) $(boot_initrd) $(boot_kernel_dtb) $(uboot_mkimage)
 	rm -f $(boot_zip)
-	mkdir -p $(wrkdir)/keys
-
-	# generate uboot rsa key and x509 crt
-	if [ ! -f $(wrkdir)/keys/uboot.crt ]; then cd $(wrkdir) && openssl genpkey -algorithm RSA -out keys/uboot.key -pkeyopt rsa_keygen_bits:2048 -pkeyopt rsa_keygen_pubexp:65537 ; fi;
-	cd $(wrkdir) && openssl req -batch -new -x509 -key keys/uboot.key -out keys/uboot.crt
-
-	if [ ! -f $(wrkdir)/keys/aes256key_uboot.bin ]; then dd if=/dev/urandom of=$(wrkdir)/keys/aes256key_uboot.bin bs=1 count=32; fi
 
 	cp -f $(confdir)/uboot.its $(boot_wrkdir)/uboot.its
-	# store uboot pubkey to boot_kernel_dtb
-	cd $(boot_wrkdir) && $(uboot_mkimage) -f uboot.its -K $(boot_kernel_dtb) -k $(wrkdir)/keys -r kernel.itb
+	cp -f $(boot_kernel_dtb)  $(boot_kernel_dtb).tmp
+	# kernel/rootfs use the same key as uboot/opensbi/optee, here .tmp file is only to let mkimage generate  aes iv.
+	cd $(boot_wrkdir) && $(uboot_mkimage) -f uboot.its -K $(boot_kernel_dtb).tmp  -k $(wrkdir)/keys -r kernel.itb
 	cd $(boot_wrkdir) && zip -q -r $(boot_zip) .
-	rm -f $(boot_image) $(boot_initrd) $(boot_wrkdir)/uboot.its
+	rm -f $(boot_image) $(boot_initrd) $(boot_wrkdir)/uboot.its $(boot_kernel_dtb).tmp
 
+.PHONY: optee optee_os optee_client optee_example optee_test
+
+optee: optee_os optee_client optee_test optee_example
+
+# 2th level optee_os build
+optee_os: $(target_gcc) $(optee_os_srcdir)
+	$(MAKE) -C $(optee_os_srcdir) O=$(optee_os_wrkdir) CROSS_COMPILE64=$(CROSS_COMPILE) ARCH=riscv CFG_RV64_core=y \
+	CFG_TZDRAM_START=$(OPTEE_OS_TZDRAM_START) CFG_TZDRAM_SIZE=$(OPTEE_OS_TZDRAM_SIZE) CFG_SHMEM_START=$(OPTEE_OS_SHMEM_START) \
+	CFG_SHMEM_SIZE=$(OPTEE_OS_SHMEM_SIZE) PLATFORM=$(optee_os_platform) ta-targets=ta_rv64 MARCH=$(ISA) MABI=$(ABI)
+
+# 2th level optee_client build
+optee_client: $(target_gcc) $(optee_client_srcdir) $(buildroot_initramfs_sysroot)
+	$(MAKE) -C $(optee_client_srcdir) O=$(optee_client_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) MARCH=$(ISA) MABI=$(ABI)
+	# copy optee client tee-supplicant, libteec to rootfs
+	if [ -f $(optee_client_supplicant) ];then cp -af $(optee_client_supplicant) $(buildroot_initramfs_sysroot)/usr/sbin/; fi
+	if ls $(optee_client_export)/lib/lib*so* >/dev/null 2>&1 ;then cp -af $(optee_client_export)/lib/lib*so* $(buildroot_initramfs_sysroot)/lib/; fi
+
+# 3th level optee_test build
+optee_test: $(target_gcc) optee_client optee_os $(buildroot_initramfs_sysroot)
+	$(MAKE) -C $(optee_test_srcdir) O=$(optee_test_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) OPTEE_CLIENT_EXPORT=$(optee_client_export) \
+	--no-builtin-variables TA_DEV_KIT_DIR=$(optee_os_export) MARCH=$(ISA) MABI=$(ABI) OPENSSL_INSTALL_PATH=$(buildroot_initramfs_sysroot)/usr
+	#copy optee test ca,ta,plugin
+	mkdir -p $(buildroot_initramfs_sysroot)/lib/optee_armtz && mkdir -p $(buildroot_initramfs_sysroot)/usr/lib/tee-supplicant/plugins && if ls $(optee_test_tadir)/*/*.ta >/dev/null 2>&1 ;then cp -af $(optee_test_tadir)/*/*.ta $(buildroot_initramfs_sysroot)/lib/optee_armtz/; fi && if [ -f $(optee_test_xtest) ];then cp -af $(optee_test_xtest) $(buildroot_initramfs_sysroot)/usr/bin/; fi && if ls $(optee_test_plugindir)/*.plugin >/dev/null 2>&1 ;then cp -af $(optee_test_plugindir)/*.plugin $(buildroot_initramfs_sysroot)/usr/lib/tee-supplicant/plugins/; fi
+
+# 3th level optee_example build
+optee_example: $(target_gcc) $(optee_example_srcdir) optee_client optee_os
+	mkdir -p $(buildroot_initramfs_sysroot)/lib/optee_armtz
+	cp -af $(optee_example_srcdir)  $(wrkdir)/optee/
+	$(MAKE) -C $(optee_example_wrkdir) HOST_CROSS_COMPILE=$(CROSS_COMPILE) TEEC_EXPORT=$(optee_client_export) --no-builtin-variables TA_DEV_KIT_DIR=$(optee_os_export) MARCH=$(ISA) MABI=$(ABI)
+	#copy optee example ca,ta,plugin
+	if ls $(optee_example_cadir)/* >/dev/null 2>&1 ;then cp -af $(optee_example_cadir)/* $(buildroot_initramfs_sysroot)/usr/bin; fi
+	if ls $(optee_example_tadir)/* >/dev/null 2>&1 ;then cp -af $(optee_example_tadir)/* $(buildroot_initramfs_sysroot)/lib/optee_armtz/; fi
+	if ls $(optee_example_plugindir)/*.plugin >/dev/null 2>&1 ;then cp -af $(optee_example_plugindir)/*.plugin  $(buildroot_initramfs_sysroot)/usr/lib/tee-supplicant/plugins/; fi
+
+# 3th level optee_benchmark build
+optee_benchmark: $(target_gcc) $(optee_benchmark_srcdir) optee_client optee_os
+	cp -af $(optee_benchmark_srcdir)  $(wrkdir)/optee/
+	$(MAKE) -C $(optee_benchmark_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) TEEC_EXPORT=$(optee_client_export) TEEC_INTERNAL_INCLUDES=$(optee_client_srcdir)/libteec    MULTIARCH=riscv-nuclei-linux-gnu
+	#copy optee benchmark
+	if [ -f $(optee_benchmark_elf) ];then \
+	cp -af $(optee_benchmark_elf) $(buildroot_initramfs_sysroot)/usr/bin; \
+	cp -af $(optee_benchmark_wrkdir)/out/libyaml/out/lib/libyaml*.so* $(buildroot_initramfs_sysroot)/lib/; \
+	fi
+
+# 2th level uboot build
 .PHONY: uboot uboot-menuconfig
 uboot: $(uboot_wrkdir)/.config $(platform_dtb)
 	# use external device tree binary for uboot
@@ -423,26 +501,29 @@ $(uboot_wrkdir)/.config: $(target_gcc) $(uboot_config)
 	cp $(uboot_config) $@
 	$(MAKE) -C $(uboot_srcdir) O=$(uboot_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) olddefconfig
 
-$(uboot_spl_itb): $(target_gcc) $(uboot_spl_its) $(platform_dtb) opensbi uboot $(boot_zip)
+# 3th level spl.itb build
+$(uboot_spl_itb): $(target_gcc) $(uboot_spl_its) $(platform_dtb) opensbi optee_os uboot
 	mkdir -p $(uboot_spl_wrkdir)
+	mkdir -p $(wrkdir)/keys
 	rm -f $(uboot_spl_wrkdir)/*.*
 	cp -f $(opensbi_jumpbin) $(uboot_spl_wrkdir)/opensbi.bin
 	cp -f $(uboot_bin) $(uboot_spl_wrkdir)/u-boot.bin
-	cp -f $(boot_kernel_dtb) $(uboot_spl_wrkdir)/fdt.dtb
-	rm -f $(boot_kernel_dtb)
+
+	cp -f $(optee_os_bin) $(uboot_spl_wrkdir)/optee.bin
 	cp -f $(platform_dtb) $(uboot_spl_dtb)
 	cp -f $(uboot_spl_its) $(uboot_spl_wrkdir)/spl.its
 	# generate spl rsa key and x509 crt
-	if [ ! -f $(wrkdir)/keys/spl.crt ]; then cd $(wrkdir) && openssl genpkey -algorithm RSA -out keys/spl.key -pkeyopt rsa_keygen_bits:2048 -pkeyopt rsa_keygen_pubexp:65537 ; fi;
-	cd $(wrkdir) && openssl req -batch -new -x509 -key keys/spl.key -out keys/spl.crt
+	if [ ! -f $(wrkdir)/keys/rsa_spl.crt ]; then cd $(wrkdir) && openssl genpkey -algorithm RSA -out keys/rsa_spl.key -pkeyopt rsa_keygen_bits:2048 -pkeyopt rsa_keygen_pubexp:65537 ; fi;
+	cd $(wrkdir) && openssl req -batch -new -x509 -key keys/rsa_spl.key -out keys/rsa_spl.crt -sha256
 	# generate aes256 cipher key
-	if [ ! -f $(wrkdir)/keys/aes256key_spl.bin ]; then dd if=/dev/urandom of=$(wrkdir)/keys/aes256key_spl.bin bs=1 count=32; fi
+	if [ ! -f $(wrkdir)/keys/aes_spl.bin ]; then dd if=/dev/urandom of=$(wrkdir)/keys/aes_spl.bin bs=1 count=32; fi
 
 	# store spl pubkey to spl.dtb
 	cd $(uboot_spl_wrkdir) && $(uboot_mkimage) -f spl.its -K $(uboot_spl_dtb) -k $(wrkdir)/keys -r $@
 
 $(uboot_mkimage) $(uboot_bin) $(uboot_spl_bin): uboot
 	@echo "Uboot binary is generated into $<"
+
 
 .PHONY: freeloader upload_freeloader debug_freeloader run_openocd
 
@@ -476,8 +557,9 @@ freeloader4m: prepare4m $(freeloader_elf)
 	ls -lh $(freeloader_elf)
 endif
 
+# 4th level freeloader build
 ifeq ($(BOOT_MODE),sd)
-$(freeloader_elf): $(freeloader_srcdir) $(uboot_spl_bin) $(uboot_spl_itb) $(platform_dtb) $(amp_bins)
+$(freeloader_elf): $(freeloader_srcdir) $(uboot_spl_bin) $(uboot_spl_itb) $(platform_dtb) $(amp_bins) $(boot_zip)
 else
 $(freeloader_elf): $(freeloader_srcdir) $(uboot_spl_bin) $(uboot_spl_itb) $(platform_dtb) $(boot_zip) $(amp_bins)
 endif
@@ -552,6 +634,9 @@ cleanfreeloader:
 
 cleanopensbi:
 	rm -rf $(opensbi_wrkdir)
+
+cleanoptee:
+	rm -rf $(wrkdir)/optee
 
 # If you change your make target from sim to bootimages, you need to run preboot first
 preboot: prepare
