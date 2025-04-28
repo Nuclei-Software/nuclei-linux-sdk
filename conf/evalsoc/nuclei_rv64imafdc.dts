@@ -363,4 +363,9 @@
     };
   };
 #endif
+
+  sysrst {
+    compatible = "nuclei,sysrst";
+    reg = <0x0 0x18030FF0>;
+  };
 };
