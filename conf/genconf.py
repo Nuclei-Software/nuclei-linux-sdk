@@ -236,6 +236,33 @@ def update_plic_intr_num(dts_file_path, irqmax=None):
     with open(dts_file_path, 'w') as f:
         f.write(modified_content)
 
+def update_openocd_config(file_path, **kwargs):
+    with open(file_path, "r") as f:
+        content = f.read()
+
+    changes_made = False  # 标记是否有修改发生
+
+    for key, new_value in kwargs.items():
+        pattern = rf"(set\s+{key}\s+)(\S+)"
+        # 先检查是否能匹配到旧值
+        match = re.search(pattern, content)
+        if match:
+            old_value = match.group(2)
+            if old_value != new_value:
+                # 只有当新旧值不同时才替换
+                content = re.sub(pattern, f"set {key}    {new_value}", content)
+                print(f"Update {key.ljust(15)}: {old_value} to {new_value}")
+                changes_made = True
+            # else: 值相同则不处理
+        else:
+            print(f"[Warning] Config item '{key}' not found")
+
+    if changes_made:
+        with open(file_path, "w") as f:
+            f.write(content)
+    else:
+        print("No changes were made to the config file.")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate configuration files based on a reference SOC."
@@ -515,7 +542,20 @@ if __name__ == "__main__":
         fdt_load_addr = hex(int(board_ddr_base, 16) + 0x8000000)
         update_uboot_cmd(uboot_cmd_file, kernel_load_addr, rootfs_load_addr, fdt_load_addr)
 
-        print("===generate successfully!===\n")
+        print("\n>>>Updating openocd config...")
+        # update openocd config file
+        openocd_cfg_file = "%s/openocd.cfg" %(cust_file)
+        workmem_base = hex(int(board_ddr_base, 16))
+        workmem_size = hex(0x10000)
+        flashxip_base = hex(int(board_flash_base, 16))
+        xipnuspi_base = hex(int(board_qspi0_base, 16))
+        update_openocd_config(openocd_cfg_file,
+            workmem_base=workmem_base,
+            workmem_size=workmem_size,
+            flashxip_base=flashxip_base,
+            xipnuspi_base=xipnuspi_base)
+
+        print("\n===generate successfully!===\n")
         print("Here are the reference build commands for compiling Linux SDK for you:")
         print("$cd ..")
         print("$make SOC=%s CORE=ux900fd BOOT_MODE=sd freeloader bootimages" % args.custsoc)
