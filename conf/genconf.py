@@ -128,6 +128,25 @@ def update_dts_node(dts_file_path, node_name, new_base_address, new_reg_values, 
     else:
         print("Node not found!")
 
+def update_dts_node_simple(dts_file_path, node_name, new_reg_values):
+    with open(dts_file_path, 'r') as f:
+        content = f.read()
+
+    pattern_str = r'(\b{}\s*{{[\s\S]*?)(\breg\s*=\s*<)([^>]+)([>])([\s\S]*?}})'.format(re.escape(node_name))
+    pattern = re.compile(pattern_str, re.DOTALL | re.MULTILINE)
+
+    def replacer(match):
+        return f"{match.group(1)}{match.group(2)}{new_reg_values}>{match.group(5)}"
+
+    new_content = pattern.sub(replacer, content)
+
+    if new_content != content:
+        with open(dts_file_path, 'w') as f:
+            f.write(new_content)
+        print(f"Updated {node_name} reg to <{new_reg_values}>")
+    else:
+        print(f"Node '{node_name}' not found or no change")
+
 def update_build_variable(makefile_path, variable_name, new_value):
     with open(makefile_path, 'r') as file:
         content = file.read()
@@ -504,6 +523,13 @@ if __name__ == "__main__":
                 clint_size_hex = hex(0xC000)
                 clint_reg_val = f"0x0 0x{clint_base_hex.lstrip('0x')} 0x0 0x{clint_size_hex.lstrip('0x')}"
                 update_dts_node(dts_file, 'clint', clint_base_hex.lstrip('0x'), clint_reg_val)
+
+                # update sysrst dts node
+                sysrst_base_addr = int(board_iregion_base, 16) + 0x30FF0
+                sysrst_high = (sysrst_base_addr >> 32) & 0xFFFFFFFF
+                sysrst_low = sysrst_base_addr & 0xFFFFFFFF
+                sysrst_reg_val = f"0x{sysrst_high:x} 0x{sysrst_low:x}"
+                update_dts_node_simple(dts_file, 'sysrst', sysrst_reg_val)
 
             if board_uart0_base is not None:
                 # update uart0 dts node
