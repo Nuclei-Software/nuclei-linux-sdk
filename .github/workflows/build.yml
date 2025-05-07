@@ -2,8 +2,13 @@
 
 name: Build and Test Linux SDK
 
+# auto cancel previous in-progress job
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the dev_nuclei_next branch
+# events but only for the dev_* branch
 on:
   push:
     branches: [ dev* ]
@@ -20,7 +25,7 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     name: build for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         soc: [evalsoc]
@@ -44,7 +49,7 @@ jobs:
 
       - name: Upload source
         if: matrix.core == 'ux900fd' && matrix.boot_mode == 'sd' && matrix.soc == 'evalsoc'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: nuclei_linux_sdk_source
           path: source.tar.gz
@@ -52,7 +57,7 @@ jobs:
         continue-on-error: true
 
       - name: Caching packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: buildroot/dl
           key: build
@@ -67,7 +72,7 @@ jobs:
           mkdir -p buildroot/dl
           QEMUVER=2023.10
           if [ ! -f buildroot/dl/nuclei-qemu-${QEMUVER}-linux-x64.tar.gz ] ; then
-            wget --progress=dot -P buildroot/dl https://nucleisys.com/upload/files/toochain/qemu/nuclei-qemu-${QEMUVER}-linux-x64.tar.gz
+            wget --progress=dot -P buildroot/dl https://download.nucleisys.com/upload/files/toolchain/qemu/nuclei-qemu-${QEMUVER}-linux-x64.tar.gz
           fi
           mkdir -p prebuilt_tools
           tar -xzf buildroot/dl/nuclei-qemu-${QEMUVER}-linux-x64.tar.gz -C prebuilt_tools
@@ -120,7 +125,7 @@ jobs:
           }
 
       - name: Upload bootimages for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bootimages_${{ matrix.soc }}_${{ matrix.core }}_${{ matrix.boot_mode }}
           path: |
@@ -129,7 +134,7 @@ jobs:
             work/${{ matrix.soc }}/buildstamp.txt
 
       - name: Upload qemu images for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: qemu_images_${{ matrix.soc }}_${{ matrix.core }}_${{ matrix.boot_mode }}
           path: |
@@ -142,7 +147,7 @@ jobs:
 
       - name: Upload cached packages
         if: matrix.core == 'ux900fd' && matrix.boot_mode == 'sd' && matrix.soc == 'evalsoc'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build_caching
           path: |
