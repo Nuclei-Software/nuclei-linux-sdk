@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/bin/env python3
 import re
 import json
 import glob
@@ -342,11 +342,15 @@ if __name__ == "__main__":
     board_timer_freq = None
     board_irqmax = None
 
+    board_cpucore = "ux900fd"
     try:
         cust_file = args.custsoc
 
         with open(args.conf, 'r') as conf_file:
             conf_data = json.load(conf_file)
+
+        if 'cpu_config' in conf_data:
+            board_cpucore = conf_data['cpu_config'].get("core", "ux900fd")
 
         if 'general_config' in conf_data:
             general_config = conf_data['general_config']
@@ -583,10 +587,10 @@ if __name__ == "__main__":
 
         print("\n===generate successfully!===\n")
         print("Here are the reference build commands for compiling Linux SDK for you:")
-        print("$cd ..")
-        print("$make SOC=%s CORE=ux900fd BOOT_MODE=sd freeloader bootimages" % args.custsoc)
-        print("$make SOC=%s CORE=ux900fd BOOT_MODE=sd run_qemu" % args.custsoc)
-        print("Please adjust the compilation parameters according to your real environment.")
+        print("$ cd ..")
+        print("$ make SOC=%s CORE=%s BOOT_MODE=sd freeloader bootimages" % (args.custsoc, board_cpucore))
+        print("$ make SOC=%s CORE=%s BOOT_MODE=sd run_qemu" % (args.custsoc, board_cpucore))
+        print("Please adjust the compilation parameters according to your real hardware environment.")
     except Exception as e:
         print(f'Exception occur: {e}')
         # back to orgin working directory,remote generated files
