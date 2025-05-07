@@ -52,7 +52,7 @@ WORKDIR /home/$USER/
 
 RUN mkdir -p prebuilt
 
-RUN wget -q https://nucleisys.com/upload/files/toochain/qemu/nuclei-qemu-$QEMUVER-linux-x64.tar.gz -O prebuilt/nuclei-qemu.tar.gz
+RUN wget -q https://download.nucleisys.com/upload/files/toolchain/qemu/nuclei-qemu-$QEMUVER-linux-x64.tar.gz -O prebuilt/nuclei-qemu.tar.gz
 
 RUN cd prebuilt && tar --no-same-owner -xzf nuclei-qemu.tar.gz
 
