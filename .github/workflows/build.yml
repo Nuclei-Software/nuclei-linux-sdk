@@ -44,7 +44,7 @@ jobs:
 
       - name: Upload source
         if: matrix.core == 'ux900fd' && matrix.boot_mode == 'sd' && matrix.soc == 'evalsoc'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: nuclei_linux_sdk_source
           path: source.tar.gz
@@ -52,7 +52,7 @@ jobs:
         continue-on-error: true
 
       - name: Caching packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: buildroot/dl
           key: build
@@ -123,7 +123,7 @@ jobs:
 
       - name: Upload bootimages for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
         if: ${{ !( matrix.soc == 'demosoc' && startsWith(matrix.core, 'u900')) }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bootimages_${{ matrix.soc }}_${{ matrix.core }}_${{ matrix.boot_mode }}
           path: |
@@ -133,7 +133,7 @@ jobs:
 
       - name: Upload qemu images for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
         if: ${{ !( matrix.soc == 'demosoc' && startsWith(matrix.core, 'u900')) }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: qemu_images_${{ matrix.soc }}_${{ matrix.core }}_${{ matrix.boot_mode }}
           path: |
@@ -146,7 +146,7 @@ jobs:
 
       - name: Upload cached packages
         if: matrix.core == 'ux900fd' && matrix.boot_mode == 'sd' && matrix.soc == 'evalsoc'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build_caching
           path: |
