@@ -308,18 +308,22 @@ build_ux900_flash_manual:
 release_sources:
     extends: .job_rules
     stage: build
+    retry:
+        max: 2
     needs:
         - job: build_ux900_flash
     script:
         - activate_swdev
         - make snapshot
         - snapshot_zip=($(ls -t1 GENERATED/snapshot/snapshot_*.zip))
+        - ls -lh ${snapshot_zip}
         - cp -f ${snapshot_zip} linuxsdk_${CI_COMMIT_REF_NAME//\//\_}_${CI_COMMIT_SHA::8}.zip
+        - ls -lh linuxsdk_*.zip
     artifacts:
         name: "nuclei_linuxsdk-job${CI_JOB_ID}_${CI_COMMIT_SHA::8}"
         paths:
             - buildroot/dl
-            - linuxsdk_*.zip
+            - linuxsdk_*_${CI_COMMIT_SHA::8}.zip
         expire_in: 2 day
 
 ## Job for run sim
