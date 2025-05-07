@@ -105,7 +105,7 @@ jobs:
 
       # Run on qemu
       - name: Run and test on qemu for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
-        if: ${{ !( matrix.soc == 'demosoc' && startsWith(matrix.core, 'u900')) }}
+        if: ${{ ( matrix.soc == 'evalsoc' ) }}
         run: |
           QEMU_PATH=$(pwd)/prebuilt_tools/linux_qemu/bin:$(pwd)/prebuilt_tools/qemu/bin
           export PATH=${QEMU_PATH}:$PATH
@@ -132,7 +132,7 @@ jobs:
             work/${{ matrix.soc }}/buildstamp.txt
 
       - name: Upload qemu images for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
-        if: ${{ !( matrix.soc == 'demosoc' && startsWith(matrix.core, 'u900')) }}
+        if: ${{ ( matrix.soc == 'evalsoc' ) }}
         uses: actions/upload-artifact@v4
         with:
           name: qemu_images_${{ matrix.soc }}_${{ matrix.core }}_${{ matrix.boot_mode }}
