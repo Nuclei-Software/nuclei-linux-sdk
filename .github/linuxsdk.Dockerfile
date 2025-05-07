@@ -37,7 +37,7 @@ RUN pip3 cache purge
 # create USER with PASS
 ARG USER=nuclei
 ARG PASS=riscv123
-ARG QEMUVER=2023.10
+ARG QEMUVER=2025.10
 ARG BRANCH=dev_nuclei_next
 
 RUN groupadd --system $USER
@@ -52,7 +52,7 @@ WORKDIR /home/$USER/
 
 RUN mkdir -p prebuilt
 
-RUN wget -q https://nucleisys.com/upload/files/toochain/qemu/nuclei-qemu-$QEMUVER-linux-x64.tar.gz -O prebuilt/nuclei-qemu.tar.gz
+RUN wget -q https://download.nucleisys.com/upload/files/toolchain/qemu/nuclei-qemu-$QEMUVER-linux-x64.tar.gz -O prebuilt/nuclei-qemu.tar.gz
 
 RUN cd prebuilt && tar --no-same-owner -xzf nuclei-qemu.tar.gz
 
