@@ -22,7 +22,7 @@ See [How to evaluate Nuclei Linux SDK in docker](https://github.com/Nuclei-Softw
 - Build dependencies
   - packages: see [apt.txt](.github/apt.txt)
   - python pip packages: [pipreq.txt](.github/pipreq.txt)
-- Get prebuilt qemu and openocd 2023.10 from [Nuclei Development Tools](https://nucleisys.com/download.php#tools)
+- Get prebuilt qemu and openocd 2025.02 from [Nuclei Development Tools](https://nucleisys.com/download.php#tools)
 - Setup qemu and openocd and add it into **PATH**
 - mtools version >= 4.0.24
 
