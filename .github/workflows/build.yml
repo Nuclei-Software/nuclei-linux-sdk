@@ -20,7 +20,7 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     name: build for ${{ matrix.soc }} - ${{ matrix.core }} - ${{ matrix.boot_mode }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         soc: [demosoc, evalsoc]
