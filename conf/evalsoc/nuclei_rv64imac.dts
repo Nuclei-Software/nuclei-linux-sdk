@@ -193,7 +193,7 @@
   sdio0_data_clk: sdio0_data_clk {
     #clock-cells = <0>;
     compatible = "fixed-clock";
-    clock-frequency = <100000000>;
+    clock-frequency = <200000000>;
   };
 
   rtc0_clk: rtc0_clk {
@@ -340,5 +340,10 @@
             reg = <0>;
         };
     };
+  };
+
+  sysrst {
+	compatible = "nuclei,sysrst";
+	reg = <0xf 0x80030ff0>;
   };
 };
