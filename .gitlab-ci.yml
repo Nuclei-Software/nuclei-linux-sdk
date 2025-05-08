@@ -202,7 +202,21 @@ cache:
 
 .job_rules:
     interruptible: true
+    # Rules are evaluated when the pipeline is created, and evaluated in order.
+    # When a match is found, no more rules are checked
     rules:
+        - if: $CI_JOB_STAGE == "manual"
+          changes:
+            - conf/**/*
+            - .github/**/*
+            - Makefile*
+            - .gitlab-ci.yml
+            - buildroot
+            - opensbi
+            - freeloader
+            - linux
+            - u-boot
+          when: manual
         - changes:
             - conf/**/*
             - .github/**/*
@@ -252,10 +266,6 @@ cache:
 # Manual job template
 .build_linux_sdk_manual_template: &build_linux_sdk_manual_job_def
     extends: .job_rules
-    rules:
-        # manual trigger this deploy job on not merge request pipeline
-        - if: '$CI_PIPELINE_SOURCE != "merge_request_event"'
-          when: manual
     artifacts:
         name: "bootimages-${SOC}-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
         paths:
