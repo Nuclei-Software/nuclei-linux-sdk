@@ -335,9 +335,11 @@ release_sources:
         - echo "Copy ${snapshot_zip} to ${linuxsdk_zip}"
         - cp -f ${snapshot_zip} ${linuxsdk_zip}
         # try to workaround ERROR: Uploading artifacts as "archive" to coordinator... 413 Request Entity Too Large
-        # when uploading artifacts
+        # when uploading artifacts, must exclude buildroot/dl/toolchain-external-custom/ folder
+        # because in gitlab-runner jobs, it is cached and many different versions are cached, this folder size is very big
+        # so it can easily exceed Maximum artifacts size(MB) settings in admin ci_cd page
         - echo "Adding buildroot/dl folder into ${linuxsdk_zip}"
-        - zip -ur ${linuxsdk_zip} buildroot/dl
+        - zip -9 -ur ${linuxsdk_zip} buildroot/dl -x "buildroot/dl/toolchain-external-custom/*"
         - ls -lh linuxsdk_*.zip
     artifacts:
         name: "nuclei_linuxsdk-job${CI_JOB_ID}_${CI_COMMIT_SHA::8}"
