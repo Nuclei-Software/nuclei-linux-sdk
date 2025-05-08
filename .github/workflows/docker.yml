@@ -1,5 +1,10 @@
 name: Build Linux SDK Docker Image
 
+# auto cancel previous in-progress job
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [ dev* ]
