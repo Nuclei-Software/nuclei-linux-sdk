@@ -202,7 +202,21 @@ cache:
 
 .job_rules:
     interruptible: true
+    # Rules are evaluated when the pipeline is created, and evaluated in order.
+    # When a match is found, no more rules are checked
     rules:
+        - if: $CI_JOB_STAGE == "manual"
+          changes:
+            - conf/**/*
+            - .github/**/*
+            - Makefile*
+            - .gitlab-ci.yml
+            - buildroot
+            - opensbi
+            - freeloader
+            - linux
+            - u-boot
+          when: manual
         - changes:
             - conf/**/*
             - .github/**/*
@@ -213,8 +227,6 @@ cache:
             - freeloader
             - linux
             - u-boot
-        - if: $CI_JOB_STAGE == "manual"
-          when: manual
     tags:
         - env::shell
         - net::outside
