@@ -332,8 +332,6 @@ build_ux900_flash_manual:
 release_sources:
     extends: .job_rules
     stage: build
-    retry:
-        max: 2
     needs:
         - job: build_ux900_flash
     script:
