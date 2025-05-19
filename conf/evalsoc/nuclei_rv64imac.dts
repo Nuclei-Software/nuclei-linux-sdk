@@ -158,9 +158,9 @@
     };
   };
 
-  memory@80000000 {
+  memory@81000000 {
     device_type = "memory";
-    reg = <0x0 0x80000000 0x0 0x7E000000>;
+    reg = <0x0 0x81000000 0x0 0x7D000000>;
   };
 
   soc {
@@ -378,5 +378,12 @@
   sysrst {
     compatible = "nuclei,sysrst";
     reg = <0x0 0x18030FF0>;
+  };
+
+  firmware {
+    optee {
+      compatible = "linaro,optee-tz";
+      method = "smc";
+    };
   };
 };
