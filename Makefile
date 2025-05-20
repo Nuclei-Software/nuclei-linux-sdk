@@ -335,7 +335,7 @@ $(platform_preproc_sim_dts): gen-simdts
 	echo "Platform sim preprocessed dts located in $(platform_preproc_sim_dts), processed with defines $(DTS_DEFINES)"
 
 gen-simdts: $(platform_sim_dts) $(target_gcc)
-	$(target_gcc) -E -nostdinc -undef -x assembler-with-cpp $(DTS_DEFINES) -DSIMULATION=2 $(platform_sim_dts) -o $(platform_preproc_sim_dts)
+	$(target_gcc) -E -nostdinc -undef -x assembler-with-cpp $(DTS_DEFINES) -DSIMULATION=2 $(platform_sim_dts) -I$(linux_srcdir)/include/ -o $(platform_preproc_sim_dts)
 
 $(platform_dtb) : $(platform_preproc_dts) $(target_gcc)
 	dtc -O dtb -o $(platform_dtb) $(platform_preproc_dts)
