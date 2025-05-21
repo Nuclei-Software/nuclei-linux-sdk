@@ -393,7 +393,7 @@ opensbi: $(target_gcc) $(opensbi_plat_deps)
 		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM_RISCV_XLEN=$(XLEN) \
 		PLATFORM=generic FW_TEXT_START=$(FW_TEXT_START) FW_OPTEE_SHMEM_BASE=$(OPTEE_OS_SHMEM_START) \
 		FW_OPTEE_SHMEM_SIZE=$(OPTEE_OS_SHMEM_SIZE) FW_OPTEE_TZDRAM_BASE=$(OPTEE_OS_TZDRAM_START) \
-		FW_OPTEE_TZDRAM_SIZE=$(OPTEE_OS_TZDRAM_SIZE) FW_OPTEE_PLIC_BASE=$(OPTEE_PLIC_BASE)
+		FW_OPTEE_TZDRAM_SIZE=$(OPTEE_OS_TZDRAM_SIZE) CFG_WITH_VFP=y
 
 # internal usage for xlspike, deprecated
 $(opensbi_payload): $(opensbi_srcdir) $(vmlinux_sim_bin) $(platform_sim_dtb) $(opensbi_plat_deps)
