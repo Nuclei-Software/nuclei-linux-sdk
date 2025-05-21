@@ -42,6 +42,11 @@ else
 XLEN := 64
 endif
 
+TEE_WG ?=
+ifeq ($(TEE_WG), 1)
+TEE_WG := 1
+endif
+
 srcdir := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 srcdir := $(srcdir:/=)
 wrkdir_root := $(CURDIR)/work
@@ -261,7 +266,7 @@ help:
 
 
 $(target_gcc): $(buildroot_srcdir) $(buildroot_initramfs_wrkdir)/.config $(buildroot_initramfs_config)
-	$(MAKE) -C $(buildroot_srcdir) RISCV=$(RISCV) O=$(buildroot_initramfs_wrkdir) toolchain
+	$(MAKE) -C $(buildroot_srcdir) RISCV=$(RISCV) O=$(buildroot_initramfs_wrkdir) toolchain -j1
 
 $(wrkdir):
 	mkdir -p $@
@@ -380,7 +385,7 @@ opensbi: $(target_gcc) $(opensbi_plat_deps)
 		PLATFORM_RISCV_ABI=$(ABI) PLATFORM_RISCV_ISA=$(ISA) PLATFORM_RISCV_XLEN=$(XLEN) \
 		PLATFORM=generic FW_TEXT_START=$(FW_TEXT_START) FW_OPTEE_SHMEM_BASE=$(OPTEE_OS_SHMEM_START) \
 		FW_OPTEE_SHMEM_SIZE=$(OPTEE_OS_SHMEM_SIZE) FW_OPTEE_TZDRAM_BASE=$(OPTEE_OS_TZDRAM_START) \
-		FW_OPTEE_TZDRAM_SIZE=$(OPTEE_OS_TZDRAM_SIZE) CFG_WITH_VFP=y
+		FW_OPTEE_TZDRAM_SIZE=$(OPTEE_OS_TZDRAM_SIZE) CFG_WITH_VFP=y ENABLE_TEE_WG=$(TEE_WG)
 
 # internal usage for xlspike, deprecated
 $(opensbi_payload): $(opensbi_srcdir) $(vmlinux_sim_bin) $(platform_sim_dtb) $(opensbi_plat_deps)
@@ -541,7 +546,7 @@ endif
 		KERNEL_BIN=$(boot_uimage_lz4) INITRD_BIN=$(boot_uinitrd_lz4) CONFIG_MK=$(freeloader_confmk)  \
 		CORE1_APP_BIN=$(CORE1_APP_BIN) CORE2_APP_BIN=$(CORE2_APP_BIN) CORE3_APP_BIN=$(CORE3_APP_BIN) \
 		CORE4_APP_BIN=$(CORE4_APP_BIN) CORE5_APP_BIN=$(CORE5_APP_BIN) CORE6_APP_BIN=$(CORE6_APP_BIN) \
-		CORE7_APP_BIN=$(CORE7_APP_BIN) OPTEEOS_BIN=$(optee_os_bin)
+		CORE7_APP_BIN=$(CORE7_APP_BIN) OPTEEOS_BIN=$(optee_os_bin) ENABLE_TEE_WG=$(TEE_WG)
 
 upload_freeloader: $(freeloader_elf)
 	$(target_gdb) $< -ex "set remotetimeout 240" \
