@@ -1,2 +1,4 @@
 git-archive-all
 apt-select
+pyelftools
+cryptography
