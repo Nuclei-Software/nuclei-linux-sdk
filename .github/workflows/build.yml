@@ -29,7 +29,7 @@ jobs:
     strategy:
       matrix:
         soc: [evalsoc]
-        core: [ux900, ux900fd, u900, u900fd]
+        core: [ux900, ux900fd]
         boot_mode: [sd, flash]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
