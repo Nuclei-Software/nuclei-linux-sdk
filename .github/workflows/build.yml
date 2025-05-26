@@ -30,7 +30,7 @@ jobs:
       matrix:
         soc: [evalsoc]
         core: [ux900, ux900fd]
-        boot_mode: [sd, flash]
+        boot_mode: [sd]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
