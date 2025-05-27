@@ -27,22 +27,22 @@ RISC-V OPTEE系统的运行架构如下图：
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Ree
+    participant REE
     participant Monitor
-    participant Tee
-    Ree ->> Ree: process
-    Ree ->> Monitor: request tee service
+    participant TEE
+    REE ->> REE: process
+    REE ->> Monitor: request tee service
     Monitor ->> Monitor: save REE CTX
     Monitor ->> Monitor: restore TEE CTX
     Monitor ->> Monitor: switch CTX
-    Monitor -->> Tee: mret
-    Tee ->> Tee: process request
-    Tee -->> Monitor: ecall with result
+    Monitor -->> TEE: mret
+    TEE ->> TEE: process request
+    TEE -->> Monitor: ecall with result
     Monitor ->> Monitor: save TEE CTX
     Monitor ->> Monitor: restore REE CTX
     Monitor ->> Monitor: switch CTX
-    Monitor -->> Ree: mret
-    Ree ->> Ree: continue to process
+    Monitor -->> REE: mret
+    REE ->> REE: continue to process
 ```
 
 ## 中断处理
@@ -53,27 +53,29 @@ REE对应Linux os，Monitor对应opensbi，TEE对应optee_os
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Ree
+    participant REE
     participant Monitor
-    participant Tee
-    note over Ree,Tee : running in NSecure World
-    Ree ->> Ree: process
-    note over Ree,Tee : M recv SIntr, masked. NSInt to S, unmasked.
+    participant TEE
+    note over REE,TEE : running in NSecure World
+    REE ->> REE: process
+    note over REE,TEE : M recv SIntr, masked. NSInt to S, unmasked.
+    Monitor ->> Monitor: claim Plic intr num
     Monitor ->> Monitor: save REE CTX
     Monitor ->> Monitor: restore TEE CTX
     Monitor ->> Monitor: M disable Intr, SIntr to S
+    Monitor ->> Monitor: set the intr source pending
     Monitor ->> Monitor: switch CTX
-    Monitor -->> Tee: mret to fiq_entry
-    note over Ree,Tee: M Intr masked, SInt to S, unmasked
-    Tee ->> Tee: process received fiq interrupt
-    Tee -->> Monitor: ecall with fiq_done
+    Monitor -->> TEE: mret to fiq_entry
+    note over REE,TEE: M Intr masked, SInt to S, unmasked
+    TEE ->> TEE: process received fiq interrupt
+    TEE -->> Monitor: ecall with fiq_done
 
     Monitor ->> Monitor: restore REE CTX
     Monitor ->> Monitor: SIntr to M, unmasked. NSIntr to S, unmasked.
     Monitor ->> Monitor: switch CTX
-    Monitor -->> Ree: mret
-    note over Ree,Tee: SIntr to M, unmasked. NSInt to S, unmasked.
-    Ree ->> Ree: continue to process
+    Monitor -->> REE: mret
+    note over REE,TEE: SIntr to M, unmasked. NSInt to S, unmasked.
+    REE ->> REE: continue to process
 ```
 
 
