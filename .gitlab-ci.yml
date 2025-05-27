@@ -261,19 +261,19 @@ cache:
         - make preboot
         - BUILDBOOTIMAGES=0 bash .github/build_sdk.sh
 
-          ### Job for build sdk
-          ## Build For ux900 Core, without FPU, flash boot mode
-          #Build_ux900_flash:
-          #    stage: build
-          #    variables:
-          #        SOC: "evalsoc"
-          #        CORE: "ux900"
-          #        ARCH_EXT: ""
-          #        BOOT_MODE: "flash"
-          #    parallel:
-          #        matrix:
-          #            - SOC: ["evalsoc"]
-          #    <<: *build_linux_sdk_job_def
+## Job for build sdk
+## Build For ux900 Core, without FPU, flash boot mode
+#build_ux900_flash:
+#    stage: build
+#    variables:
+#        SOC: "evalsoc"
+#        CORE: "ux900"
+#        ARCH_EXT: ""
+#        BOOT_MODE: "flash"
+#    parallel:
+#        matrix:
+#            - SOC: ["evalsoc"]
+#    <<: *build_linux_sdk_job_def
 
 ## Job for build sdk
 # Build For ux900 Core, without FPU, sd boot mode
@@ -464,21 +464,21 @@ build_ux900fd_sd:
     #        BOOT_MODE: "sd"
     #    <<: *run_linux_sdk_xlspike_job_def
 
-    ### Job for run qemu
-    ## Run For ux900FD Core, with FPU, flash boot mode
-    ## This ux900fd init process will fail
-    #run_ux900fd_flash_qemu:
-    #    stage: run
-    #    allow_failure: true
-    #    dependencies:
-    #        - build_ux900fd_flash
-    #    parallel:
-    #        matrix:
-    #            - SOC: ["evalsoc"]
-    #    variables:
-    #        CORE: "ux900fd"
-    #        BOOT_MODE: "flash"
-    #    <<: *run_linux_sdk_qemu_job_def
+## Job for run qemu
+# Run For ux900FD Core, with FPU, flash boot mode
+# This ux900fd init process will fail
+#run_ux900fd_flash_qemu:
+#    stage: run
+#    allow_failure: true
+#    dependencies:
+#        - build_ux900fd_flash
+#    parallel:
+#        matrix:
+#            - SOC: ["evalsoc"]
+#    variables:
+#        CORE: "ux900fd"
+#        BOOT_MODE: "flash"
+#    <<: *run_linux_sdk_qemu_job_def
 
 ## Job for run qemu
 # Run For ux900FD Core, with FPU, sd boot mode
