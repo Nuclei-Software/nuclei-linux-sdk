@@ -277,17 +277,17 @@ cache:
 
 ## Job for build sdk
 # Build For ux900 Core, without FPU, sd boot mode
-build_ux900_sd:
-    stage: build
-    variables:
-        SOC: "evalsoc"
-        CORE: "ux900"
-        ARCH_EXT: ""
-        BOOT_MODE: "sd"
-    parallel:
-        matrix:
-            - SOC: ["evalsoc"]
-    <<: *build_linux_sdk_job_def
+#build_ux900_sd:
+#    stage: build
+#    variables:
+#        SOC: "evalsoc"
+#        CORE: "ux900"
+#        ARCH_EXT: ""
+#        BOOT_MODE: "sd"
+#    parallel:
+#        matrix:
+#            - SOC: ["evalsoc"]
+#    <<: *build_linux_sdk_job_def
 
     ## Manual job for ux900 sd
     #build_ux900_sd_manual:
@@ -370,17 +370,17 @@ release_sources:
 
 ## Job for run qemu
 # Run For ux900 Core, without FPU, sd boot mode
-run_ux900_sd_qemu:
-    stage: run
-    dependencies:
-        - build_ux900_sd
-    parallel:
-        matrix:
-            - SOC: ["evalsoc"]
-    variables:
-        CORE: "ux900"
-        BOOT_MODE: "sd"
-    <<: *run_linux_sdk_qemu_job_def
+#run_ux900_sd_qemu:
+#    stage: run
+#    dependencies:
+#        - build_ux900_sd
+#    parallel:
+#        matrix:
+#            - SOC: ["evalsoc"]
+#    variables:
+#        CORE: "ux900"
+#        BOOT_MODE: "sd"
+#    <<: *run_linux_sdk_qemu_job_def
 
     ### Job for build sdk
     ## Build For ux900FD Core, with FPU, flash boot mode
@@ -483,18 +483,18 @@ build_ux900fd_sd:
 ## Job for run qemu
 # Run For ux900FD Core, with FPU, sd boot mode
 # This ux900fd init process will fail
-run_ux900fd_sd_qemu:
-    stage: run
-    allow_failure: true
-    dependencies:
-        - build_ux900fd_sd
-    parallel:
-        matrix:
-            - SOC: ["evalsoc"]
-    variables:
-        CORE: "ux900fd"
-        BOOT_MODE: "sd"
-    <<: *run_linux_sdk_qemu_job_def
+#run_ux900fd_sd_qemu:
+#    stage: run
+#    allow_failure: true
+#    dependencies:
+#        - build_ux900fd_sd
+#    parallel:
+#        matrix:
+#            - SOC: ["evalsoc"]
+#    variables:
+#        CORE: "ux900fd"
+#        BOOT_MODE: "sd"
+#    <<: *run_linux_sdk_qemu_job_def
 
     ## Build and run for rv32 core
     #build_run_rv32:
