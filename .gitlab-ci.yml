@@ -317,7 +317,7 @@ release_sources:
     extends: .job_rules
     stage: build
     needs:
-        - job: build_ux900_sd
+        - job: build_ux900fd_sd
     script:
         - activate_swdev
         - make snapshot
