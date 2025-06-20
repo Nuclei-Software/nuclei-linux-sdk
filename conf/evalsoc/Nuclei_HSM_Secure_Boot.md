@@ -528,7 +528,20 @@ core/drivers/crypto/nuclei/
 └── sub.mk
 ```
 
-## Host Memory Mapping
+## Host HW Memory Mapping
+
+|hw module | start_addr | size | comment |
+|---|---|---|---|
+|PLIC| 0x4000000 | 0x4000000 | PLIC 外设中断控制器，用于外设中断 |
+|CLINT| 0x31000 | 0xC000 | CLINT 中断控制器，用于timer，ipi中断 |
+|DDR| 0xC000000 | 0x40000000 | 外部DDR 内存 |
+|UART0|0x90120000 | 0x1000 | 串口 |
+|QSPI0|0x90180000 | 0x1000 | SPI0接口，用于xipflash |
+|QSPI2|0x901a0000 | 0x1000 | SPI2接口，用于sd卡 |
+|MAILBOX|0x97000000 | 0x3000 | Host MAILBOX 接口 |
+|CLM | 0x80000000 | 0x100000 | Cluster Local Memory |
+
+## Host SW Memory Mapping
 
 本系统在FPGA平台上验证，其软件运行Memory Mapping如下：
 |name | start_addr | end_addr | comment |
