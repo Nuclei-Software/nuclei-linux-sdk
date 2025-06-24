@@ -428,6 +428,22 @@ build_ux900fd_sd:
             - SOC: ["demosoc", "evalsoc"]
     <<: *build_linux_sdk_job_def
 
+## Job for build sdk
+# Build For ux900FD Core, with FPU, sd boot mode
+build_ux1000fd_sd:
+    stage: build
+    dependencies:
+    variables:
+        SOC: "evalsoc"
+        CORE: "ux1000fd"
+        ARCH_EXT: ""
+        BOOT_MODE: "sd"
+        ENABLE_LDSPEC: "1"
+    parallel:
+        matrix:
+            - SOC: ["evalsoc"]
+    <<: *build_linux_sdk_job_def
+
 # Manual job for ux900fd sd
 build_ux900fd_sd_manual:
     stage: manual
