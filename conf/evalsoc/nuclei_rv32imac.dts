@@ -180,7 +180,7 @@
         /* reserve 64KB memroy as non-cachable region */
         no-map;
         reg = <0x0 0xFD000000 0x0 0x10000>;
-        status = "disabled";
+        status = "okay";
     };
   };
 
