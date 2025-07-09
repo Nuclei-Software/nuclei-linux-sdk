@@ -323,7 +323,7 @@
     phy-handle = <&rtl8211f>;
     phy-mode = "rgmii";
     desc_mem = <&noncachable_memory>;
-    status = "okay";
+    status = "disabled";
     mdio {
         compatible = "snps,dwmac-mdio";
         #address-cells = <1>;
