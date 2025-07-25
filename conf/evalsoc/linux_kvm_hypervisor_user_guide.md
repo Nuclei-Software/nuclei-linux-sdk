@@ -42,7 +42,10 @@ cd ..
 此处以linux v6.6内核为例，其他版本内核也可参考编译
 
 ```shell
-git clone git@gito.corp.nucleisys.com:software/linuxdev/linux.git -b dev_nuclei_6.6.y
+# You can clone it from github or directly copy <linux-sdk>/linux folder to a new folder such as linux_virt
+# linux sdk can be clone using steps described in 3
+# and cd to linux_virt
+git clone https://github.com/Nuclei-Software/linux.git -b dev_nuclei_6.6.y
 cd linux
 make ARCH=riscv CROSS_COMPILE=riscv64-unknown-linux-gnu- defconfig
 make ARCH=riscv CROSS_COMPILE=riscv64-unknown-linux-gnu- -j4
@@ -53,12 +56,12 @@ make ARCH=riscv CROSS_COMPILE=riscv64-unknown-linux-gnu- -j4
 
 ## 3.编译运行host linux sdk
 
-获取Nuclei linux sdk 源码, 切换到hypervisor 分支guibing/dev_nuclei_6.6_v3_hypervisor
+获取Nuclei linux SDK 源码, 切换到hypervisor 分支 ``dev_nuclei_6.6_v3_hypervisor``
 
 ```shell
-git clone git@gito.corp.nucleisys.com:software/linuxdev/nuclei-linux-sdk.git
+# 参考 https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/10 来clone代码，注意切分支
+git clone -b dev_nuclei_6.6_v3_hypervisor https://github.com/Nuclei-Software/nuclei-linux-sdk
 cd nuclei-linux-sdk
-git checkout guibing/dev_nuclei_6.6_v3_hypervisor
 git submodule init
 git submodule update --depth 1
 make SOC=evalsoc CORE=ux900fd freeloader -j4
