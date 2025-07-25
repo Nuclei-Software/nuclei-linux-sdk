@@ -64,6 +64,8 @@ git clone -b dev_nuclei_6.6_v3_hypervisor https://github.com/Nuclei-Software/nuc
 cd nuclei-linux-sdk
 git submodule init
 git submodule update --depth 1
+# TODO: 如果你确认你的evalsoc支持XEC网络，请使能 nuclei_rv64imafdc.dts -> xec0 -> status: disabled -> okay
+# 如果你需要网络相关的特性，这个XEC是务必带上的，请使用支持XEC的evalsoc的bitstream来进行测试
 make SOC=evalsoc CORE=ux900fd freeloader -j4
 make SOC=evalsoc CORE=ux900fd bootimages -j4
 cd ..
