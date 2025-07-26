@@ -4,28 +4,35 @@ SOCCONF_DIR=$1
 ROOTFS_DIR=$2
 COPYLIST=$3
 
+RED='\e[31m'
+GREEN='\e[32m'
+YELLOW='\e[33m'
+BLUE='\e[34m'
+RESET='\e[0m'
+
 if [ "$#" -lt 2  ]; then
-    echo "Usage: $0 <SoC Conf Directory> <Rootfs Directory> [Copy File List]"
+    echo -e "${RED}Usage: $0 <SoC Conf Directory> <Rootfs Directory> [Copy File List]${RESET}"
     exit 1
 fi
 
-echo "SOC Configuration Directory is ${SOCCONF_DIR}"
-echo "Rootfs Directory is ${ROOTFS_DIR}"
+echo -e "${YELLOW}SOC Configuration Directory is ${SOCCONF_DIR}${RESET}"
+echo -e "${YELLOW}Rootfs Directory is ${ROOTFS_DIR}${RESET}"
 
 function copy_files() {
     local copyfl=$1
     if [ "x$copyfl" == "x" ] ; then
-        echo "No copy file list specified"
+        echo -e ${RED}"No copy file list specified${RESET}"
         return
     fi
     if [ ! -f $copyfl ] ; then
         copyfl=${SOCCONF_DIR}/${copyfl}
         if [ ! -f $copyfl ] ; then
-            echo "Can't find $copyfl, please check!"
+            echo -e "${RED}Can't find $copyfl, please check!${RESET}"
             return
         fi
     fi
-    while read -r src dst
+    echo -e "${YELLOW}Will use $(readlink -f ${copyfl})${RESET}"
+    while read -r src dst || [[ -n "$src" ]]
     do
         if [ "x$src" == "x" ] ; then
             continue
@@ -41,7 +48,7 @@ function copy_files() {
         fi
         dstdir=${ROOTFS_DIR}/$dst
         mkdir -p $dstdir
-        echo "Copy $src to $dstdir"
+        echo -e "${BLUE}Copy $src to $dstdir${RESET}"
         if [ -f $src ] ; then
             cp -f $src $dstdir
         else
