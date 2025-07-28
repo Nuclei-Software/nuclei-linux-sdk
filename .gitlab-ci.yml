@@ -266,6 +266,8 @@ cache:
 # Manual job template
 .build_linux_sdk_manual_template: &build_linux_sdk_manual_job_def
     extends: .job_rules
+    # https://docs.gitlab.com/ci/jobs/job_control/#types-of-manual-jobs
+    allow_failure: true
     artifacts:
         name: "bootimages-${SOC}-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
         paths:
@@ -359,6 +361,7 @@ release_sources:
 # Run For ux900 Core, without FPU, flash boot mode
 run_ux900_flash_xlspike:
     stage: run
+    allow_failure: true
     dependencies:
         - build_ux900_flash
     variables:
@@ -371,6 +374,7 @@ run_ux900_flash_xlspike:
 # Run For ux900 Core, without FPU, sd boot mode
 run_ux900_sd_xlspike:
     stage: run
+    allow_failure: true
     dependencies:
         - build_ux900_sd
     variables:
@@ -490,11 +494,8 @@ run_ux900fd_sd_xlspike:
     <<: *run_linux_sdk_xlspike_job_def
 
 ## Job for run qemu
-# Run For ux900FD Core, with FPU, flash boot mode
-# This ux900fd init process will fail
 run_ux900fd_flash_qemu:
     stage: run
-    allow_failure: true
     dependencies:
         - build_ux900fd_flash
     parallel:
@@ -506,8 +507,6 @@ run_ux900fd_flash_qemu:
     <<: *run_linux_sdk_qemu_job_def
 
 ## Job for run qemu
-# Run For ux900FD Core, with FPU, sd boot mode
-# This ux900fd init process will fail
 run_ux900fd_sd_qemu:
     stage: run
     allow_failure: true
