@@ -10,7 +10,11 @@ SOC ?= evalsoc
 CORE ?= ux900fd
 
 ## Makefile Variable ARCH_EXT
+ifneq ($(findstring fd,$(CORE)),)
+ARCH_EXT ?= v
+else
 ARCH_EXT ?=
+endif
 
 ## Makefile Variable BOOT_MODE
 ## BOOT_MODE Supported:
@@ -557,7 +561,7 @@ $(qemu_disk): $(boot_zip)
 
 run_qemu: $(qemu_disk) $(freeloader_elf)
 	@echo "Run on qemu for simulation"
-	$(qemu) $(QEMU_MACHINE_OPTS) -cpu nuclei-$(CORE),ext=v$(ARCH_EXT)_svpbmt_zicbom_sstc,h=true -bios $(freeloader_elf) -nographic -drive file=$(qemu_disk),if=sd,format=raw
+	$(qemu) $(QEMU_MACHINE_OPTS) -cpu nuclei-$(CORE),ext=$(ARCH_EXT)_svpbmt_zicbom_sstc,h=true -bios $(freeloader_elf) -nographic -drive file=$(qemu_disk),if=sd,format=raw
 
 .PHONY: backup snapshot genstamp genboot
 # backup your build

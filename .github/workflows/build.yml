@@ -98,7 +98,7 @@ jobs:
           fi
           echo "which $qemucmd" > $SHOWQEMUSH
           echo "$qemucmd --version" >> $SHOWQEMUSH
-          echo "$qemucmd -M nuclei_${SOC},download=flashxip -cpu nuclei-${CORE},ext=v${ARCH_EXT}_svpbmt_zicbom_sstc,h=true -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
+          echo "$qemucmd -M nuclei_${SOC},download=flashxip -cpu nuclei-${CORE},ext=${ARCH_EXT}_svpbmt_zicbom_sstc,h=true -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
           chmod +x $RUNQEMUSH
           chmod +x $SHOWQEMUSH
           unset TIMER_HZ
