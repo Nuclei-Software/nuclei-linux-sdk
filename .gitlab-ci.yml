@@ -147,9 +147,10 @@ cache:
         if [[ $CORE == *ux* ]] ; then
             qemucmd=qemu-system-riscv64
         fi
+        cp -f conf/${SOC}/${SOC}.json work/${SOC}/${SOC}.json
         echo "which $qemucmd" > $SHOWQEMUSH
         echo "$qemucmd --version" >> $SHOWQEMUSH
-        echo "$qemucmd -M nuclei_${SOC},download=flashxip -cpu nuclei-${CORE},ext=${ARCH_EXT}_svpbmt_zicbom_sstc_sscofpmf_zba_zbb_zbc_zbs_zicond -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
+        echo "$qemucmd -M nuclei_${SOC},download=flashxip,soc-cfg=evalsoc.json,aia=aplic-imsic,aia-guests=4 -cpu nuclei-${CORE},ext=${ARCH_EXT}_svpbmt_zicbom_sstc_sscofpmf_zba_zbb_zbc_zbs_zicond_ssaia_smaia_smstateen_ssstateen_smcntrpmf,h=true -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
         chmod +x $RUNQEMUSH
         chmod +x $SHOWQEMUSH
     - |
@@ -167,7 +168,7 @@ cache:
         genbootzip=work/${SOC}/genboot_artifacts_${CI_COMMIT_SHA::8}.zip
         echo "Zip all generated boot images and freeloader elfs to ${genbootzip}"
         rm -f ${genbootzip}
-        zip -r ${genbootzip} work/${SOC}/boot.zip work/${SOC}/freeloader/freeloader.elf work/${SOC}/run_qemu.sh work/${SOC}/disk.img work/${SOC}/freeloader_*.elf work/${SOC}/buildstamp.txt work/${SOC}/fw_payload_xlspike.elf
+        zip -r ${genbootzip} work/${SOC}/boot.zip work/${SOC}/freeloader/freeloader.elf work/${SOC}/${SOC}.json work/${SOC}/run_qemu.sh work/${SOC}/disk.img work/${SOC}/freeloader_*.elf work/${SOC}/buildstamp.txt work/${SOC}/fw_payload_xlspike.elf
     - echo "Please find generated freeloaders in $SHARELOC/$(git describe --always)"
 
 .snippet_run_sdk_in_xlspike: &snippet_run_sdk_in_xlspike

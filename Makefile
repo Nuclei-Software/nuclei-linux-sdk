@@ -10,7 +10,11 @@ SOC ?= evalsoc
 CORE ?= ux900fd
 
 ## Makefile Variable ARCH_EXT
+ifneq ($(findstring fd,$(CORE)),)
+ARCH_EXT ?= v
+else
 ARCH_EXT ?=
+endif
 
 ## Makefile Variable BOOT_MODE
 ## BOOT_MODE Supported:
