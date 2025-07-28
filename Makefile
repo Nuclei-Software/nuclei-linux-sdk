@@ -546,7 +546,8 @@ opensbi_sim: $(opensbi_payload)
 
 # Deprecated, internal usage for xlspike
 sim: $(opensbi_payload)
-	$(xlspike) --isa=$(ISA) $(opensbi_payload)
+	# ERROR: bad --isa option 'rv64imafdcv_svpbmt_zicbom_sstc'. unsupported extension: sstc
+	$(xlspike) --isa=$(ISA)$(ARCH_EXT)_svpbmt_zicbom $(opensbi_payload)
 
 .PHONY: gendisk run_qemu
 

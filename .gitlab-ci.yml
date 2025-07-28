@@ -415,7 +415,7 @@ build_ux900fd_flash:
     variables:
         SOC: "evalsoc"
         CORE: "ux900fd"
-        ARCH_EXT: ""
+        ARCH_EXT: "v"
         BOOT_MODE: "flash"
     parallel:
         matrix:
@@ -430,7 +430,7 @@ build_ux900fd_sd:
     variables:
         SOC: "evalsoc"
         CORE: "ux900fd"
-        ARCH_EXT: ""
+        ARCH_EXT: "v"
         BOOT_MODE: "sd"
     parallel:
         matrix:
@@ -445,7 +445,7 @@ build_ux900fd_sd_manual:
     variables:
         SOC: "evalsoc"
         CORE: "ux900fd"
-        ARCH_EXT: ""
+        ARCH_EXT: "v"
         BOOT_MODE: "sd"
     <<: *build_linux_sdk_manual_job_def
 
@@ -457,7 +457,7 @@ build_ux900fd_flash_manual:
     variables:
         SOC: "evalsoc"
         CORE: "ux900fd"
-        ARCH_EXT: ""
+        ARCH_EXT: "v"
         BOOT_MODE: "flash"
     <<: *build_linux_sdk_manual_job_def
 
