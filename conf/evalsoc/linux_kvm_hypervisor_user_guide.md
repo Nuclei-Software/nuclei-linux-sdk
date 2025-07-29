@@ -28,6 +28,7 @@ cd ..
 
 ```shell
 git clone https://git.kernel.org/pub/scm/linux/kernel/git/will/kvmtool.git
+export RISCV_XLEN=64
 export ARCH=riscv
 export CROSS_COMPILE=riscv64-unknown-linux-gnu-
 cd kvmtool
