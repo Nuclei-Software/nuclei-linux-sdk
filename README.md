@@ -6,6 +6,10 @@
 
 Please check [about each branch feature](https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/2) to learn which branch you should choose.
 
+> [!NOTE]
+> This branch is **ONLY** suitable for [Hummingbird E603](https://github.com/Nuclei-Software/e603_hbird)  
+> Please check out [conf/evalsoc/README.md](conf/evalsoc/README.md) for more details.
+
 ## Tested Configurations
 
 ### Docker
