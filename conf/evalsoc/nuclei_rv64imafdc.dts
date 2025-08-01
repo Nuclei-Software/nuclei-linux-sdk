@@ -25,7 +25,7 @@
   #size-cells = <2>;
   compatible = "nuclei,evalsoc";
   model = "nuclei,evalsoc";
-  dma-noncoherent;
+  // dma-noncoherent;
   chosen {
 #if SIMULATION == 2
       bootargs = "earlycon=sbi console=hvc0";
@@ -49,7 +49,7 @@
       reg = <0>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc";
+      riscv,isa = "rv64imafdc";
       riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
@@ -64,7 +64,7 @@
       reg = <1>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc";
+      riscv,isa = "rv64imafdc";
       riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
@@ -79,7 +79,7 @@
       reg = <2>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc";
+      riscv,isa = "rv64imafdc";
       riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
@@ -94,7 +94,7 @@
       reg = <3>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc";
+      riscv,isa = "rv64imafdc";
       riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
@@ -109,7 +109,7 @@
       reg = <4>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc";
+      riscv,isa = "rv64imafdc";
       riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
@@ -124,7 +124,7 @@
       reg = <5>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc";
+      riscv,isa = "rv64imafdc";
       riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
@@ -139,7 +139,7 @@
       reg = <6>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc";
+      riscv,isa = "rv64imafdc";
       riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
@@ -154,7 +154,7 @@
       reg = <7>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc";
+      riscv,isa = "rv64imafdc";
       riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
