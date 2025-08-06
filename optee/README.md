@@ -127,6 +127,10 @@ static TEE_Result pta_timer_set_timeout(uint32_t param_types,
 
 ```
 
+*optee_example_demo 程序用来测试安全中断，此程序用到evalsoc上38号测试中断，因为会占用PMP资源，默认是关闭的，optee_example_demo运行会报异常。如需要运行
+请把optee-os中SEC_TIMER_TEST 宏定义在代码中使能。*
+
+
 ## 特殊配置
 
 Nuclei某些硬件版本引入了shart csr，能在S模式获取hartid。如果硬件不支持这个特性，可在optee_os/core/arch/riscv/plat-nuclei/conf.mk文件中设置CFG_SHART_FEATURE为n。默认情况下CFG_SHART_FEATURE 开启。

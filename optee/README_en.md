@@ -136,6 +136,8 @@ static TEE_Result pta_timer_set_timeout(uint32_t param_types,
 
 ```
 
+*The optee_example_demo program is used to test secure interrupts. It utilizes Test Interrupt 38 on the evalsoc platform. Since this feature occupies PMP (Physical Memory Protection) resources, it is disabled by default, and running optee_example_demo will trigger an exception. If you need to execute this program, enable the SEC_TIMER_TEST macro in the optee-os source code.*
+
 ## Special Configure
 
 Some versions of Nuclei hardware have introduced shart csr, which can obtain hartids in S mode. If the hardware does not support this feature, Setting CFG_SHART_FEATURE Configure to n in the optee_os/core/arch/riscv/plat nuclei/conf.mk file. By default, CFG_SHART_FEATURE is enabled.
