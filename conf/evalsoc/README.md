@@ -1,13 +1,14 @@
 # Hummingbird E603 Evaluation SoC
 
 This guide provides instructions for building and running the **Nuclei Linux SDK**
-on the **Hummingbird E603 Evaluation SoC**.
+on the [**Hummingbird E603 Evaluation SoC**](https://github.com/Nuclei-Software/e603_hbird).
 
 ## Requirements
 
-First, clone the SDK repository and checkout to the `dev_nuclei_6.6_v3_e603` branch.
+First, clone this Nuclei Linux SDK repository and checkout to the `dev_nuclei_6.6_v3_e603` branch.
 
 ```bash
+# Make sure checkout this dev_nuclei_6.6_v3_e603 branch
 git clone -b dev_nuclei_6.6_v3_e603 https://github.com/Nuclei-Software/nuclei-linux-sdk
 ```
 
@@ -15,7 +16,11 @@ git clone -b dev_nuclei_6.6_v3_e603 https://github.com/Nuclei-Software/nuclei-li
 > Make sure to initialize and update all submodules.
 
 ```bash
+# Make sure all submodule repo updated successfully
 git submodule update --init --recursive
+# check status of this repo to make sure it is clean and updated
+git status
+git submodule status
 ```
 
 ## How to Build
@@ -89,8 +94,8 @@ will automatically load linux image and initramfs from SDCard and boot linux
 if everything is prepared correctly.
 
 > [!NOTE]
-> Default login credentials:  
-> **Username**: `root`  
+> Default login credentials:
+> **Username**: `root`
 > **Password**: `nuclei`
 
 After booting, you’ll see the system log output in your serial terminal,

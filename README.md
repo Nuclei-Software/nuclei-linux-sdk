@@ -1,13 +1,13 @@
 # Nuclei Linux SDK
 
-[![Build and Test Linux SDK](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/build.yml/badge.svg?branch=dev_nuclei_6.6_v3)](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/build.yml)
+[![Build and Test Linux SDK](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/build.yml/badge.svg?branch=dev_nuclei_6.6_v3_e603)](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/build.yml)
 
-[![Build Linux SDK Docker Image](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/docker.yml/badge.svg?branch=dev_nuclei_6.6_v3)](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/docker.yml)
+[![Build Linux SDK Docker Image](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/docker.yml/badge.svg?branch=dev_nuclei_6.6_v3_e603)](https://github.com/Nuclei-Software/nuclei-linux-sdk/actions/workflows/docker.yml)
 
 Please check [about each branch feature](https://github.com/Nuclei-Software/nuclei-linux-sdk/issues/2) to learn which branch you should choose.
 
 > [!NOTE]
-> This branch is **ONLY** suitable for [Hummingbird E603](https://github.com/Nuclei-Software/e603_hbird)  
+> This branch is **ONLY** suitable for [Hummingbird E603](https://github.com/Nuclei-Software/e603_hbird)
 > Please check out [conf/evalsoc/README.md](conf/evalsoc/README.md) for more details.
 
 ## Tested Configurations
