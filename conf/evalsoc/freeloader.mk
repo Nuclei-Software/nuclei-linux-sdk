@@ -2,7 +2,6 @@ DDR_BASE ?= 0x80000000
 FLASH_BASE ?= 0x20000000
 FLASH_SIZE ?= 32M
 CACHE_CTRL ?= 0x100C1
-TLB_CTRL ?= 0x0
 # prefetch control register settings
 ## spfl1dctrl1
 SPFL1DCTRL1 ?= 0x1F
