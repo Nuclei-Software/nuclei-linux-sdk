@@ -61,7 +61,7 @@ cache:
     - |
         export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE} EXT_SSTC=y"
         export SELVAR0="CPU_HZ"
-        export VARLIST0="16000000,50000000,100000000"
+        export VARLIST0="30000000,50000000,100000000"
         export SELVAR1="SPFL1DCTRL1"
         export VARLIST1="0x0,0x1f,0xf,0x3f"
         bash .github/build_multiple_freeloader.sh > >(tee build_pref_sstc_freeloader.log) || {
