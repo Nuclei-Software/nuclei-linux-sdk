@@ -510,58 +510,92 @@ if __name__ == "__main__":
             update_dts_clk_freq(dts_file, 'CPUCLK_FREQ', board_cpu_freq)
 
             # update memory dts node
-            ddr_base_hex = hex(int(board_ddr_base, 16))
-            ddr_size_hex = hex(int(board_ddr_size, 16) - reserve_ampmem)
-            memory_reg_val = f"0x0 0x{ddr_base_hex.lstrip('0x')} 0x0 0x{ddr_size_hex.lstrip('0x')}"
-            update_dts_node(dts_file, 'memory', ddr_base_hex.lstrip('0x'), memory_reg_val)
+            ddr_base_int = int(board_ddr_base, 16)
+            ddr_base_int_high = (ddr_base_int >> 32) & 0xFFFFFFFF
+            ddr_base_int_low = ddr_base_int & 0xFFFFFFFF
+            ddr_size_int = int(board_ddr_size, 16) - reserve_ampmem
+            ddr_size_int_high = (ddr_size_int >> 32) & 0xFFFFFFFF
+            ddr_size_int_low = ddr_size_int & 0xFFFFFFFF
+            memory_reg_val = f"0x{ddr_base_int_high:x} 0x{ddr_base_int_low:x} 0x{ddr_size_int_high:x} 0x{ddr_size_int_low:x}"
+            update_dts_node(dts_file, 'memory', format(ddr_base_int, 'x'), memory_reg_val)
 
             if board_iregion_base is not None:
                 # update plic dts node
-                plic_base_hex = hex(int(board_iregion_base, 16) + 0x4000000)
-                plic_size_hex = hex(0x4000000)
-                plic_reg_val = f"0x0 0x{plic_base_hex.lstrip('0x')} 0x0 0x{plic_size_hex.lstrip('0x')}"
-                update_dts_node(dts_file, 'interrupt-controller', plic_base_hex.lstrip('0x'), plic_reg_val)
+                plic_base_int = int(board_iregion_base, 16) + 0x4000000
+                plic_base_int_high = (plic_base_int >> 32) & 0xFFFFFFFF
+                plic_base_int_low = plic_base_int & 0xFFFFFFFF
+                plic_size_int = 0x4000000
+                plic_size_int_high = (plic_size_int >> 32) & 0xFFFFFFFF
+                plic_size_int_low = plic_size_int & 0xFFFFFFFF
+                plic_reg_val = f"0x{plic_base_int_high:x} 0x{plic_base_int_low:x} 0x{plic_size_int_high:x} 0x{plic_size_int_low:x}"
+                update_dts_node(dts_file, 'interrupt-controller', format(plic_base_int, 'x'), plic_reg_val)
 
                 # update clint dts node
-                clint_base_hex = hex(int(board_iregion_base, 16) + 0x31000)
-                clint_size_hex = hex(0xC000)
-                clint_reg_val = f"0x0 0x{clint_base_hex.lstrip('0x')} 0x0 0x{clint_size_hex.lstrip('0x')}"
-                update_dts_node(dts_file, 'clint', clint_base_hex.lstrip('0x'), clint_reg_val)
+                clint_base_int = int(board_iregion_base, 16) + 0x31000
+                clint_base_int_high = (clint_base_int >> 32) & 0xFFFFFFFF
+                clint_base_int_low = clint_base_int & 0xFFFFFFFF
+                clint_size_int = 0xC000
+                clint_size_int_high = (clint_size_int >> 32) & 0xFFFFFFFF
+                clint_size_int_low = clint_size_int & 0xFFFFFFFF
+                clint_reg_val = f"0x{clint_base_int_high:x} 0x{clint_base_int_low:x} 0x{clint_size_int_high:x} 0x{clint_size_int_low:x}"
+                update_dts_node(dts_file, 'clint', format(clint_base_int, 'x'), clint_reg_val)
 
                 # update sysrst dts node
                 sysrst_base_addr = int(board_iregion_base, 16) + 0x30FF0
                 sysrst_high = (sysrst_base_addr >> 32) & 0xFFFFFFFF
                 sysrst_low = sysrst_base_addr & 0xFFFFFFFF
-                sysrst_reg_val = f"0x{sysrst_high:x} 0x{sysrst_low:x}"
-                update_dts_node_simple(dts_file, 'sysrst', sysrst_reg_val)
+                sysrst_reg_val = f"0x{sysrst_high:x} 0x{sysrst_low:x} 0x0 0x0"
+                update_dts_node(dts_file, 'sysrst', format(sysrst_base_addr, 'x'), sysrst_reg_val)
 
             if board_uart0_base is not None:
                 # update uart0 dts node
-                uart0_base_hex = hex(int(board_uart0_base, 16))
-                uart0_size_hex = hex(0x1000)
-                uart0_reg_val = f"0x0 0x{uart0_base_hex.lstrip('0x')} 0x0 0x{uart0_size_hex.lstrip('0x')}"
-                update_dts_node(dts_file, 'uart0', uart0_base_hex.lstrip('0x'), uart0_reg_val, board_uart0_irq)
+                uart0_base_int = int(board_uart0_base, 16)
+                uart0_base_int_high = (uart0_base_int >> 32) & 0xFFFFFFFF
+                uart0_base_int_low = uart0_base_int & 0xFFFFFFFF
+
+                uart0_size_int = 0x1000
+                uart0_size_int_high = (uart0_size_int >> 32) & 0xFFFFFFFF
+                uart0_size_int_low = uart0_size_int & 0xFFFFFFFF
+
+                uart0_reg_val = f"0x{uart0_base_int_high:x} 0x{uart0_base_int_low:x} 0x{uart0_size_int_high:x} 0x{uart0_size_int_low:x}"
+                update_dts_node(dts_file, 'uart0', format(uart0_base_int, 'x'), uart0_reg_val, board_uart0_irq)
 
             if board_uart1_base is not None:
                 # update uart1 dts node
-                uart1_base_hex = hex(int(board_uart1_base, 16))
-                uart1_size_hex = hex(0x1000)
-                uart1_reg_val = f"0x0 0x{uart1_base_hex.lstrip('0x')} 0x0 0x{uart1_size_hex.lstrip('0x')}"
-                update_dts_node(dts_file, 'uart1', uart1_base_hex.lstrip('0x'), uart1_reg_val, board_uart1_irq)
+                uart1_base_int = int(board_uart1_base, 16)
+                uart1_base_int_high = (uart1_base_int >> 32) & 0xFFFFFFFF
+                uart1_base_int_low = uart1_base_int & 0xFFFFFFFF
+                uart1_size_int = 0x1000
+                uart1_size_int_high = (uart1_size_int >> 32) & 0xFFFFFFFF
+                uart1_size_int_low = uart1_size_int & 0xFFFFFFFF
+                uart1_reg_val = f"0x{uart1_base_int_high:x} 0x{uart1_base_int_low:x} 0x{uart1_size_int_high:x} 0x{uart1_size_int_low:x}"
+                update_dts_node(dts_file, 'uart1', format(uart1_base_int, 'x'), uart1_reg_val, board_uart1_irq)
 
             if board_qspi0_base is not None:
                 # update qspi0 dts node
-                qspi0_base_hex = hex(int(board_qspi0_base, 16))
-                qspi0_size_hex = hex(0x1000)
-                qspi0_reg_val = f"0x0 0x{qspi0_base_hex.lstrip('0x')} 0x0 0x{qspi0_size_hex.lstrip('0x')}"
-                update_dts_node(dts_file, 'qspi0', qspi0_base_hex.lstrip('0x'), qspi0_reg_val, board_qspi0_irq)
+                qspi0_base_int = int(board_qspi0_base, 16)
+                qspi0_base_int_high = (qspi0_base_int >> 32) & 0xFFFFFFFF
+                qspi0_base_int_low = qspi0_base_int & 0xFFFFFFFF
+
+                qspi0_size_int = 0x1000
+                qspi0_size_int_high = (qspi0_size_int >> 32) & 0xFFFFFFFF
+                qspi0_size_int_low = qspi0_size_int & 0xFFFFFFFF
+
+                qspi0_reg_val = f"0x{qspi0_base_int_high:x} 0x{qspi0_base_int_low:x} 0x{qspi0_size_int_high:x} 0x{qspi0_size_int_low:x}"
+                update_dts_node(dts_file, 'qspi0', format(qspi0_base_int, 'x'), qspi0_reg_val, board_qspi0_irq)
 
             if board_qspi2_base is not None:
                 # update qspi2 dts node
-                qspi2_base_hex = hex(int(board_qspi2_base, 16))
-                qspi2_size_hex = hex(0x1000)
-                qspi2_reg_val = f"0x0 0x{qspi2_base_hex.lstrip('0x')} 0x0 0x{qspi2_size_hex.lstrip('0x')}"
-                update_dts_node(dts_file, 'qspi2', qspi2_base_hex.lstrip('0x'), qspi2_reg_val, board_qspi2_irq)
+                qspi2_base_int = int(board_qspi2_base, 16)
+                qspi2_base_int_high = (qspi2_base_int >> 32) & 0xFFFFFFFF
+                qspi2_base_int_low = qspi2_base_int & 0xFFFFFFFF
+
+                qspi2_size_int = 0x1000
+                qspi2_size_int_high = (qspi2_size_int >> 32) & 0xFFFFFFFF
+                qspi2_size_int_low = qspi2_size_int & 0xFFFFFFFF
+
+                qspi2_reg_val = f"0x{qspi2_base_int_high:x} 0x{qspi2_base_int_low:x} 0x{qspi2_size_int_high:x} 0x{qspi2_size_int_low:x}"
+                update_dts_node(dts_file, 'qspi2', format(qspi2_base_int, 'x'), qspi2_reg_val, board_qspi2_irq)
             update_plic_intr_num(dts_file, board_irqmax)
 
         print("\n>>>Updating uboot.cmd...")
