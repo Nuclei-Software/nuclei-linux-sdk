@@ -375,8 +375,8 @@
   };
 #endif
 
-  sysrst {
+  sysrst@18030ff0 {
     compatible = "nuclei,sysrst";
-    reg = <0x0 0x18030FF0>;
+    reg = <0x0 0x18030ff0 0x0 0x0>;
   };
 };
