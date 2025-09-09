@@ -562,7 +562,7 @@ $(qemu_disk): $(boot_zip)
 
 run_qemu: $(qemu_disk) $(freeloader_elf)
 	@echo "Run on qemu for simulation"
-	$(qemu) $(QEMU_MACHINE_OPTS) -cpu nuclei-$(CORE),ext=$(ARCH_EXT)_svpbmt_zicbom_sstc,h=true -bios $(freeloader_elf) -nographic -drive file=$(qemu_disk),if=sd,format=raw
+	$(qemu) $(QEMU_MACHINE_OPTS) -cpu nuclei-$(CORE),ext=$(ARCH_EXT)_svpbmt_zicbom_sstc_sscofpmf,h=true -bios $(freeloader_elf) -nographic -drive file=$(qemu_disk),if=sd,format=raw
 
 .PHONY: backup snapshot genstamp genboot
 # backup your build
