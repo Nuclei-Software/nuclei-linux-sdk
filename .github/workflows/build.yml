@@ -101,7 +101,7 @@ jobs:
           if [[ $CORE == *fd* ]] ; then
               ARCH_EXT=v
           fi
-          echo "$qemucmd -M nuclei_${SOC},download=flashxip -cpu nuclei-${CORE},ext=${ARCH_EXT}_svpbmt_zicbom_sstc_sscofpmf,h=true -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
+          echo "$qemucmd -M nuclei_${SOC},download=flashxip -cpu nuclei-${CORE},ext=${ARCH_EXT}_svpbmt_zicbom_sstc_sscofpmf_zba_zbb_zbc_zbs_zicond,h=true -smp 8 -m 2g -bios freeloader_qemu.elf -nographic -drive file=disk.img,if=sd,format=raw" > $RUNQEMUSH
           chmod +x $RUNQEMUSH
           chmod +x $SHOWQEMUSH
           unset TIMER_HZ
