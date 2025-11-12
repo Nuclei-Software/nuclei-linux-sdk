@@ -71,6 +71,7 @@ make SOC=evalsoc CORE=ux900fd freeloader -j4
 make SOC=evalsoc CORE=ux900fd bootimages -j4
 cd ..
 ```
+*注意：在linux上使用aia中断控制器时，dts中cpu节点个数要按照实际情况来写，不支持自动探测不存在的core，因为ipi通过msi中断来实现，imsic在core内部，core不存在时，imsic对应的地址我们硬件没有实现，所以软件dts 配置的cpu core数目要小于等于硬件cpu core数目。*
 
 将前面编译的lkvm-static，guest linux内核Image 拷贝到rootfs中，重新编译rootfs。
 
