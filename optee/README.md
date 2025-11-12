@@ -385,7 +385,13 @@ plat 移植和arm的基本一致，以移植plat-cust 为例。
 └── sub.mk
 ```
 
-main.c 主要是用户客制化的函数，conf.mk 是optee os编译选项配置文件，platform_config.h 中定义了RISCV MTIME的速率，客制化时候需要加上此文件中的内容。本例中是做了timer设备中断处理，这个例子只是内部测试用，main.c 实现的功能可以参考ARM的其他方案。
+- main.c: 用户客制化的函数。
+
+- conf.mk: optee os编译选项配置文件。
+
+- platform_config.h：定义了RISCV MTIME的速率，PLIC基地址，等其他外设地址，需要用户根据实际硬件地址适配。
+
+本例中是做了timer设备中断处理，这个例子只是内部测试用，main.c 实现的功能可以参考ARM的其他方案。
 
 ## 启动运行日志
 
