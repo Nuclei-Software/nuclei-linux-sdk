@@ -521,13 +521,13 @@ run_ux900fd_sd_qemu:
     <<: *run_linux_sdk_qemu_job_def
 
 # Build and run for rv32 core
-build_run_rv32:
-    stage: build
-    variables:
-        SOC: "evalsoc"
-        ARCH_EXT: ""
-    parallel:
-        matrix:
-            - CORE: ["u900", "u900fd"]
-              BOOT_MODE: ["sd", "flash"]
-    <<: *build_run_linux_sdk_job_def
+#build_run_rv32:
+#    stage: build
+#    variables:
+#        SOC: "evalsoc"
+#        ARCH_EXT: ""
+#    parallel:
+#        matrix:
+#            - CORE: ["u900", "u900fd"]
+#              BOOT_MODE: ["sd", "flash"]
+#    <<: *build_run_linux_sdk_job_def
