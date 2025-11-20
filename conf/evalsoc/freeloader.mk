@@ -1,6 +1,7 @@
 DDR_BASE ?= 0x80000000
 FLASH_BASE ?= 0x20000000
-FLASH_SIZE ?= 32M
+# 2025.10 qemu flash size increased to 64M
+FLASH_SIZE ?= 64M
 CACHE_CTRL ?= 0x100C1
 # prefetch control register settings
 ## spfl1dctrl1
