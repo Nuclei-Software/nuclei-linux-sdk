@@ -289,6 +289,8 @@ linux: $(linux_wrkdir)/.config
 
 $(initramfs): $(buildroot_initramfs_sysroot) $(linux_image)
 	$(INITRAMFS_PRECMD)
+	@echo "Copy KVM prebuilt tool and Kernel Image to RootFS root folder"
+	[ -d $(confdir)/kvm ] && cp -rf $(confdir)/kvm $(buildroot_initramfs_sysroot)/root || true
 	# Copy files required for xec network startup
 	[ -f $(confdir)/S03net ] && cp -af $(confdir)/S03net $(buildroot_initramfs_sysroot)/etc/init.d/ || true
 	cd $(linux_wrkdir) && \
