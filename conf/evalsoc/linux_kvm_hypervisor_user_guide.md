@@ -5,7 +5,14 @@
 硬件：NUCLEI RISC-V Core with hypervisor extension
 软件：Linux SDK + kvmtool 工具
 
+> [!NOTE]
+> 如果需要在Nuclei Qemu上体验，需要升级到Nuclei Qemu 2025.10版本
+
 ## 1.编译kvmtool虚拟化应用程序
+
+> - 本分支最新代码已经将 预编译好的 `kvmtool` + `Guest Linux Kernel` 放在了 conf/evalsoc/kvm 目录下
+> - 因此如果不想重新编译这些工具，可以直接跳过 1 + 2 步骤，也不需要手动拷贝这些工具了，这个已经做到Makefile里面
+>   自动拷贝过去，只需要登录 host linux 内核以后执行 `./kvm/kvm.sh` 即可体验, 执行log参见 cd5f1d7317b63027
 
 kvmtool 是一个轻量级的工具，用于在 Linux 上托管 KVM 客户机，它是一个纯虚拟化工具，仅支持运行相同架构的客户机。
 
@@ -71,11 +78,14 @@ make SOC=evalsoc CORE=ux900fd freeloader -j4
 make SOC=evalsoc CORE=ux900fd bootimages -j4
 cd ..
 ```
-*注意：在linux上使用aia中断控制器时，dts中cpu节点个数要按照实际情况来写，不支持自动探测不存在的core，因为ipi通过msi中断来实现，imsic在core内部，core不存在时，imsic对应的地址我们硬件没有实现，所以软件dts 配置的cpu core数目要小于等于硬件cpu core数目。*
 
-将前面编译的lkvm-static，guest linux内核Image 拷贝到rootfs中，重新编译rootfs。
+> [!CAUTION]
+> **注意**：在linux上使用aia中断控制器时，dts中cpu节点个数要按照实际情况来写，不支持自动探测不存在的core，因为ipi通过msi中断来实现，imsic在core内部，core不存在时，imsic对应的地址我们硬件没有实现，所以软件dts 配置的cpu core数目要小于等于硬件cpu core数目。
+
+将前面编译的``lkvm-static``，guest linux内核``Image`` 拷贝到rootfs中，重新编译rootfs。
 
 ```shell
+# 如果是使用我们仓库里面预编译好的kvm tool和guest linux kernel，下面的命令不需要支持
 cp kvmtool/lkvm-static nuclei-linux-sdk/work/evalsoc/buildroot_initramfs_sysroot/usr/bin/
 cp linux/arch/riscv/boot/Image nuclei-linux-sdk/work/evalsoc/buildroot_initramfs_sysroot/usr/bin/
 cd nuclei-linux-sdk
