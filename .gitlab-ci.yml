@@ -281,61 +281,61 @@ cache:
 
 ## Job for build sdk
 # Build For ux900 Core, without FPU, flash boot mode
-build_ux900_flash:
-    stage: build
-    variables:
-        SOC: "evalsoc"
-        CORE: "ux900"
-        ARCH_EXT: ""
-        BOOT_MODE: "flash"
-    parallel:
-        matrix:
-            - SOC: ["evalsoc"]
-    <<: *build_linux_sdk_job_def
-
-## Job for build sdk
-# Build For ux900 Core, without FPU, sd boot mode
-build_ux900_sd:
-    stage: build
-    variables:
-        SOC: "evalsoc"
-        CORE: "ux900"
-        ARCH_EXT: ""
-        BOOT_MODE: "sd"
-    parallel:
-        matrix:
-            - SOC: ["evalsoc"]
-    <<: *build_linux_sdk_job_def
-
-# Manual job for ux900 sd
-build_ux900_sd_manual:
-    stage: manual
-    needs:
-        - job: build_ux900_sd
-    variables:
-        SOC: "evalsoc"
-        CORE: "ux900"
-        ARCH_EXT: ""
-        BOOT_MODE: "sd"
-    <<: *build_linux_sdk_manual_job_def
-
-# Manual job for ux900 flash
-build_ux900_flash_manual:
-    stage: manual
-    needs:
-        - job: build_ux900_flash
-    variables:
-        SOC: "evalsoc"
-        CORE: "ux900"
-        ARCH_EXT: ""
-        BOOT_MODE: "flash"
-    <<: *build_linux_sdk_manual_job_def
+#build_ux900_flash:
+#    stage: build
+#    variables:
+#        SOC: "evalsoc"
+#        CORE: "ux900"
+#        ARCH_EXT: ""
+#        BOOT_MODE: "flash"
+#    parallel:
+#        matrix:
+#            - SOC: ["evalsoc"]
+#    <<: *build_linux_sdk_job_def
+#
+### Job for build sdk
+## Build For ux900 Core, without FPU, sd boot mode
+#build_ux900_sd:
+#    stage: build
+#    variables:
+#        SOC: "evalsoc"
+#        CORE: "ux900"
+#        ARCH_EXT: ""
+#        BOOT_MODE: "sd"
+#    parallel:
+#        matrix:
+#            - SOC: ["evalsoc"]
+#    <<: *build_linux_sdk_job_def
+#
+## Manual job for ux900 sd
+#build_ux900_sd_manual:
+#    stage: manual
+#    needs:
+#        - job: build_ux900_sd
+#    variables:
+#        SOC: "evalsoc"
+#        CORE: "ux900"
+#        ARCH_EXT: ""
+#        BOOT_MODE: "sd"
+#    <<: *build_linux_sdk_manual_job_def
+#
+## Manual job for ux900 flash
+#build_ux900_flash_manual:
+#    stage: manual
+#    needs:
+#        - job: build_ux900_flash
+#    variables:
+#        SOC: "evalsoc"
+#        CORE: "ux900"
+#        ARCH_EXT: ""
+#        BOOT_MODE: "flash"
+#    <<: *build_linux_sdk_manual_job_def
 
 release_sources:
     extends: .job_rules
     stage: build
     needs:
-        - job: build_ux900_flash
+        - job: build_ux900fd_sd
     script:
         - activate_swdev
         - make snapshot
