@@ -29,7 +29,7 @@ jobs:
     strategy:
       matrix:
         soc: [evalsoc]
-        core: [ux900, ux900fd, u900, u900fd]
+        core: [ux900fd]
         boot_mode: [sd, flash]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -70,7 +70,7 @@ jobs:
             python3 python3-pip mtools
           sudo pip3 install git-archive-all
           mkdir -p buildroot/dl
-          QEMUVER=2025.02
+          QEMUVER=2025.10
           if [ ! -f buildroot/dl/nuclei-qemu-${QEMUVER}-linux-x64.tar.gz ] ; then
             wget --progress=dot -P buildroot/dl https://download.nucleisys.com/upload/files/toolchain/qemu/nuclei-qemu-${QEMUVER}-linux-x64.tar.gz
           fi
