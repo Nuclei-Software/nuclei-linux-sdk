@@ -96,6 +96,7 @@ jobs:
           if [[ $CORE == *ux* ]] ; then
               qemucmd=qemu-system-riscv64
           fi
+          export ARCH_EXT=v
           cp -f conf/${SOC}/${SOC}.json work/${SOC}/${SOC}.json
           echo "which $qemucmd" > $SHOWQEMUSH
           echo "$qemucmd --version" >> $SHOWQEMUSH

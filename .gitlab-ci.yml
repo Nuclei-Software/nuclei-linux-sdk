@@ -49,7 +49,7 @@ cache:
     - |
         export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
         export SELVAR0="CPU_HZ"
-        export VARLIST0="30000000,50000000,100000000"
+        export VARLIST0="50000000"
         export SELVAR1="SPFL1DCTRL1"
         export VARLIST1="0x0,0x1f,0xf,0x3f"
         bash .github/build_multiple_freeloader.sh > >(tee build_pref_freeloader.log) || {
@@ -57,31 +57,6 @@ cache:
             exit 1
         }
         unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
-    - echo ">>Build multiple prefetch freeloader for $SOC - $CORE - $BOOT_MODE for sstc extension"
-    - |
-        export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE} EXT_SSTC=y"
-        export SELVAR0="CPU_HZ"
-        export VARLIST0="16000000,50000000,100000000"
-        export SELVAR1="SPFL1DCTRL1"
-        export VARLIST1="0x0,0x1f,0xf,0x3f"
-        bash .github/build_multiple_freeloader.sh > >(tee build_pref_sstc_freeloader.log) || {
-            xz -f -z build_pref_sstc_freeloader.log
-            exit 1
-        }
-        unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
-    - echo ">>Build multiple cache settings freeloader for $SOC - $CORE - $BOOT_MODE"
-    - |
-        export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
-        export SELVAR0="CPU_HZ"
-        export VARLIST0="30000000,50000000,100000000"
-        export SELVAR1="CACHE_CTRL"
-        export VARLIST1="0x100C1,0x10001"
-        bash .github/build_multiple_freeloader.sh > >(tee build_cache_freeloader.log) || {
-            xz -f -z build_cache_freeloader.log
-            exit 1
-        }
-        unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
-    - xz -f -z build_cache_freeloader.log
     - echo ">>Build simulation freeloader for $SOC - $CORE - $BOOT_MODE"
     - |
         export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE}"
@@ -169,6 +144,7 @@ cache:
         echo "Zip all generated boot images and freeloader elfs to ${genbootzip}"
         rm -f ${genbootzip}
         zip -r ${genbootzip} work/${SOC}/boot.zip work/${SOC}/freeloader/freeloader.elf work/${SOC}/${SOC}.json work/${SOC}/run_qemu.sh work/${SOC}/disk.img work/${SOC}/freeloader_*.elf work/${SOC}/buildstamp.txt work/${SOC}/fw_payload_xlspike.elf
+        ls -lh ${genbootzip} work/${SOC}/
     - echo "Please find generated freeloaders in $SHARELOC/$(git describe --always)"
 
 .snippet_run_sdk_in_xlspike: &snippet_run_sdk_in_xlspike
@@ -239,7 +215,12 @@ cache:
     artifacts:
         name: "bootimages-${SOC}-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
         paths:
-            - work/${SOC}/
+            - work/${SOC}/*.elf
+            - work/${SOC}/*.zip
+            - work/${SOC}/*.sh
+            - work/${SOC}/*.log
+            - work/${SOC}/*.img
+            - work/${SOC}/*.txt
             - build_*.log.*
         expire_in: 2 day
     script:
