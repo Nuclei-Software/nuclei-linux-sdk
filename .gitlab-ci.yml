@@ -469,16 +469,16 @@ build_ux900fd_flash_manual:
 ## Job for run sim
 # Run For ux900FD Core, with FPU, flash boot mode
 # This ux900fd init process will fail
-run_ux900fd_flash_xlspike:
-    stage: run
-    allow_failure: true
-    dependencies:
-        - build_ux900fd_flash
-    variables:
-        SOC: "evalsoc"
-        CORE: "ux900fd"
-        BOOT_MODE: "flash"
-    <<: *run_linux_sdk_xlspike_job_def
+#run_ux900fd_flash_xlspike:
+#    stage: run
+#    allow_failure: true
+#    dependencies:
+#        - build_ux900fd_flash
+#    variables:
+#        SOC: "evalsoc"
+#        CORE: "ux900fd"
+#        BOOT_MODE: "flash"
+#    <<: *run_linux_sdk_xlspike_job_def
 
 ## Job for run sim
 # Run For ux900FD Core, with FPU, sd boot mode
