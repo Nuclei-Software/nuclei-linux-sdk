@@ -1,0 +1,16 @@
+{
+    "general_config": {
+        "uart0": {
+                "irq":"1"
+        },
+        "uart1": {
+                "irq":"2"
+        },
+        "qspi0": {
+                "irq":"3"
+        },
+        "qspi2": {
+                "irq":"5"
+        }
+    }
+}
