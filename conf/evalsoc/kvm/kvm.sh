@@ -8,7 +8,9 @@ cd $SCRIPT_DIR
 echo "Execute KVM Testing Now"
 
 set -x
-mkdir -p /tmp/myshared/
-mount /dev/mmcblk0p1 /tmp/myshared/
+if mount | grep mnt > /dev/null ; then
+    umount /mnt
+fi
+mount /dev/mmcblk0p1 /mnt
 chmod +x lkvm-static
-lkvm-static run --9p /tmp/myshared,myshare_tag -m 1536 -c2 -k Image
+lkvm-static run --9p /mnt,myshare_tag -m 1536 -c2 -k Image
