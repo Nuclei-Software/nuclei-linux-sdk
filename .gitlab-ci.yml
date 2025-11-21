@@ -401,7 +401,7 @@ build_ux900fd_flash:
     variables:
         SOC: "evalsoc"
         CORE: "ux900fd"
-        ARCH_EXT: ""
+        ARCH_EXT: "v"
         BOOT_MODE: "flash"
     parallel:
         matrix:
@@ -416,7 +416,7 @@ build_ux900fd_sd:
     variables:
         SOC: "evalsoc"
         CORE: "ux900fd"
-        ARCH_EXT: ""
+        ARCH_EXT: "v"
         BOOT_MODE: "sd"
     parallel:
         matrix:
@@ -431,7 +431,7 @@ build_ux900fd_sd_manual:
     variables:
         SOC: "evalsoc"
         CORE: "ux900fd"
-        ARCH_EXT: ""
+        ARCH_EXT: "v"
         BOOT_MODE: "sd"
     <<: *build_linux_sdk_manual_job_def
 
@@ -443,7 +443,7 @@ build_ux900fd_flash_manual:
     variables:
         SOC: "evalsoc"
         CORE: "ux900fd"
-        ARCH_EXT: ""
+        ARCH_EXT: "v"
         BOOT_MODE: "flash"
     <<: *build_linux_sdk_manual_job_def
 
@@ -486,6 +486,7 @@ run_ux900fd_flash_qemu:
     variables:
         CORE: "ux900fd"
         BOOT_MODE: "flash"
+        ARCH_EXT: "v"
     <<: *run_linux_sdk_qemu_job_def
 
 ## Job for run qemu
@@ -500,6 +501,7 @@ run_ux900fd_sd_qemu:
     variables:
         CORE: "ux900fd"
         BOOT_MODE: "sd"
+        ARCH_EXT: "v"
     <<: *run_linux_sdk_qemu_job_def
 
 # Build and run for rv32 core
