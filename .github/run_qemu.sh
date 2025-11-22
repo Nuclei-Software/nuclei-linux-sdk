@@ -1,5 +1,5 @@
 cd nuclei-linux-sdk
-timeout --foreground -s SIGTERM 5m make run_qemu > >(tee run_qemu.log)
+timeout --foreground -s SIGTERM 6m make run_qemu > >(tee run_qemu.log)
 
 # check pass or not
 if cat run_qemu.log | grep "Run /init" ; then
