@@ -219,6 +219,8 @@ cache:
             - work/${SOC}/*.zip
             - work/${SOC}/*.sh
             - work/${SOC}/*.log
+            # evalsoc.json is required
+            - work/${SOC}/*.json
             - work/${SOC}/*.img
             - work/${SOC}/*.txt
             - build_*.log.*
