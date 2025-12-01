@@ -4,7 +4,7 @@ variables:
     GIT_STRATEGY: fetch
     FF_USE_FASTZIP: "true"
     SHARELOC: "/home/xl_ci/linuxsdk/"
-    QEMUPATH: "/home/share/devtools/qemu/linux64/2025.02"
+    QEMUPATH: "/home/share/devtools/qemu/linux64/2025.10"
 
 workflow:
   rules:
@@ -57,15 +57,15 @@ cache:
             exit 1
         }
         unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
-    - echo ">>Build multiple prefetch freeloader for $SOC - $CORE - $BOOT_MODE for sstc extension"
+    - echo ">>Build multiple prefetch freeloader for $SOC - $CORE - $BOOT_MODE for rvv extension"
     - |
-        export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE} EXT_SSTC=y"
+        export MAKEOPTS="SOC=$SOC CORE=$CORE BOOT_MODE=${BOOT_MODE} RVV=y"
         export SELVAR0="CPU_HZ"
         export VARLIST0="30000000,50000000,100000000"
         export SELVAR1="SPFL1DCTRL1"
         export VARLIST1="0x0,0x1f,0xf,0x3f"
-        bash .github/build_multiple_freeloader.sh > >(tee build_pref_sstc_freeloader.log) || {
-            xz -f -z build_pref_sstc_freeloader.log
+        bash .github/build_multiple_freeloader.sh > >(tee build_pref_rvv_freeloader.log) || {
+            xz -f -z build_pref_rvv_freeloader.log
             exit 1
         }
         unset MAKEOPTS SELVAR0 VARLIST0 SELVAR1 VARLIST1
