@@ -215,6 +215,16 @@ cache:
     artifacts:
         name: "bootimages-${SOC}-${CORE}-${BOOT_MODE}-${CI_COMMIT_SHA::8}"
         paths:
+            - work/${SOC}/linux/vmlinux
+            - work/${SOC}/linux/System.map
+            - work/${SOC}/linux/vmlinux.symvers
+            - work/${SOC}/opensbi/platform/generic/firmware/fw_jump.elf
+            - work/${SOC}/opensbi/platform/generic/firmware/fw_jump.bin
+            - work/${SOC}/u-boot/u-boot
+            - work/${SOC}/u-boot/u-boot.map
+            - work/${SOC}/u-boot/System.map
+            - work/${SOC}/u-boot/u-boot.sym
+            - work/${SOC}/u-boot/u-boot.bin
             - work/${SOC}/*.elf
             - work/${SOC}/*.zip
             - work/${SOC}/*.sh
