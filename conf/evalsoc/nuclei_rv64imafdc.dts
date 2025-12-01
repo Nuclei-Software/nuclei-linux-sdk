@@ -201,11 +201,11 @@
     msi-parent = <&imsic_m>;
     reg = <0x00000000 0x10040000 0x00000000 0x00004000>;
     interrupt-controller;
-    #address-cells = <2>;
     #interrupt-cells = <2>;
     riscv,num-sources = <31>;
     riscv,children = <&aplic_s>;
     riscv,delegate = <&aplic_s 1 31>;
+    riscv,delegation = <&aplic_s 1 31>;
   };
 
   aplic_s: interrupt-controller@10044000 {
@@ -213,7 +213,6 @@
     msi-parent = <&imsic_s>;
     reg = <0x00000000 0x10044000 0x00000000 0x00004000>;
     interrupt-controller;
-    #address-cells = <2>;
     #interrupt-cells = <2>;
     riscv,num-sources = <31>;
   };
@@ -222,31 +221,27 @@
     compatible = "riscv,imsics";
     msi-controller;
     reg = <0x00000000 0x4f000000 0x00000000 0x008000>;
-    interrupts-extended = < &cpu0_intc 11/* &cpu1_intc 11
+    interrupts-extended = < &cpu0_intc 11 &cpu1_intc 11
                             &cpu2_intc 11 &cpu3_intc 11
                             &cpu4_intc 11 &cpu5_intc 11
-                            &cpu6_intc 11 &cpu7_intc 11*/>;
+                            &cpu6_intc 11 &cpu7_intc 11>;
     interrupt-controller;
-    #address-cells = <2>;
     #interrupt-cells = <0>;
     riscv,num-ids = <0xff>;
-    #msi-cells = <0>;
   };
 
   imsic_s: interrupt-controller@4f200000 {
     compatible = "riscv,imsics";
     msi-controller;
-    reg = <0x00000000 0x4f200000 0x00000000 0x00100000>;
-    interrupts-extended = < &cpu0_intc 9 /*&cpu1_intc 9
+    reg = <0x00000000 0x4f200000 0x00000000 0x40000>;
+    interrupts-extended = < &cpu0_intc 9 &cpu1_intc 9
                             &cpu2_intc 9 &cpu3_intc 9
                             &cpu4_intc 9 &cpu5_intc 9
-                            &cpu6_intc 9 &cpu7_intc 9*/>;
+                            &cpu6_intc 9 &cpu7_intc 9>;
     interrupt-controller;
-    #address-cells = <2>;
     #interrupt-cells = <0>;
     riscv,num-ids = <0xff>;
-    riscv,guest-index-bits = <2>;
-    #msi-cells = <0>;
+    riscv,guest-index-bits = <3>;
   };
 
   pmu {
@@ -494,37 +489,20 @@
       /*  Event Types 3 events - 0x18 DTLB read miss count */
       <0x00000000 0x00000183 0xffffffff 0xffffffff 0x00000078>;
   };
-/*
-  plic0: interrupt-controller@1c000000 {
-    #interrupt-cells = <1>;
-    compatible = "riscv,plic0";
-    interrupt-controller;
-    riscv,ndev = <53>;
-    interrupts-extended =
-          <&cpu0_intc 11 &cpu0_intc 9
-           &cpu1_intc 11 &cpu1_intc 9
-           &cpu2_intc 11 &cpu2_intc 9
-           &cpu3_intc 11 &cpu3_intc 9
-           &cpu4_intc 11 &cpu4_intc 9
-           &cpu5_intc 11 &cpu5_intc 9
-           &cpu6_intc 11 &cpu6_intc 9
-           &cpu7_intc 11 &cpu7_intc 9>;
-    reg = <0x0 0x1c000000 0x0 0x4000000>;
-  };
-*/
+
   clint0: clint@18031000 {
     #interrupt-cells = <1>;
     compatible = "riscv,clint0";
     reg = <0x0 0x18031000 0x0 0xC000>;
     interrupts-extended =
           <&cpu0_intc 3 &cpu0_intc 7
-           /*&cpu1_intc 3 &cpu1_intc 7
+           &cpu1_intc 3 &cpu1_intc 7
            &cpu2_intc 3 &cpu2_intc 7
            &cpu3_intc 3 &cpu3_intc 7
            &cpu4_intc 3 &cpu4_intc 7
            &cpu5_intc 3 &cpu5_intc 7
            &cpu6_intc 3 &cpu6_intc 7
-           &cpu7_intc 3 &cpu7_intc 7*/>;
+           &cpu7_intc 3 &cpu7_intc 7>;
     clocks = <&hfclk>;
   };
 
