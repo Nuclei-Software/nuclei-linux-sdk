@@ -63,6 +63,11 @@ function gen_dstimg_names() {
         dstfldname=${dstfldname}_mgl1dc-${MERGL1DCTRL}
     fi
 
+    if [ "x$RVV" == "xy" ] ; then
+        dstfldname=${dstfldname}_rvv
+        dstbootzipname=${dstbootzipname}_rvv
+    fi
+
     if [ "x$SIMULATION" != "x" ] && [ "x$SIMULATION" != "x0" ] ; then
         dstfldname=${dstfldname}_sim
     fi
@@ -87,6 +92,11 @@ function replace_dts() {
     sed -i "s/$old/$new/g" $dts
 }
 
+function prepare_rvv_dts() {
+    local arch=$(get_arch)
+    replace_dts $arch $arch ${arch}v
+}
+
 function prepare_sstc_dts() {
     local arch=$(get_arch)
     replace_dts $arch $arch ${arch}_sstc
@@ -103,6 +113,9 @@ function prepare_dts() {
     fi
     if [ "x${HVC_CONSOLE}" == "xy" ] ; then
         prepare_hvc_console_dts
+    fi
+    if [ "x${RVV}" == "xy" ] ; then
+        prepare_rvv_dts
     fi
 }
 
