@@ -205,7 +205,6 @@
     riscv,num-sources = <31>;
     riscv,children = <&aplic_s>;
     riscv,delegate = <&aplic_s 1 31>;
-    riscv,delegation = <&aplic_s 1 31>;
   };
 
   aplic_s: interrupt-controller@10044000 {
