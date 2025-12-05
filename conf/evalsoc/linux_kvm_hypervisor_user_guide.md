@@ -12,7 +12,7 @@
 
 > - 本分支最新代码已经将 预编译好的 `kvmtool` + `Guest Linux Kernel` 放在了 conf/evalsoc/kvm 目录下
 > - 因此如果不想重新编译这些工具，可以直接跳过 1 + 2 步骤，也不需要手动拷贝这些工具了，这个已经做到Makefile里面
->   自动拷贝过去，只需要登录 host linux 内核以后执行 `./kvm/kvm.sh` 即可体验, 执行log参见 cd5f1d7317b63027
+>   自动拷贝过去，只需要登录 host linux 内核以后执行 `./kvm/lkvm.sh` 即可体验, 执行log参见 cd5f1d7317b63027
 
 kvmtool 是一个轻量级的工具，用于在 Linux 上托管 KVM 客户机，它是一个纯虚拟化工具，仅支持运行相同架构的客户机。
 
