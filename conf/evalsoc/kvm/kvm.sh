@@ -13,4 +13,4 @@ if mount | grep mnt > /dev/null ; then
 fi
 mount /dev/mmcblk0p1 /mnt
 chmod +x lkvm-static
-lkvm-static run --9p /mnt,myshare_tag -m 1536 -c2 -k Image
+lkvm-static run --9p /mnt,myshare_tag -m 1900 -c2 -k Image
