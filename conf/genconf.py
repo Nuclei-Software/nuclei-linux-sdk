@@ -21,11 +21,26 @@ def update_uboot_defconfig(config_file):
         uboot_text_base = hex(int(board_ddr_base, 16)  + 0x200000)
     uboot_cust_sys_init_sp_addr = uboot_text_base
     uboot_sys_load_addr = uboot_text_base
-
+    uboot_spl_text_base = hex(int(board_clm_base, 16) + 0x400)
+    uboot_spl_stack = hex(int(board_clm_base, 16) + 0x20000)
+    uboot_spl_bss_start = hex(int(board_clm_base, 16) + 0x14000)
+    uboot_spl_opensbi_load_addr = hex(int(board_ddr_base, 16))
     updated_content = []
     for line in defconfig_content:
         if 'CONFIG_TEXT_BASE=' in line:
             line = f'CONFIG_TEXT_BASE={uboot_text_base}\n'
+            print("Update with %s" %(line))
+        if 'CONFIG_SPL_TEXT_BASE=' in line:
+            line = f'CONFIG_SPL_TEXT_BASE={uboot_spl_text_base}\n'
+            print("Update with %s" %(line))
+        if 'CONFIG_SPL_OPENSBI_LOAD_ADDR=' in line:
+            line = f'CONFIG_SPL_OPENSBI_LOAD_ADDR={uboot_spl_opensbi_load_addr}\n'
+            print("Update with %s" %(line))
+        if 'CONFIG_SPL_STACK=' in line:
+            line = f'CONFIG_SPL_STACK={uboot_spl_stack}\n'
+            print("Update with %s" %(line))
+        if 'CONFIG_SPL_BSS_START_ADDR=' in line:
+            line = f'CONFIG_SPL_BSS_START_ADDR={uboot_spl_bss_start}\n'
             print("Update with %s" %(line))
         if 'CONFIG_SYS_TEXT_BASE=' in line:
             line = f'CONFIG_SYS_TEXT_BASE={uboot_text_base}\n'
@@ -67,6 +82,14 @@ def update_uboot_cmd(file_path, kernel_load_address, rootfs_load_address, fdt_lo
     bootm_pattern = r'bootm 0x[0-9a-fA-F]+ 0x[0-9a-fA-F]+ 0x[0-9a-fA-F]+'
     new_line = fr'bootm {kernel_load_address} {rootfs_load_address} {fdt_load_address}'
     updated_content = re.sub(bootm_pattern, new_line, updated_content)
+
+    kernel_fit_load_addr_pattern = r'(setenv\s+kernel_fit_load_addr\s+)(0x[0-9a-fA-F]+)'
+    new_line = fr'setenv kernel_fit_load_addr {kernel_load_address}'
+    updated_content = re.sub(kernel_fit_load_addr_pattern, new_line, updated_content)
+
+    kernel_dts_load_addr_pattern = r'(setenv\s+kernel_dts_load_addr\s+)(0x[0-9a-fA-F]+)'
+    new_line = fr'setenv kernel_dts_load_addr {fdt_load_address}'
+    updated_content = re.sub(kernel_dts_load_addr_pattern, new_line, updated_content)
 
     with open(file_path, 'w') as f:
         f.write(updated_content)
@@ -362,6 +385,14 @@ if __name__ == "__main__":
                 if 'size' not in ddr_config:
                     print("ddr size is empty value, use 0x80000000 as default.")
                     ddr_config['size'] = "0x80000000"
+            if 'clm' in general_config:
+                clm_config = general_config['clm']
+                if 'base' not in clm_config:
+                    print("ddr base is empty value, use 0x40000000 as default.")
+                    clm_config['base'] = "0x40000000"
+                if 'size' not in clm_config:
+                    print("ddr size is empty value, use 0x40000000 as default.")
+                    clm_config['size'] = "0x100000"
             if 'norflash' in general_config:
                 norflash_config = general_config['norflash']
                 if 'base' in norflash_config:
@@ -412,9 +443,13 @@ if __name__ == "__main__":
             ddr_config['size'] = "0x80000000"
             general_config['ampfw_size'] = "0x400000"
             general_config['amp_core'] = "8"
+            clm_config['base'] = "0x40000000"
+            clm_config['size'] = "0x100000"
 
         board_ddr_base = ddr_config['base']
         board_ddr_size = hex(parse_size(ddr_config['size']))
+        board_clm_base = clm_config['base']
+        board_clm_size = hex(parse_size(clm_config['size']))
         if board_flash_size is not None:
             board_flash_size = parse_size(board_flash_size, 'string')
         board_ampfw_size = hex(parse_size(general_config['ampfw_size']))
@@ -449,6 +484,10 @@ if __name__ == "__main__":
         makefile_path = "%s/freeloader.mk" %(cust_file)
         variable_name = 'DDR_BASE'
         update_freeloader_variable(makefile_path, variable_name, board_ddr_base)
+
+        makefile_path = "%s/freeloader.mk" %(cust_file)
+        variable_name = 'CLM_BASE'
+        update_freeloader_variable(makefile_path, variable_name, board_clm_base)
 
         makefile_path = "%s/freeloader.mk" %(cust_file)
         variable_name = 'FLASH_BASE'
