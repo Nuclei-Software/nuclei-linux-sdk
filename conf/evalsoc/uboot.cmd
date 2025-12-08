@@ -1,6 +1,8 @@
 test -z "${bootloc}"   && setenv bootloc .
 test -z "${kernel_fit}" && setenv kernel_fit ${bootloc}/kernel_rootfs.itb
 setenv kernel_fit_load_addr 0x83000000
+setenv kernel_dts_load_addr 0x88000000
+
 
 echo "Boot images located in ${bootloc}"
 echo "Loading fit kernel: ${kernel_fit}"
@@ -12,4 +14,4 @@ echo "Starts booting from SD"
 # bootm ${kernel_fit_load_addr}:kernel ${kernel_fit_load_addr}:ramdisk ${kernel_fit_load_addr}:fdt
 
 # use dtb from spl.itb default
-bootm ${kernel_fit_load_addr}:kernel ${kernel_fit_load_addr}:ramdisk 0x88000000
+bootm ${kernel_fit_load_addr}:kernel ${kernel_fit_load_addr}:ramdisk ${kernel_dts_load_addr}
