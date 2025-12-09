@@ -15,6 +15,7 @@
 static const struct fdt_match nuclei_evalsoc_match[] = {
 	{ .compatible = "nuclei,evalsoc" },
 	{ .compatible = "nuclei,eval-soc" },
+	{ .compatible = "nuclei,placeholder" },
 	{ },
 };
 extern void sm_init(bool cold_boot);
