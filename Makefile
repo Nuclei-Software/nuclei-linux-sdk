@@ -129,7 +129,6 @@ uboot_spl_its_preproc := $(confdir)/uboot_spl.its.preproc
 # Directory for boot images stored in sdcard
 boot_wrkdir := $(wrkdir)/boot
 boot_zip := $(wrkdir)/boot.zip
-boot_ubootscr := $(boot_wrkdir)/boot.scr
 boot_image := $(boot_wrkdir)/Image.lz4
 boot_initrd := $(boot_wrkdir)/Initrd.lz4
 boot_kernel_dtb := $(boot_wrkdir)/kernel.dtb
@@ -394,9 +393,6 @@ bootimages: $(boot_zip)
 $(boot_wrkdir):
 	mkdir -p $@
 
-$(boot_ubootscr): $(uboot_cmd) $(uboot_mkimage)
-	$(uboot_mkimage) -A riscv -T script -O linux -C none -a 0 -e 0 -n "bootscript" -d $(uboot_cmd) $@
-
 # For DDR_BASE = 0x80000000, eg.
 # UIMAGE_AE_CMD := -a 0x80400000 -e 0x80400000
 # For xlen = 32 target, the uncompressed kernel image is 25M, but for rv64, it is only 15M
@@ -415,7 +411,7 @@ $(boot_kernel_dtb): $(platform_preproc_dts)
 $(uboot_its_preproc): $(uboot_its) $(target_gcc)
 	$(target_gcc) -E -nostdinc -undef -x assembler-with-cpp  $(ITS_DEFINES) $(uboot_its) -o $@
 
-$(boot_zip): $(boot_wrkdir) $(boot_ubootscr) $(boot_image) $(boot_initrd) $(boot_kernel_dtb) $(uboot_mkimage) $(uboot_its_preproc)
+$(boot_zip): $(boot_wrkdir) $(boot_image) $(boot_initrd) $(boot_kernel_dtb) $(uboot_mkimage) $(uboot_its_preproc)
 	rm -f $(boot_zip)
 	cp -f $(uboot_its_preproc) $(boot_wrkdir)/uboot.its
 	cd $(boot_wrkdir) && $(uboot_mkimage) -f uboot.its kernel_rootfs.itb
@@ -587,7 +583,7 @@ $(qemu_disk): $(boot_zip)
 	cd $(boot_wrkdir) && dd if=/dev/zero of=$(qemu_disk) bs=$(DISK_SIZE)M count=1
 	echo "Please make sure mformat version is >= 4.0.24, current version $(shell mformat --version)"
 	cd $(boot_wrkdir) && mformat -F -h 64 -s 32 -t $$(($(DISK_SIZE)-1)) :: -i $(qemu_disk) || rm -f $(qemu_disk)
-	cd $(boot_wrkdir) && mcopy -i $(qemu_disk) boot.scr kernel_rootfs.itb :: || rm -f $(qemu_disk)
+	cd $(boot_wrkdir) && mcopy -i $(qemu_disk) kernel_rootfs.itb :: || rm -f $(qemu_disk)
 
 run_qemu: $(qemu_disk) $(freeloader_elf)
 	@echo "Run on qemu for simulation"
