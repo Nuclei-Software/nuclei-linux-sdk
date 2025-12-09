@@ -12,6 +12,13 @@ def is_uboot_flash_config_format(s):
     pattern = r'^uboot_\w+_flash_config$'
     return bool(re.match(pattern, s))
 
+def is_uboot_support_fit_format(s):
+    with open(s, 'r') as f:
+        for line in f:
+            if "CONFIG_KERNEL_FIT_LOAD_ADDR" in line:
+                return True
+    return False
+
 def update_uboot_defconfig(config_file):
     with open(config_file, 'r') as f:
         defconfig_content = f.readlines()
@@ -25,6 +32,11 @@ def update_uboot_defconfig(config_file):
     uboot_spl_stack = hex(int(board_clm_base, 16) + 0x20000)
     uboot_spl_bss_start = hex(int(board_clm_base, 16) + 0x14000)
     uboot_spl_opensbi_load_addr = hex(int(board_ddr_base, 16))
+    uboot_spl_load_fit_addr = hex(int(board_flash_base, 16) + 0x22000)
+    uboot_kernel_load_addr = hex(int(board_ddr_base, 16) + 0x3000000)
+    uboot_fdt_addr = hex(int(board_ddr_base, 16) + 0x8000000)
+    uboot_kernel_flash_addr = hex(int(board_flash_base, 16) + 0x100000)
+
     updated_content = []
     for line in defconfig_content:
         if 'CONFIG_TEXT_BASE=' in line:
@@ -36,6 +48,9 @@ def update_uboot_defconfig(config_file):
         if 'CONFIG_SPL_OPENSBI_LOAD_ADDR=' in line:
             line = f'CONFIG_SPL_OPENSBI_LOAD_ADDR={uboot_spl_opensbi_load_addr}\n'
             print("Update with %s" %(line))
+        if 'CONFIG_SPL_LOAD_FIT_ADDRESS=' in line:
+            line = f'CONFIG_SPL_LOAD_FIT_ADDRESS={uboot_spl_load_fit_addr}\n'
+            print("Update with %s" %(line))
         if 'CONFIG_SPL_STACK=' in line:
             line = f'CONFIG_SPL_STACK={uboot_spl_stack}\n'
             print("Update with %s" %(line))
@@ -45,19 +60,29 @@ def update_uboot_defconfig(config_file):
         if 'CONFIG_SYS_TEXT_BASE=' in line:
             line = f'CONFIG_SYS_TEXT_BASE={uboot_text_base}\n'
             print("Update with %s" %(line))
-        elif 'CONFIG_CUSTOM_SYS_INIT_SP_ADDR=' in line:
+        if 'CONFIG_CUSTOM_SYS_INIT_SP_ADDR=' in line:
             line = f'CONFIG_CUSTOM_SYS_INIT_SP_ADDR={uboot_cust_sys_init_sp_addr}\n'
             print("Update with %s" %(line))
-        elif 'CONFIG_SYS_LOAD_ADDR=' in line:
+        if 'CONFIG_SYS_LOAD_ADDR=' in line:
             line = f'CONFIG_SYS_LOAD_ADDR={uboot_sys_load_addr}\n'
             print("Update with %s" %(line))
-        elif 'CONFIG_BOOTCOMMAND=' in line: #update flashboot config bootm
-            if is_uboot_flash_config_format(config_file):
-                kernel_addr = hex(int(board_ddr_base, 16) + 0x3000000)
-                rootfs_addr = hex(int(board_ddr_base, 16) + 0x8300000)
-                fdt_addr = hex(int(board_ddr_base, 16) + 0x8000000)
-                line = f'CONFIG_BOOTCOMMAND="bootm {kernel_addr} {rootfs_addr} {fdt_addr}"\n'
-                print("Update with %s" %(line))
+        if 'CONFIG_KERNEL_FIT_LOAD_ADDR=' in line:
+            line = f'CONFIG_KERNEL_FIT_LOAD_ADDR={uboot_kernel_load_addr}\n'
+            print("Update with %s" %(line))
+        if 'CONFIG_DTB_LOAD_ADDR=' in line:
+            line = f'CONFIG_DTB_LOAD_ADDR={uboot_fdt_addr}\n'
+            print("Update with %s" %(line))
+        if 'CONFIG_KERNEL_FLASH_ADDR=' in line:
+            line = f'CONFIG_KERNEL_FLASH_ADDR={uboot_kernel_flash_addr}\n'
+            print("Update with %s" %(line))
+        if not is_uboot_support_fit_format(config_file):
+            if 'CONFIG_BOOTCOMMAND=' in line: #update flashboot config bootm
+                if is_uboot_flash_config_format(config_file):
+                    kernel_addr = hex(int(board_ddr_base, 16) + 0x3000000)
+                    rootfs_addr = hex(int(board_ddr_base, 16) + 0x8300000)
+                    fdt_addr = hex(int(board_ddr_base, 16) + 0x8000000)
+                    line = f'CONFIG_BOOTCOMMAND="bootm {kernel_addr} {rootfs_addr} {fdt_addr}"\n'
+                    print("Update with %s" %(line))
         updated_content.append(line)
 
     with open(config_file, 'w') as f:
@@ -469,6 +494,7 @@ if __name__ == "__main__":
                 os.rename(old_opensbi_file, new_opensbi_file)
                 print(f"Create '{new_opensbi_file}' based on '{old_opensbi_file}'.")
                 replace_in_file(new_opensbi_file, args.refsoc, 'customsoc')
+                replace_in_file(new_opensbi_file, 'placeholder', args.custsoc)
         print("Note: All custom soc should use customsoc.c for nuclei generic soc support")
 
         print("\n>>>Updating uboot config...")
