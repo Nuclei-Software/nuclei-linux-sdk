@@ -7,6 +7,8 @@ export PATH=$PATH:${SCRIPT_DIR}
 cd $SCRIPT_DIR
 echo "Execute Qemu Testing Now"
 
+echo "After guest boot, run this to share the host's /mnt by: mkdir -p /mnt && mount -t 9p -o trans=virtio myshare_tag /mnt"
+
 set -x
 if mount | grep mnt > /dev/null ; then
     umount /mnt
