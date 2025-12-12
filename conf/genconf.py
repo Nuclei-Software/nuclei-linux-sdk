@@ -434,6 +434,7 @@ if __name__ == "__main__":
                 os.rename(old_opensbi_file, new_opensbi_file)
                 print(f"Create '{new_opensbi_file}' based on '{old_opensbi_file}'.")
                 replace_in_file(new_opensbi_file, args.refsoc, 'customsoc')
+                replace_in_file(new_opensbi_file, 'placeholder', args.custsoc)
         print("Note: All custom soc should use customsoc.c for nuclei generic soc support")
 
         print("\n>>>Updating uboot config...")
