@@ -12,6 +12,7 @@
 #include <sbi_utils/fdt/fdt_helper.h>
 #include <sbi_utils/fdt/fdt_fixup.h>
 
+extern unsigned long clint_offset_quirk;
 static const struct fdt_match nuclei_evalsoc_match[] = {
 	{ .compatible = "nuclei,evalsoc" },
 	{ .compatible = "nuclei,eval-soc" },
@@ -43,7 +44,21 @@ static int nuclei_evalsoc_final_init(bool cold_boot,
 	return 0;
 }
 
+static int nuclei_evalsoc_early_init(bool cold_boot,
+				   const struct fdt_match *match)
+{
+	/*
+	* The NUCLEI CLINT address is not aligned to 0x10000 boundary, which would require
+	* additional PMP entries to configure permissions for the CLINT region.
+	* the clint_offset_quirk var to fixup this issue.
+	*/
+	clint_offset_quirk = 0x1000;
+
+	return 0;
+}
+
 const struct platform_override nuclei_evalsoc = {
 	.match_table = nuclei_evalsoc_match,
+	.early_init = nuclei_evalsoc_early_init,
 	.final_init = nuclei_evalsoc_final_init,
 };
