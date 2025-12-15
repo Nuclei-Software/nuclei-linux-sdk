@@ -599,7 +599,7 @@ if __name__ == "__main__":
                 clint_base_int = int(board_iregion_base, 16) + 0x31000
                 clint_base_int_high = (clint_base_int >> 32) & 0xFFFFFFFF
                 clint_base_int_low = clint_base_int & 0xFFFFFFFF
-                clint_size_int = 0xC000
+                clint_size_int = 0x10000
                 clint_size_int_high = (clint_size_int >> 32) & 0xFFFFFFFF
                 clint_size_int_low = clint_size_int & 0xFFFFFFFF
                 clint_reg_val = f"0x{clint_base_int_high:x} 0x{clint_base_int_low:x} 0x{clint_size_int_high:x} 0x{clint_size_int_low:x}"
