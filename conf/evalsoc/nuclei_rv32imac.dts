@@ -481,7 +481,7 @@
   clint0: clint@18031000 {
     #interrupt-cells = <1>;
     compatible = "riscv,clint0";
-    reg = <0x0 0x18031000 0x0 0xC000>;
+    reg = <0x0 0x18031000 0x0 0x10000>;
     interrupts-extended =
           <&cpu0_intc 3 &cpu0_intc 7
            &cpu1_intc 3 &cpu1_intc 7
