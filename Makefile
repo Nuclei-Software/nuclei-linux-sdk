@@ -10,7 +10,7 @@ SOC ?= evalsoc
 CORE ?= ux900fd
 
 ## Makefile Variable ARCH_EXT
-ARCH_EXT ?=
+ARCH_EXT ?=v
 
 ## Makefile Variable BOOT_MODE
 ## BOOT_MODE Supported:
