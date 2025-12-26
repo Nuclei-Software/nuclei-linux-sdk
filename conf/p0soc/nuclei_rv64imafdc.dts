@@ -1,43 +1,22 @@
 /dts-v1/;
 
-#ifndef SIMULATION
-#define SIMULATION          0
-#endif
-
-#if SIMULATION == 2
-#undef TIMERCLK_FREQ
-#define TIMERCLK_FREQ       500000
-#else
-#ifndef TIMERCLK_FREQ
-#define TIMERCLK_FREQ       32768
-#endif
-#endif
-
-#ifndef CPUCLK_FREQ
-#define CPUCLK_FREQ         50000000
-#endif
-#ifndef PERIPHCLK_FREQ
-#define PERIPHCLK_FREQ      CPUCLK_FREQ
-#endif
+#define TIMERCLK_FREQ      32768
+#define CPUCLK_FREQ        400000000
+#define PERIPHCLK_FREQ     100000000
 
 / {
   #address-cells = <2>;
   #size-cells = <2>;
-  compatible = "nuclei,evalsoc";
-  model = "nuclei,evalsoc";
+  compatible = "nuclei,p0soc";
+  model = "nuclei,p0soc";
   dma-noncoherent;
   chosen {
-#if SIMULATION == 2
-      bootargs = "earlycon=sbi console=hvc0";
-#else
       bootargs = "earlycon=sbi console=ttyNUC0";
-#endif
       stdout-path = "serial0";
   };
 
   aliases {
     serial0 = &uart0;
-    serial1 = &uart1;
   };
 
   cpus {
@@ -49,9 +28,9 @@
       reg = <0>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv32imafdc_zicbom_sstc_sscofpmf";
+      riscv,isa = "rv64imafdcv_zicbom_svpbmt_sstc_sscofpmf";
       riscv,cbom-block-size =<64>;
-      mmu-type = "riscv,sv32";
+      mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu0_intc: interrupt-controller {
         #interrupt-cells = <1>;
@@ -64,9 +43,9 @@
       reg = <1>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv32imafdc_zicbom_sstc_sscofpmf";
+      riscv,isa = "rv64imafdcv_zicbom_svpbmt_sstc_sscofpmf";
       riscv,cbom-block-size =<64>;
-      mmu-type = "riscv,sv32";
+      mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu1_intc: interrupt-controller {
         #interrupt-cells = <1>;
@@ -79,9 +58,9 @@
       reg = <2>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv32imafdc_zicbom_sstc_sscofpmf";
+      riscv,isa = "rv64imafdcv_zicbom_svpbmt_sstc_sscofpmf";
       riscv,cbom-block-size =<64>;
-      mmu-type = "riscv,sv32";
+      mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu2_intc: interrupt-controller {
         #interrupt-cells = <1>;
@@ -94,9 +73,9 @@
       reg = <3>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv32imafdc_zicbom_sstc_sscofpmf";
+      riscv,isa = "rv64imafdcv_zicbom_svpbmt_sstc_sscofpmf";
       riscv,cbom-block-size =<64>;
-      mmu-type = "riscv,sv32";
+      mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu3_intc: interrupt-controller {
         #interrupt-cells = <1>;
@@ -109,9 +88,9 @@
       reg = <4>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv32imafdc_zicbom_sstc_sscofpmf";
+      riscv,isa = "rv64imafdcv_zicbom_svpbmt_sstc_sscofpmf";
       riscv,cbom-block-size =<64>;
-      mmu-type = "riscv,sv32";
+      mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu4_intc: interrupt-controller {
         #interrupt-cells = <1>;
@@ -124,9 +103,9 @@
       reg = <5>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv32imafdc_zicbom_sstc_sscofpmf";
+      riscv,isa = "rv64imafdcv_zicbom_svpbmt_sstc_sscofpmf";
       riscv,cbom-block-size =<64>;
-      mmu-type = "riscv,sv32";
+      mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu5_intc: interrupt-controller {
         #interrupt-cells = <1>;
@@ -139,9 +118,9 @@
       reg = <6>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv32imafdc_zicbom_sstc_sscofpmf";
+      riscv,isa = "rv64imafdcv_zicbom_svpbmt_sstc_sscofpmf";
       riscv,cbom-block-size =<64>;
-      mmu-type = "riscv,sv32";
+      mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu6_intc: interrupt-controller {
         #interrupt-cells = <1>;
@@ -154,9 +133,9 @@
       reg = <7>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv32imafdc_zicbom_sstc_sscofpmf";
+      riscv,isa = "rv64imafdcv_zicbom_svpbmt_sstc_sscofpmf";
       riscv,cbom-block-size =<64>;
-      mmu-type = "riscv,sv32";
+      mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu7_intc: interrupt-controller {
         #interrupt-cells = <1>;
@@ -166,34 +145,15 @@
     };
   };
 
-  memory@80000000 {
+  memory@0 {
     device_type = "memory";
-    reg = <0x0 0x80000000 0x0 0x7E000000>;
-  };
-
-  /*
-   * Because rv32 not support svpbmt,
-   * so we reserve 64KB memory for rv32 xec ethernet,
-   * use Nuclei mattri csr to make it as non-cachable
-   * region for xec descriptor.
-   */
-  reserved-memory {
-    #address-cells = <2>;
-    #size-cells = <2>;
-    ranges;
-
-    noncachable_memory: region@FD000000 {
-        /* reserve 64KB memroy as non-cachable region */
-        no-map;
-        reg = <0x0 0xFD000000 0x0 0x10000>;
-        status = "okay";
-    };
+    reg = <0x0 0x0 0x0 0x80000000>;
   };
 
   soc {
     #address-cells = <2>;
     #size-cells = <2>;
-    compatible = "nuclei,evalsoc", "simple-bus";
+    compatible = "nuclei,p0soc", "simple-bus";
     ranges;
   };
 
@@ -212,7 +172,7 @@
   xecclk: xecclk {
     #clock-cells = <0>;
     compatible = "fixed-clock";
-    clock-frequency = <25000000>;
+    clock-frequency = <125000000>;
   };
 
   pmu {
@@ -461,11 +421,11 @@
       <0x00000000 0x00000183 0xffffffff 0xffffffff 0x00000078>;
   };
 
-  plic0: interrupt-controller@1c000000 {
+  plic0: interrupt-controller@f94000000 {
     #interrupt-cells = <1>;
     compatible = "riscv,plic0";
     interrupt-controller;
-    riscv,ndev = <53>;
+    riscv,ndev = <127>;
     interrupts-extended =
           <&cpu0_intc 11 &cpu0_intc 9
            &cpu1_intc 11 &cpu1_intc 9
@@ -475,13 +435,13 @@
            &cpu5_intc 11 &cpu5_intc 9
            &cpu6_intc 11 &cpu6_intc 9
            &cpu7_intc 11 &cpu7_intc 9>;
-    reg = <0x0 0x1c000000 0x0 0x4000000>;
+    reg = <0xf 0x94000000 0x0 0x4000000>;
   };
 
-  clint0: clint@18031000 {
+  clint0: clint@f90031000 {
     #interrupt-cells = <1>;
     compatible = "riscv,clint0";
-    reg = <0x0 0x18031000 0x0 0x10000>;
+    reg = <0xf 0x90031000 0x0 0x10000>;
     interrupts-extended =
           <&cpu0_intc 3 &cpu0_intc 7
            &cpu1_intc 3 &cpu1_intc 7
@@ -494,32 +454,31 @@
     clocks = <&hfclk>;
   };
 
-  uart0: serial@10013000 {
+  uart0: serial@f9c250000 {
     compatible = "nuclei,uart0";
-    reg = <0x0 0x10013000 0x0 0x1000>;
+    reg = <0xf 0x9c250000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
-    interrupts = <33>;
+    interrupts = <5>;
     clocks = <&hfclk>;
     clock-frequency = <PERIPHCLK_FREQ>;
     status = "okay";
   };
 
-  uart1: serial@10023000 {
+  uart1: serial@f9c251000 {
     compatible = "nuclei,uart0";
-    reg = <0x0 0x10023000 0x0 0x1000>;
+    reg = <0xf 0x9c251000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
-    interrupts = <34>;
+    interrupts = <6>;
     clocks = <&hfclk>;
     clock-frequency = <PERIPHCLK_FREQ>;
     status = "disabled";
   };
 
-#if SIMULATION == 0
-  qspi0: spi@10014000 {
+  qspi0: spi@f9c200000 {
     compatible = "nuclei,spi0";
-    reg = <0x0 0x10014000 0x0 0x1000>;
+    reg = <0xf 0x9c200000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
-    interrupts = <35>;
+    interrupts = <26>;
     num-cs = <1>;
     #address-cells = <1>;
     #size-cells = <0>;
@@ -536,40 +495,64 @@
     };
   };
 
-  qspi2: spi@10034000 {
-    compatible = "nuclei,spi0";
-    reg = <0x0 0x10034000 0x0 0x1000>;
-    interrupt-parent = <&plic0>;
-    interrupts = <37>;
-    num-cs = <1>;
-    #address-cells = <1>;
-    #size-cells = <0>;
-    clocks = <&hfclk>;
-    status = "okay";
+  sdio0_data_clk: sdio0_data_clk {
+    #clock-cells = <0>;
+    compatible = "fixed-clock";
+    clock-frequency = <200000000>;
+  };
 
-    mmc@0 {
-      compatible = "mmc-spi-slot";
-      reg = <0>;
-      spi-max-frequency = <20000000>;
-      voltage-ranges = <3300 3300>;
-      disable-wp;
-      spi-tx-bus-width = <1>;
-      spi-rx-bus-width = <1>;
+  mmc@f99f04000 {
+    compatible = "nuclei,mmc";
+    reg = <0xf 0x99f04000 0x0 0x1000>;
+    interrupt-parent = <&plic0>;
+    interrupts = <95>;
+    clocks = <&sdio0_data_clk>;
+    clock-names = "sdio_data_clk";
+   // resets = <&rst NUCLEI_RESET_CTRL0(SDIO0)>;
+    max-frequency = <50000000>;
+    bus-width = <4>;
+    no-sdio;
+    no-mmc;
+    non-removable;
+    /*broken-cd;*/
+    cap-sd-highspeed;
+    status = "okay";
+  };
+
+  xec0: xec@f9c210000 {
+    compatible = "nuclei,xec";
+    reg = <0xf 0x9c210000 0x0 0x1000>;
+    interrupt-parent = <&plic0>;
+    interrupts = <67>;
+    clocks = <&xecclk>;
+    /*local-mac-address = [00 2b 20 21 03 23];*/
+    phy-handle = <&rtl8201f>;
+    phy-mode = "rgmii";
+
+    status = "disabled";
+    mdio {
+        compatible = "snps,dwmac-mdio";
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        rtl8201f: ethernet-phy@0 {
+            compatible = "ethernet-phy-ieee802.3-c22";
+            reg = <0>;
+        };
     };
   };
-#endif
 
-  xec0: xec@10002000 {
+  xec1: xec@f9cdc0000 {
     compatible = "nuclei,xec";
-    reg = <0x0 0x10002000 0x0 0x1000>;
+    reg = <0xf 0x9cdc0000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
-    interrupts = <8>;
+    interrupts = <68>;
     clocks = <&xecclk>;
     /*local-mac-address = [00 2b 20 21 03 23];*/
     phy-handle = <&rtl8211f>;
-    phy-mode = "rgmii";
-    desc_mem = <&noncachable_memory>;
-    status = "disabled";
+    phy-mode = "gmii";
+
+    status = "okay";
     mdio {
         compatible = "snps,dwmac-mdio";
         #address-cells = <1>;
@@ -582,8 +565,9 @@
     };
   };
 
-  sysrst@18030ff0 {
+
+  sysrst@f90030ff0 {
     compatible = "nuclei,sysrst";
-    reg = <0x0 0x18030ff0 0x0 0x0>;
+    reg = <0xf 0x90030ff0 0x0 0x0>;
   };
 };

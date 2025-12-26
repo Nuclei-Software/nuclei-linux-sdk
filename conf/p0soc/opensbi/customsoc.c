@@ -11,16 +11,17 @@
 #include <sbi/riscv_asm.h>
 #include <sbi_utils/fdt/fdt_helper.h>
 #include <sbi_utils/fdt/fdt_fixup.h>
+#include <sbi/riscv_io.h>
 
 extern unsigned long clint_offset_quirk;
-static const struct fdt_match nuclei_evalsoc_match[] = {
-	{ .compatible = "nuclei,evalsoc" },
+static const struct fdt_match nuclei_customsoc_match[] = {
+	{ .compatible = "nuclei,customsoc" },
 	{ .compatible = "nuclei,eval-soc" },
-	{ .compatible = "nuclei,placeholder" },
+	{ .compatible = "nuclei,p0soc" },
 	{ },
 };
 
-static int nuclei_evalsoc_final_init(bool cold_boot,
+static int nuclei_customsoc_final_init(bool cold_boot,
 				   const struct fdt_match *match)
 {
 	if (cold_boot) { // Add cold boot initial steps
@@ -49,7 +50,7 @@ static int nuclei_evalsoc_final_init(bool cold_boot,
 	return 0;
 }
 
-static int nuclei_evalsoc_early_init(bool cold_boot,
+static int nuclei_customsoc_early_init(bool cold_boot,
 				   const struct fdt_match *match)
 {
 	/*
@@ -62,8 +63,8 @@ static int nuclei_evalsoc_early_init(bool cold_boot,
 	return 0;
 }
 
-const struct platform_override nuclei_evalsoc = {
-	.match_table = nuclei_evalsoc_match,
-	.early_init = nuclei_evalsoc_early_init,
-	.final_init = nuclei_evalsoc_final_init,
+const struct platform_override nuclei_customsoc = {
+	.match_table = nuclei_customsoc_match,
+	.early_init = nuclei_customsoc_early_init,
+	.final_init = nuclei_customsoc_final_init,
 };

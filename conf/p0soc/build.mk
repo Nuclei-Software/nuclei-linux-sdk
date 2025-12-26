@@ -1,7 +1,7 @@
-FW_TEXT_START := 0x80000000
-UIMAGE_AE_CMD := -a 0x80400000 -e 0x80400000
+FW_TEXT_START := 0x00000000
+UIMAGE_AE_CMD := -a 0x00400000 -e 0x00400000
 # Need Nuclei Qemu >= 2023.10
-QEMU_MACHINE_OPTS := -M nuclei_evalsoc,download=flashxip -smp 8 -m 2G
+QEMU_MACHINE_OPTS := -M nuclei_evalsoc,soc-cfg=conf/p0soc/p0soc.json,download=flashxip -smp 8
 # initramfs pre command before generate initrd ramfs
 INITRAMFS_PRECMD := bash $(confdir)/preramfs.sh $(confdir) $(buildroot_initramfs_sysroot) copyfiles.txt
 # eg. $(confdir)/amp/cx.bin

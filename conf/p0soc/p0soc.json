@@ -1,0 +1,34 @@
+{
+    "general_config": {
+        "ddr": {
+            "base": "0x00000000",
+            "size": "0x80000000"
+        },
+        "norflash": {
+            "base": "0xfb8080000",
+            "size": "8M"
+        },
+        "iregion": {
+            "base": "0xf90000000"
+        },
+        "uart0": {
+            "base": "0xf9c250000",
+            "irq": "5"
+        },
+        "uart1": {
+            "base": "0xF9C251000",
+            "irq": "6"
+        },
+        "qspi0": {
+            "base": "0xF9C200000",
+            "irq": "24"
+        },
+        "qspi2": {
+            "base": "0x10034000",
+            "irq": "37"
+        },
+        "cpu_freq": "400000000",
+        "timer_freq": "32768",
+        "irqmax": "32"
+    }
+}
