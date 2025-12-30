@@ -21,10 +21,35 @@ static const struct fdt_match nuclei_customsoc_match[] = {
 	{ },
 };
 
+#define NUCLEI_XEC_MISC_BASE	    0xf9cdb0000
+
 static int nuclei_customsoc_final_init(bool cold_boot,
 				   const struct fdt_match *match)
 {
 	if (cold_boot) { // Add cold boot initial steps
+		u32 val;
+		/* init xec1 clk and reset xec1 ip */
+		/* config xec_gen21_clk_i to 500M/(3+1) = 125MHZ */
+		val = readl((void *)(NUCLEI_XEC_MISC_BASE + 0x2fc));
+		val &= ~0xff;
+		val |= 3;
+		writel(val, (void *)(NUCLEI_XEC_MISC_BASE + 0x2fc));
+		/* config rmii clk_ref_i to 500/(9+1)=50MHZ */
+		val = readl((void *)(NUCLEI_XEC_MISC_BASE + 0x300));
+		val &= ~0xff;
+		val |= 0x9;
+		writel(val, (void *)(NUCLEI_XEC_MISC_BASE + 0x300));
+		/* enable xec1 clk */
+		val = readl((void *)(NUCLEI_XEC_MISC_BASE + 0x48));
+		val |= 1 << 3;
+		writel(val, (void *)(NUCLEI_XEC_MISC_BASE + 0x48));
+		/* reset xec1 ip */
+		val = readl((void *)(NUCLEI_XEC_MISC_BASE + 0x28));
+		val &= ~(1 << 3);
+		writel(val, (void *)(NUCLEI_XEC_MISC_BASE + 0x28));
+		val = readl((void *)(NUCLEI_XEC_MISC_BASE + 0x28));
+		val |= (1 << 3);
+		writel(val, (void *)(NUCLEI_XEC_MISC_BASE + 0x28));
 	}
 
 	// Check mcfg_info.tee to see whether tee present
