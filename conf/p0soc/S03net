@@ -1,13 +1,12 @@
 #!/bin/sh
-# config nuclei xec disable autoneg, setting 100M, fduplex mode.
+# config nuclei xec autoneg on for NUCLEI P0 SOC
 
 ls /sys/class/net/eth0 2>1 > /dev/null
 haseth0=$?
 
 start() {
 	if [[ $haseth0 == 0 ]] then
-		echo "Configure eth0 autoneg off speed 100 duplex full!"
-		ethtool -s eth0 autoneg off speed 100 duplex full &
+		echo "Configure eth0!"
 		ifconfig lo up &
 		udhcpc &
 	else
