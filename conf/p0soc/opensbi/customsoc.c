@@ -28,6 +28,10 @@ static int nuclei_customsoc_final_init(bool cold_boot,
 {
 	if (cold_boot) { // Add cold boot initial steps
 		u32 val;
+		/* MISC_CTRL0_CLUSTER2_SYSRSTREQ_EN */
+		val = readl((void *)(0xf9c100000 + 0xc80));
+		val |= 1 << 13;
+		writel(val, (void *)(0xf9c100000 + 0xc80));
 		/* init xec1 clk and reset xec1 ip */
 		/* config xec_gen21_clk_i to 500M/(3+1) = 125MHZ */
 		val = readl((void *)(NUCLEI_XEC_MISC_BASE + 0x2fc));
