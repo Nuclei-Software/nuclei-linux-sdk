@@ -334,11 +334,13 @@ cache:
 release_sources:
     extends: .job_rules
     stage: build
+    variables:
+        SOC: "p0soc"
     needs:
         - job: build_ux900fd_sd
     script:
         - activate_swdev
-        - make snapshot
+        - make SOC=$SOC snapshot
         - snapshot_zip=($(ls -t1 GENERATED/snapshot/snapshot_*.zip))
         - ls -lh ${snapshot_zip}
         - linuxsdk_zip=linuxsdk_${CI_COMMIT_REF_NAME//\//\_}_${CI_COMMIT_SHA::8}.zip
