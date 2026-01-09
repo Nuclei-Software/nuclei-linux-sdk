@@ -1,7 +1,7 @@
 # Makefile Variable SOC
 ## SOC Supported:
-## evalsoc: Nuclei Evaluation SoC
-SOC ?= evalsoc
+## p0soc: Nuclei P0 SoC
+SOC ?= p0soc
 
 ## Makefile Variable CORE
 ## CORE Supported:
