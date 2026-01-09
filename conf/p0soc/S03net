@@ -4,23 +4,31 @@
 ls /sys/class/net/eth0 2>1 > /dev/null
 haseth0=$?
 
+ls /sys/class/net/eth1 2>1 > /dev/null
+haseth1=$?
+
 start() {
+	ifconfig lo up &
 	if [[ $haseth0 == 0 ]] then
 		echo "Configure eth0!"
-		ifconfig lo up &
-		udhcpc &
-	else
-		echo "eth0 device not present, will not configure it!"
+		#udhcpc -i eth0 -b -R -o -O 1 -O 6 -O 15 &
+		udhcpc -i eth0 -b -R &
+	fi
+	if [[ $haseth1 == 0 ]] then
+		echo "Configure eth1!"
+		udhcpc -i eth1 -b -R &
 	fi
 }
 
 stop() {
+	ifconfig lo down &
 	if [[ $haseth0 == 0 ]] then
-		echo "eth0 & lo network down!"
-		ifconfig lo down &
+		echo "eth0 down!"
 		ifconfig eth0 down &
-	else
-		echo "eth0 device not present, will not configure it!"
+	fi
+	if [[ $haseth1 == 0 ]] then
+		echo "eth1 down!"
+		ifconfig eth1 down &
 	fi
 }
 
