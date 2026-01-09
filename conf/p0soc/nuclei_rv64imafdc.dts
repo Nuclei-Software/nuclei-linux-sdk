@@ -169,7 +169,13 @@
     clock-output-names = "hfclk";
   };
 
-  xecclk: xecclk {
+  xecclk0: xecclk0 {
+    #clock-cells = <0>;
+    compatible = "fixed-clock";
+    clock-frequency = <25000000>;
+  };
+
+  xecclk1: xecclk1 {
     #clock-cells = <0>;
     compatible = "fixed-clock";
     clock-frequency = <125000000>;
@@ -519,35 +525,35 @@
     status = "okay";
   };
 
-  xec0: xec@f9c210000 {
+  eth0: xec@f9c210000 {
     compatible = "nuclei,xec";
     reg = <0xf 0x9c210000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
     interrupts = <67>;
-    clocks = <&xecclk>;
-    /*local-mac-address = [00 2b 20 21 03 23];*/
+    clocks = <&xecclk0>;
+    /*local-mac-address = [00 2b 20 21 03 24];*/
     phy-handle = <&rtl8201f>;
-    phy-mode = "rgmii";
+    phy-mode = "mii";
 
-    status = "disabled";
+    status = "okay";
     mdio {
         compatible = "snps,dwmac-mdio";
         #address-cells = <1>;
         #size-cells = <0>;
 
-        rtl8201f: ethernet-phy@0 {
+        rtl8201f: ethernet-phy@1 {
             compatible = "ethernet-phy-ieee802.3-c22";
-            reg = <0>;
+            reg = <1>;
         };
     };
   };
 
-  xec1: xec@f9cdc0000 {
+  eth1: xec@f9cdc0000 {
     compatible = "nuclei,xec";
     reg = <0xf 0x9cdc0000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
     interrupts = <68>;
-    clocks = <&xecclk>;
+    clocks = <&xecclk1>;
     /*local-mac-address = [00 2b 20 21 03 23];*/
     phy-handle = <&rtl8211f>;
     phy-mode = "gmii";
