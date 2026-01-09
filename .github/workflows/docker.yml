@@ -40,7 +40,8 @@ jobs:
       - name: Test Docker Image
         if: ${{ startsWith(github.ref_name, 'dev_') && github.event_name != 'pull_request' }}
         run: |
-          docker run -i linuxsdk:${{github.ref_name}} bash run_qemu.sh
+         # docker run -i linuxsdk:${{github.ref_name}} bash run_qemu.sh
+          echo "The Image is for P0 SOC, cannot run on docker."
 
       - name: Publish Docker Image
         if: ${{ github.event_name != 'pull_request' }}

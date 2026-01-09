@@ -28,9 +28,9 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        soc: [evalsoc]
-        core: [ux900, ux900fd, u900, u900fd]
-        boot_mode: [sd, flash]
+        soc: [p0soc]
+        core: [ux900fd]
+        boot_mode: [sd]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -48,7 +48,7 @@ jobs:
           mv source.tar.gz $base/
 
       - name: Upload source
-        if: matrix.core == 'ux900fd' && matrix.boot_mode == 'sd' && matrix.soc == 'evalsoc'
+        if: matrix.core == 'ux900fd' && matrix.boot_mode == 'sd' && matrix.soc == 'p0soc'
         uses: actions/upload-artifact@v4
         with:
           name: nuclei_linux_sdk_source
@@ -146,7 +146,7 @@ jobs:
             work/${{ matrix.soc }}/*.sh
 
       - name: Upload cached packages
-        if: matrix.core == 'ux900fd' && matrix.boot_mode == 'sd' && matrix.soc == 'evalsoc'
+        if: matrix.core == 'ux900fd' && matrix.boot_mode == 'sd' && matrix.soc == 'p0soc'
         uses: actions/upload-artifact@v4
         with:
           name: build_caching
