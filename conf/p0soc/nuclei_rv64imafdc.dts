@@ -1,6 +1,6 @@
 /dts-v1/;
 
-#define TIMERCLK_FREQ      32768
+#define TIMERCLK_FREQ      398000000
 #define CPUCLK_FREQ        400000000
 #define PERIPHCLK_FREQ     100000000
 
@@ -28,7 +28,7 @@
       reg = <0>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdcv_zicbom_svpbmt_sstc_sscofpmf";
+      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc_sscofpmf";
       riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
@@ -43,7 +43,7 @@
       reg = <1>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdcv_zicbom_svpbmt_sstc_sscofpmf";
+      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc_sscofpmf";
       riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
@@ -58,7 +58,7 @@
       reg = <2>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdcv_zicbom_svpbmt_sstc_sscofpmf";
+      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc_sscofpmf";
       riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
@@ -73,7 +73,7 @@
       reg = <3>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdcv_zicbom_svpbmt_sstc_sscofpmf";
+      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc_sscofpmf";
       riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
@@ -88,7 +88,7 @@
       reg = <4>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdcv_zicbom_svpbmt_sstc_sscofpmf";
+      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc_sscofpmf";
       riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
@@ -103,7 +103,7 @@
       reg = <5>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdcv_zicbom_svpbmt_sstc_sscofpmf";
+      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc_sscofpmf";
       riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
@@ -118,7 +118,7 @@
       reg = <6>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdcv_zicbom_svpbmt_sstc_sscofpmf";
+      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc_sscofpmf";
       riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
@@ -133,7 +133,7 @@
       reg = <7>;
       status = "okay";
       compatible = "riscv";
-      riscv,isa = "rv64imafdcv_zicbom_svpbmt_sstc_sscofpmf";
+      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc_sscofpmf";
       riscv,cbom-block-size =<64>;
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
@@ -148,6 +148,48 @@
   memory@0 {
     device_type = "memory";
     reg = <0x0 0x0 0x0 0x80000000>;
+  };
+
+  reserved-memory {
+    #address-cells = <2>;
+    #size-cells = <2>;
+    ranges;
+
+    xec0_buf_memory: region@7E000000 {
+        no-map;
+        reg = <0x0 0x7E000000 0x0 0x38000>;
+    };
+
+    xec1_buf_memory: region@7E038000 {
+        no-map;
+        reg = <0x0 0x7E038000 0x0 0x38000>;
+    };
+
+    xec0_desc_memory: region@7E070000 {
+        no-map;
+        reg = <0x0 0x7E070000 0x0 0x8000>;
+    };
+
+    xec1_desc_memory: region@7E078000 {
+        no-map;
+        reg = <0x0 0x7E078000 0x0 0x8000>;
+    };
+
+    rtos_memory: region@7E080000 {
+        no-map;
+        reg = <0x0 0x7E080000 0x0 0x80000>;
+    };
+
+    rpmsg_reserved: rpmsg@7E100000 {
+        no-map;
+        reg = <0x0 0x7E100000 0x0 0x10000>;
+    };
+
+    rpmsg_dma_reserved:rpmsg_dma@7E110000 {
+        compatible = "shared-dma-pool";
+        no-map;
+        reg = <0 0x7E110000 0 0xF0000>;
+    };
   };
 
   soc {
@@ -534,7 +576,8 @@
     /*local-mac-address = [00 2b 20 21 03 24];*/
     phy-handle = <&rtl8201f>;
     phy-mode = "mii";
-
+    desc_mem = <&xec0_desc_memory>;
+    txrx_buf = <&xec0_buf_memory>;
     status = "okay";
     mdio {
         compatible = "snps,dwmac-mdio";
@@ -557,7 +600,8 @@
     /*local-mac-address = [00 2b 20 21 03 23];*/
     phy-handle = <&rtl8211f>;
     phy-mode = "gmii";
-
+    desc_mem = <&xec1_desc_memory>;
+    txrx_buf = <&xec1_buf_memory>;
     status = "okay";
     mdio {
         compatible = "snps,dwmac-mdio";
@@ -571,6 +615,21 @@
     };
   };
 
+  idu: idu@f9c870000 {
+    compatible = "nuclei,idu";
+    reg = <0xf 0x9c870000 0x0 0x10000>;
+    interrupt-parent = <&plic0>;
+    interrupts = <1>;
+    #mbox-cells = <1>;
+  };
+
+  rpmsg: rpmsg@7e100000{
+    compatible = "nuclei,rpmsg";
+    mboxes = <&idu 0>;
+    reg = <0x0 0x7E100000 0x0 0x10000>;
+    memory-region = <&rpmsg_dma_reserved>;
+    status = "okay";
+  };
 
   sysrst@f90030ff0 {
     compatible = "nuclei,sysrst";

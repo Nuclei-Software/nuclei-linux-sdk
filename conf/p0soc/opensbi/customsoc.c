@@ -21,6 +21,7 @@ static const struct fdt_match nuclei_customsoc_match[] = {
 	{ },
 };
 
+#define	NUCLEI_SYS_CACHE_BASE			0xf9c490000ULL
 #define	NUCLEI_XEC1_MISC_BASE			0xf9cdb0000ULL
 #define	NUCLEI_IOMUX_BASE				0xf9ca00000ULL
 #define	NUCLEI_SYS_MISC_BASE			0xf9c880000ULL
@@ -161,6 +162,17 @@ static int nuclei_customsoc_final_init(bool cold_boot,
 {
 	if (cold_boot) { // Add cold boot initial steps
 		u32 val;
+
+		/* disable lm_way */
+		writel(0, (void*)(NUCLEI_SYS_CACHE_BASE + 0xd8));
+		/* config NC area 0x7E000000, 0x200000 */
+		writel(0xffe00000, (void*)(NUCLEI_SYS_CACHE_BASE + 0x608));
+		writel(0x7E000005, (void*)(NUCLEI_SYS_CACHE_BASE + 0x408));
+		/* enable syscache as last cache */
+		val = readl((void*)(NUCLEI_SYS_CACHE_BASE + 0x10));
+		val |= 0x1;
+		writel(val, (void*)(NUCLEI_SYS_CACHE_BASE + 0x10));
+
 		/* enable cluster2 req sysrst */
 		val = readl((void *)(0xf9c100000 + 0xc80));
 		val |= 1 << 13;
@@ -222,18 +234,11 @@ static int nuclei_customsoc_final_init(bool cold_boot,
 		csr_write(0x1b0, 0xffffffff);
 	}
 
-	/*
-	 * If arch is rv32 or rv64 without svpbmt feature, you can use mattri to set ddr base:0xfd000000,size:0x10000 as non-cachable region.
-	 * xec dts node should contain desc_mem region from base:0xfd000000,size:0x10000; which is reserved region used to store xec descriptors.
-	 * if rv64 with svpbmt feature, xec dts node must not contain desc_mem property.
-	 */
-#if __riscv_xlen == 32
 	#define mattri1_base 0x7f5
 	#define mattri1_mask 0x7f6
-
-	csr_write(mattri1_mask, 0xffff0000);
-	csr_write(mattri1_base, 0xfd000005);
-#endif
+	/* config base:0x7E000000, size:2MB to noncachable */
+	csr_write(mattri1_mask, 0xffe00000);
+	csr_write(mattri1_base, 0x7E000005);
 
 	return 0;
 }
