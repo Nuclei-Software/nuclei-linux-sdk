@@ -223,6 +223,12 @@
     clock-frequency = <125000000>;
   };
 
+  i2c0clk: i2cclk {
+    #clock-cells = <0>;
+    compatible = "fixed-clock";
+    clock-frequency = <25000000>;
+  };
+
   pmu {
     compatible = "riscv,pmu";
     /* https://perf.wiki.kernel.org/index.php/Tutorial#Events */
@@ -502,6 +508,53 @@
     clocks = <&hfclk>;
   };
 
+  sys_udma:sys_udma@F9C900000 {
+    compatible = "nuclei,dmac";
+    #dma-cells = <2>;
+    reg = <0xf 0x9C900000 0x0 0x1000>;
+    interrupt-parent = <&plic0>;
+    interrupts = <94>;
+    clocks = <&hfclk>;
+    /* dma channel for mem2mem */
+    dma-memcpy = <8>;
+    /* dma channel for pa2mem */
+    dma-channels = <0>;
+    dma-requests = <8>;
+    status = "okay";
+  };
+
+  acc_udma0:acc_udma0@f9c910000 {
+    compatible = "nuclei,dmac";
+    #dma-cells = <2>;
+    reg = <0xf 0x9c910000 0x0 0x1000>;
+    interrupt-parent = <&plic0>;
+    interrupts = <110>;
+    clocks = <&hfclk>;
+    dma-ctrl-id = <0>;
+    /* dma channel for mem2mem */
+    dma-memcpy = <2>;
+    /* dma channel for pa2mem */
+    dma-channels = <13>;
+    dma-requests = <103>;
+    status = "okay";
+  };
+
+  acc_udma1:acc_udma0@f9c920000 {
+    compatible = "nuclei,dmac";
+    #dma-cells = <2>;
+    reg = <0xf 0x9c920000 0x0 0x1000>;
+    interrupt-parent = <&plic0>;
+    interrupts = <112>;
+    clocks = <&hfclk>;
+    dma-ctrl-id = <1>;
+    /* dma channel for mem2mem */
+    dma-memcpy = <2>;
+    /* dma channel for pa2mem */
+    dma-channels = <12>;
+    dma-requests = <94>;
+    status = "disabled";
+  };
+
   uart0: serial@f9c250000 {
     compatible = "nuclei,uart0";
     reg = <0xf 0x9c250000 0x0 0x1000>;
@@ -520,6 +573,24 @@
     clocks = <&hfclk>;
     clock-frequency = <PERIPHCLK_FREQ>;
     status = "disabled";
+  };
+
+  i2c0: i2c@f9c280000 {
+    compatible = "nuclei,i2c";
+    reg = <0xf 0x9c280000 0x0 0x1000>;
+    status = "okay";
+    clocks = <&i2c0clk>;
+    clock-frequency = <400000>;
+    dmas = <&acc_udma0 1 16>, <&acc_udma0 1 17>;
+    dma-names = "tx", "rx";
+    #address-cells = <1>;
+    #size-cells = <0>;
+
+    eeprom@50 {
+        compatible = "atmel,24c32";
+        reg = <0x50>;
+        pagesize = <32>;
+    };
   };
 
   qspi0: spi@f9c200000 {
