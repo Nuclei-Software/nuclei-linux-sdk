@@ -26,6 +26,25 @@ static const struct fdt_match nuclei_customsoc_match[] = {
 #define	NUCLEI_IOMUX_BASE				0xf9ca00000ULL
 #define	NUCLEI_SYS_MISC_BASE			0xf9c880000ULL
 
+
+#define	QSPI0_CS_0_HS_SEL				1
+#define	QSPI0_DQ_0_HS_SEL				1
+#define	QSPI0_DQ_1_HS_SEL				1
+#define	QSPI0_SCK_HS_SEL				1
+#define	QSPI0_SCK_IOF_OVAL				4
+#define	QSPI0_SCK_IOF_IVAL				4
+#define	QSPI0_CS_0_IOF_OVAL				0
+#define	QSPI0_CS_0_IOF_IVAL				0
+#define	QSPI0_DQ_0_IOF_OVAL				5
+#define	QSPI0_DQ_0_IOF_IVAL				5
+#define	QSPI0_DQ_1_IOF_OVAL				1
+#define	QSPI0_DQ_1_IOF_IVAL				1
+
+#define	QSPI0_SCK_PAD_SEL				4
+#define	QSPI0_CS_0_PAD_SEL				0
+#define	QSPI0_DQ_0_PAD_SEL				5
+#define	QSPI0_DQ_1_PAD_SEL				1
+
 #define	I2C0_SCL_IOF_IVAL				60
 #define	I2C0_SCL_IOF_OVAL				60
 #define	I2C0_SDA_IOF_IVAL				61
@@ -412,6 +431,16 @@ void config_iomux_i2c0(void)
 	iomux_ls_iof_pullup_cfg(NUCLEI_IOMUX_BASE, I2C0_SDA_PAD_SEL, 0);
 }
 
+void config_iomux_spi0(void)
+{
+	iomux_ls_iof_oval_cfg(NUCLEI_IOMUX_BASE, QSPI0_SCK_IOF_OVAL, QSPI0_SCK_PAD_SEL, QSPI0_SCK_HS_SEL);
+	iomux_ls_iof_oval_cfg(NUCLEI_IOMUX_BASE, QSPI0_CS_0_IOF_OVAL, QSPI0_CS_0_PAD_SEL, QSPI0_CS_0_HS_SEL);
+	iomux_ls_iof_ival_cfg(NUCLEI_IOMUX_BASE, QSPI0_DQ_0_IOF_IVAL, QSPI0_DQ_0_PAD_SEL, QSPI0_DQ_0_HS_SEL);
+	iomux_ls_iof_oval_cfg(NUCLEI_IOMUX_BASE, QSPI0_DQ_0_IOF_OVAL, QSPI0_DQ_0_PAD_SEL, QSPI0_DQ_0_HS_SEL);
+	iomux_ls_iof_ival_cfg(NUCLEI_IOMUX_BASE, QSPI0_DQ_1_IOF_IVAL, QSPI0_DQ_1_PAD_SEL, QSPI0_DQ_1_HS_SEL);
+	iomux_ls_iof_oval_cfg(NUCLEI_IOMUX_BASE, QSPI0_DQ_1_IOF_OVAL, QSPI0_DQ_1_PAD_SEL, QSPI0_DQ_1_HS_SEL);
+}
+
 static int nuclei_customsoc_final_init(bool cold_boot,
 				   const struct fdt_match *match)
 {
@@ -518,6 +547,28 @@ static int nuclei_customsoc_final_init(bool cold_boot,
 		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x2c));
 		val |= (1 << 0) | (1 << 2);
 		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x2c));
+
+		config_iomux_spi0();
+		/* enable spi0 clk */
+		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x40));
+		val |= (1 << 28);
+		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x40));
+		/* reset spi0 */
+		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x20));
+		val &= ~(1 << 28);
+		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x20));
+		val |= (1 << 28);
+		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x20));
+		/* spi0 bus clk 200/2=100M */
+		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x238));
+		val &= ~0xff;
+		val |= 1;
+		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x238));
+		/* spi0 kernel clk 200/2=100M */
+		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x23C));
+		val &= ~0xff;
+		val |= 1;
+		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x23C));
 	}
 
 	// Check mcfg_info.tee to see whether tee present

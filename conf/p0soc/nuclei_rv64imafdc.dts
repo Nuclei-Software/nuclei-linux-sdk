@@ -597,12 +597,16 @@
     compatible = "nuclei,spi0";
     reg = <0xf 0x9c200000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
-    interrupts = <26>;
+    interrupts = <24>;
     num-cs = <1>;
+
+    dmas = <&acc_udma0 1 20>, <&acc_udma0 1 21>;
+    dma-names = "tx", "rx";
+
     #address-cells = <1>;
     #size-cells = <0>;
     clocks = <&hfclk>;
-    status = "okay";
+    status = "disabled";
 
     flash@0 {
       compatible = "jedec,spi-nor";
@@ -692,6 +696,7 @@
     interrupt-parent = <&plic0>;
     interrupts = <1>;
     #mbox-cells = <1>;
+    status = "disabled";
   };
 
   rpmsg: rpmsg@7e100000{
@@ -699,7 +704,7 @@
     mboxes = <&idu 0>;
     reg = <0x0 0x7E100000 0x0 0x10000>;
     memory-region = <&rpmsg_dma_reserved>;
-    status = "okay";
+    status = "disabled";
   };
 
   sysrst@f90030ff0 {
