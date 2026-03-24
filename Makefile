@@ -285,6 +285,8 @@ linux: $(linux_wrkdir)/.config
 
 $(initramfs): $(buildroot_initramfs_sysroot) $(linux_image)
 	$(INITRAMFS_PRECMD)
+	# Copy files required for xec network startup
+	[ -f $(confdir)/S03net ] && cp -af $(confdir)/S03net $(buildroot_initramfs_sysroot)/etc/init.d/ || true
 	cd $(linux_wrkdir) && \
 		$(linux_gen_initramfs) \
 		-o $@ -u $(shell id -u) -g $(shell id -g) \
