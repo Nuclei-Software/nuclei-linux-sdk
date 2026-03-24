@@ -1,0 +1,38 @@
+#!/bin/sh
+# config nuclei xec disable autoneg, setting 100M, fduplex mode.
+
+ls /sys/class/net/eth0 2>1 > /dev/null
+haseth0=$?
+
+start() {
+	if [[ $haseth0 == 0 ]] then
+		echo "Configure eth0 autoneg off speed 100 duplex full!"
+		ethtool -s eth0 autoneg off speed 100 duplex full &
+		ifconfig lo up &
+		udhcpc &
+	else
+		echo "eth0 device not present, will not configure it!"
+	fi
+}
+
+stop() {
+	if [[ $haseth0 == 0 ]] then
+		echo "eth0 & lo network down!"
+		ifconfig lo down &
+		ifconfig eth0 down &
+	else
+		echo "eth0 device not present, will not configure it!"
+	fi
+}
+
+restart() {
+	start
+}
+
+case "$1" in
+  start|stop|restart)
+	"$1";;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac

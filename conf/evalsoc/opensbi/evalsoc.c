@@ -33,6 +33,12 @@ static int nuclei_evalsoc_final_init(bool cold_boot,
 		csr_write(0x1b0, 0xffffffff);
 	}
 
+	#define mattri1_base 0x7f5
+	#define mattri1_mask 0x7f6
+
+	csr_write(mattri1_mask, 0xffff0000);
+	csr_write(mattri1_base, 0xfd000005);
+
 	return 0;
 }
 
