@@ -37,7 +37,7 @@ RUN pip3 cache purge
 # create USER with PASS
 ARG USER=nuclei
 ARG PASS=riscv123
-ARG QEMUVER=2025.10
+ARG QEMUVER=2026.05.09
 ARG BRANCH=dev_nuclei_next
 
 RUN groupadd --system $USER
