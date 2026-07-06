@@ -240,7 +240,7 @@
     interrupt-controller;
     #interrupt-cells = <0>;
     riscv,num-ids = <0xff>;
-    riscv,guest-index-bits = <3>;
+    riscv,guest-index-bits = <2>;
   };
 
   pmu {
