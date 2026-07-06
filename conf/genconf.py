@@ -496,7 +496,7 @@ if __name__ == "__main__":
 
         makefile_path = "%s/build.mk" %(cust_file)
         variable_name = 'QEMU_MACHINE_OPTS'
-        update_build_variable(makefile_path, variable_name, "-M nuclei_evalsoc,soc-cfg=conf/%s,download=flashxip -smp 8" %(cust_json_file))
+        update_build_variable(makefile_path, variable_name, "-M nuclei_evalsoc,download=flashxip,soc-cfg=conf/%s,aia=aplic-imsic,aia-guests=3 -smp 8 -m 2G" %(cust_json_file))
 
         print("\nUpdating dts...")
         # update dts
