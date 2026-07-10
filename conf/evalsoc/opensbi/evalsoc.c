@@ -9,10 +9,16 @@
 
 #include <platform_override.h>
 #include <sbi/riscv_asm.h>
+#include <sbi/sbi_bitops.h>
+#include <sbi/sbi_console.h>
 #include <sbi_utils/fdt/fdt_helper.h>
 #include <sbi_utils/fdt/fdt_fixup.h>
+#include <libfdt.h>
 
 extern unsigned long clint_offset_quirk;
+static uint32_t guest_index_bits = 0;
+static uint32_t hw_smsi_align_bits = 0;
+
 static const struct fdt_match nuclei_evalsoc_match[] = {
 	{ .compatible = "nuclei,evalsoc" },
 	{ .compatible = "nuclei,eval-soc" },
@@ -20,10 +26,69 @@ static const struct fdt_match nuclei_evalsoc_match[] = {
 	{ },
 };
 
+static int nuclei_evalsoc_get_geilen(void)
+{
+	int val;
+
+	if (!misa_extension('H'))
+		return 0;
+	csr_write(CSR_HGEIE, -1UL);
+	val = sbi_fls(csr_read(CSR_HGEIE));
+	csr_write(CSR_HGEIE, 0);
+
+	return val;
+}
+
+static void fdt_imsic_guest_index_fixup(void *fdt)
+{
+	int offset, len, i;
+	const uint32_t *prop;
+
+	if (!fdt)
+		return;
+
+	offset = -1;
+	for (i = 0; i < 2; i++) {
+		offset = fdt_node_offset_by_compatible(fdt, offset, "riscv,imsics");
+		if (offset < 0) {
+			return;
+		}
+
+		prop = fdt_getprop(fdt, offset, "riscv,guest-index-bits", &len);
+		if (prop) {
+			break;
+		}
+	}
+	if (!prop)
+		return;
+	guest_index_bits = fdt32_to_cpu(*prop);
+	/*
+	 * hw_smsi_align_bits = upper(log2(GEILEN+1)),
+	 * if GEILEN=3 then hw_smsi_align_bits=2,
+	 * if GEILEN=4 then hw_smsi_align_bits=3.
+	 */
+	hw_smsi_align_bits = sbi_fls(nuclei_evalsoc_get_geilen()) + 1;
+	if (guest_index_bits != hw_smsi_align_bits) {
+		fdt_setprop_u32(fdt, offset, "riscv,guest-index-bits", hw_smsi_align_bits);
+	}
+}
+
 static int nuclei_evalsoc_final_init(bool cold_boot,
 				   const struct fdt_match *match)
 {
 	if (cold_boot) { // Add cold boot initial steps
+		/*
+		 * on nuclei_evalsoc_early_init stage, console has not been initialized,
+		 * if need to update dts riscv,guest-index-bits prop, print related info here.
+		 */
+		if (guest_index_bits != hw_smsi_align_bits) {
+			sbi_printf("Warning: dts prop riscv,guest-index-bits "
+				"does not match with HW parameter GEILEN.\n");
+			sbi_printf("Now update dts prop riscv,guest-index-bits "
+				"from %d to %d to adapt HW.\n", guest_index_bits, hw_smsi_align_bits);
+			sbi_printf("More details refer to https://github.com/"
+					"Nuclei-Software/nuclei-linux-sdk/issues/36.\n");
+		}
 	}
 
 	// Check mcfg_info.tee to see whether tee present
@@ -58,6 +123,13 @@ static int nuclei_evalsoc_early_init(bool cold_boot,
 	* the clint_offset_quirk var to fixup this issue.
 	*/
 	clint_offset_quirk = 0x1000;
+
+	if (cold_boot) {
+		void *fdt;
+
+		fdt = fdt_get_address();
+		fdt_imsic_guest_index_fixup(fdt);
+	}
 
 	return 0;
 }
