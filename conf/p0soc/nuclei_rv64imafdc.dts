@@ -1,5 +1,8 @@
 /dts-v1/;
 
+#include "nuclei-t0-pinfunc.h"
+#include <dt-bindings/gpio/gpio.h>
+
 #define TIMERCLK_FREQ      398000000
 #define CPUCLK_FREQ        400000000
 #define PERIPHCLK_FREQ     100000000
@@ -508,6 +511,120 @@
     clocks = <&hfclk>;
   };
 
+  iomuxc:iomuxc@f9ca00000 {
+    compatible = "nuclei,iomuxc";
+    reg = <0xf 0x9ca00000 0x0 0x100000>;
+
+    pinctrl_uart0: uart0grp {
+        nuclei,pins = <
+            PAD_LS(19, 0, USART0_RX)
+            PAD_LS(20, 0, USART0_TX)
+        >;
+    };
+
+    pinctrl_i2c0: i2c0grp {
+        nuclei,pins = <
+            PAD_LS(36, 1, I2C0_SCL)
+            PAD_LS(37, 1, I2C0_SDA)
+        >;
+        bias-pull-up;
+    };
+
+    pinctrl_spi0: spi0grp {
+        nuclei,pins = <
+            PAD0_G0_HS0_QSPI_XIP0_CS_0
+            PAD4_G0_HS0_QSPI_XIP0_SCK
+            PAD5_G0_HS0_QSPI_XIP0_DQ_0
+            PAD1_G0_HS0_QSPI_XIP0_DQ_1
+        >;
+    };
+
+    pinctrl_sdio0: sdio0grp {
+        nuclei,pins = <
+            PAD9_G0_HS0_SDIO0_SDCLK
+            PAD8_G0_HS0_SDIO0_SDCMD
+            PAD7_G0_HS0_SDIO0_SDDATA0
+            PAD6_G0_HS0_SDIO0_SDDATA1
+            PAD11_G0_HS0_SDIO0_SDDATA2
+            PAD10_G0_HS0_SDIO0_SDDATA3
+        >;
+    };
+
+    pinctrl_xec0: xecgrp {
+        nuclei,pins = <
+            PAD16_G0_HS0_XEC_GEN20_MDIO
+            PAD17_G0_HS0_XEC_GEN20_MDC
+            PAD18_G0_HS0_XEC_GEN20_GMII_TXEN
+            PAD21_G0_HS0_XEC_GEN20_GMII_TXD3
+            PAD22_G1_HS0_XEC_GEN20_GMII_TXD2
+            PAD23_G1_HS0_XEC_GEN20_GMII_TXD1
+            PAD24_G1_HS0_XEC_GEN20_GMII_TXD0
+            PAD25_G1_HS0_XEC_GEN20_XMII_TXC
+            PAD26_G1_HS0_XEC_GEN20_GMII_RXC
+            PAD27_G1_HS0_XEC_GEN20_GMII_RXD3
+            PAD28_G1_HS0_XEC_GEN20_GMII_RXD2
+            PAD29_G1_HS0_XEC_GEN20_GMII_RXD1
+            PAD30_G1_HS0_XEC_GEN20_GMII_RXD0
+            PAD31_G1_HS0_XEC_GEN20_GMII_RXDV
+            PAD32_G1_HS0_XEC_GEN20_GMII_RXER
+            PAD33_G1_HS0_XEC_GEN20_GMII_COL
+            PAD34_G1_HS0_XEC_GEN20_GMII_CRS
+            PAD35_G1_HS0_XEC_GEN20_GMII_TXER
+        >;
+    };
+
+    pinctrl_disp: dispgrp {
+        nuclei,pins = <
+            PAD64_G3_HS0_DISP0_VS
+            PAD65_G3_HS0_DISP0_HS
+            PAD66_G3_HS0_DISP0_PIXCLK
+            PAD67_G3_HS0_DISP0_DE
+            PAD68_G3_HS0_DISP0_RED7
+            PAD69_G3_HS0_DISP0_RED6
+            PAD70_G3_HS0_DISP0_RED5
+            PAD71_G3_HS0_DISP0_RED4
+            PAD72_G3_HS0_DISP0_RED3
+            PAD73_G3_HS0_DISP0_RED2
+            PAD74_G3_HS0_DISP0_RED1
+            PAD75_G3_HS0_DISP0_RED0
+            PAD76_G3_HS0_DISP0_GREEN7
+            PAD77_G3_HS0_DISP0_GREEN6
+            PAD78_G3_HS0_DISP0_GREEN5
+            PAD79_G3_HS0_DISP0_GREEN4
+            PAD80_G3_HS0_DISP0_GREEN3
+            PAD81_G3_HS0_DISP0_GREEN2
+            PAD82_G3_HS0_DISP0_GREEN1
+            PAD83_G3_HS0_DISP0_GREEN0
+            PAD84_G3_HS0_DISP0_BLUE7
+            PAD85_G4_HS0_DISP0_BLUE6
+            PAD86_G4_HS0_DISP0_BLUE5
+            PAD87_G4_HS0_DISP0_BLUE4
+            PAD88_G4_HS0_DISP0_BLUE3
+            PAD89_G4_HS0_DISP0_BLUE2
+            PAD90_G4_HS0_DISP0_BLUE1
+            PAD91_G4_HS0_DISP0_BLUE0
+        >;
+    };
+  };
+
+  lgpio:lgpio@F9c480000 {
+    compatible = "nuclei,gpio";
+    reg = <0xf 0x9c480000 0x0 0x1000>;
+    interrupt-parent = <&plic0>;
+    interrupts = <58>;
+    gpio-controller;
+    #gpio-cells = <2>;
+    interrupt-controller;
+    #interrupt-cells = <2>;
+    /* gpio 0~3, 24~31 can be used */
+    gpio-ranges = <&iomuxc 0 12 4>, <&iomuxc 24 127 2>,
+                <&iomuxc 26 131 2>, <&iomuxc 28 165 4>;
+    /* no used gpio from 4 to 23 */
+    gpio-reserved-ranges = <4 20>;
+    clocks = <&hfclk>;
+    status = "okay";
+  };
+
   sys_udma:sys_udma@F9C900000 {
     compatible = "nuclei,dmac";
     #dma-cells = <2>;
@@ -558,6 +675,8 @@
   uart0: serial@f9c250000 {
     compatible = "nuclei,uart0";
     reg = <0xf 0x9c250000 0x0 0x1000>;
+    pinctrl-names = "default";
+    pinctrl-0 = <&pinctrl_uart0>;
     interrupt-parent = <&plic0>;
     interrupts = <5>;
     clocks = <&hfclk>;
@@ -578,6 +697,8 @@
   i2c0: i2c@f9c280000 {
     compatible = "nuclei,i2c";
     reg = <0xf 0x9c280000 0x0 0x1000>;
+    pinctrl-names = "default";
+    pinctrl-0 = <&pinctrl_i2c0>;
     status = "okay";
     clocks = <&i2c0clk>;
     clock-frequency = <400000>;
@@ -596,6 +717,8 @@
   qspi0: spi@f9c200000 {
     compatible = "nuclei,spi0";
     reg = <0xf 0x9c200000 0x0 0x1000>;
+    pinctrl-names = "default";
+    pinctrl-0 = <&pinctrl_spi0>;
     interrupt-parent = <&plic0>;
     interrupts = <24>;
     num-cs = <1>;
@@ -627,6 +750,8 @@
   mmc@f99f04000 {
     compatible = "nuclei,mmc";
     reg = <0xf 0x99f04000 0x0 0x1000>;
+    pinctrl-names = "default";
+    pinctrl-0 = <&pinctrl_sdio0>;
     interrupt-parent = <&plic0>;
     interrupts = <95>;
     clocks = <&sdio0_data_clk>;
@@ -636,8 +761,7 @@
     bus-width = <4>;
     no-sdio;
     no-mmc;
-    non-removable;
-    /*broken-cd;*/
+    cd-gpios = <&lgpio 24 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
     cap-sd-highspeed;
     status = "okay";
   };
@@ -645,6 +769,8 @@
   eth0: xec@f9c210000 {
     compatible = "nuclei,xec";
     reg = <0xf 0x9c210000 0x0 0x1000>;
+    pinctrl-names = "default";
+    pinctrl-0 = <&pinctrl_xec0>;
     interrupt-parent = <&plic0>;
     interrupts = <67>;
     clocks = <&xecclk0>;
