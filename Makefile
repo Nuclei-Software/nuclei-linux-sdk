@@ -167,6 +167,8 @@ ifneq ($(SIMULATION),)
 DTS_DEFINES += -DSIMULATION=$(SIMULATION)
 endif
 
+DTS_DEFINES += -I$(confdir) -I$(linux_srcdir)/include
+
 # xlspike is prebuilt and installed to PATH
 xlspike := xl_spike
 
