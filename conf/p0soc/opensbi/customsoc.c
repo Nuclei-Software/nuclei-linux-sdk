@@ -25,6 +25,7 @@ static const struct fdt_match nuclei_customsoc_match[] = {
 #define	NUCLEI_XEC1_MISC_BASE			0xf9cdb0000ULL
 #define	NUCLEI_IOMUX_BASE				0xf9ca00000ULL
 #define	NUCLEI_SYS_MISC_BASE			0xf9c880000ULL
+#define	NUCLEI_AOND_MISC_BASE			0xf9c100000ULL
 
 static int nuclei_customsoc_final_init(bool cold_boot,
 				   const struct fdt_match *match)
@@ -175,6 +176,12 @@ static int nuclei_customsoc_early_init(bool cold_boot,
 	* the clint_offset_quirk var to fixup this issue.
 	*/
 	clint_offset_quirk = 0x1000;
+
+	/* switch mtime clk to aond_sys_clk 1MHZ, 20MHZ/(19+1)=1MHZ */
+
+	writel(1, (void *)(NUCLEI_AOND_MISC_BASE + 0x104));
+	writel(19, (void *)(NUCLEI_AOND_MISC_BASE + 0x108));
+	writel(2, (void *)(NUCLEI_AOND_MISC_BASE + 0x110));
 
 	return 0;
 }
