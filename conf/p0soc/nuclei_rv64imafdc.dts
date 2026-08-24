@@ -2,10 +2,11 @@
 
 #include "nuclei-t0-pinfunc.h"
 #include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/clock/nuclei-clock.h>
+#include <dt-bindings/reset/nuclei-reset.h>
 
 #define TIMERCLK_FREQ      1000000
 #define CPUCLK_FREQ        400000000
-#define PERIPHCLK_FREQ     100000000
 
 / {
   #address-cells = <2>;
@@ -14,7 +15,7 @@
   model = "nuclei,p0soc";
   dma-noncoherent;
   chosen {
-      bootargs = "earlycon=sbi console=ttyNUC0";
+      bootargs = "earlycon=sbi console=ttyNUC0 clk_ignore_unused";
       stdout-path = "serial0";
   };
 
@@ -51,96 +52,6 @@
       mmu-type = "riscv,sv39";
       clock-frequency = <CPUCLK_FREQ>;
       cpu1_intc: interrupt-controller {
-        #interrupt-cells = <1>;
-        interrupt-controller;
-        compatible = "riscv,cpu-intc";
-      };
-    };
-    cpu2: cpu@2 {
-      device_type = "cpu";
-      reg = <2>;
-      status = "okay";
-      compatible = "riscv";
-      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc_sscofpmf";
-      riscv,cbom-block-size =<64>;
-      mmu-type = "riscv,sv39";
-      clock-frequency = <CPUCLK_FREQ>;
-      cpu2_intc: interrupt-controller {
-        #interrupt-cells = <1>;
-        interrupt-controller;
-        compatible = "riscv,cpu-intc";
-      };
-    };
-    cpu3: cpu@3 {
-      device_type = "cpu";
-      reg = <3>;
-      status = "okay";
-      compatible = "riscv";
-      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc_sscofpmf";
-      riscv,cbom-block-size =<64>;
-      mmu-type = "riscv,sv39";
-      clock-frequency = <CPUCLK_FREQ>;
-      cpu3_intc: interrupt-controller {
-        #interrupt-cells = <1>;
-        interrupt-controller;
-        compatible = "riscv,cpu-intc";
-      };
-    };
-    cpu4: cpu@4 {
-      device_type = "cpu";
-      reg = <4>;
-      status = "okay";
-      compatible = "riscv";
-      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc_sscofpmf";
-      riscv,cbom-block-size =<64>;
-      mmu-type = "riscv,sv39";
-      clock-frequency = <CPUCLK_FREQ>;
-      cpu4_intc: interrupt-controller {
-        #interrupt-cells = <1>;
-        interrupt-controller;
-        compatible = "riscv,cpu-intc";
-      };
-    };
-    cpu5: cpu@5 {
-      device_type = "cpu";
-      reg = <5>;
-      status = "okay";
-      compatible = "riscv";
-      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc_sscofpmf";
-      riscv,cbom-block-size =<64>;
-      mmu-type = "riscv,sv39";
-      clock-frequency = <CPUCLK_FREQ>;
-      cpu5_intc: interrupt-controller {
-        #interrupt-cells = <1>;
-        interrupt-controller;
-        compatible = "riscv,cpu-intc";
-      };
-    };
-    cpu6: cpu@6 {
-      device_type = "cpu";
-      reg = <6>;
-      status = "okay";
-      compatible = "riscv";
-      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc_sscofpmf";
-      riscv,cbom-block-size =<64>;
-      mmu-type = "riscv,sv39";
-      clock-frequency = <CPUCLK_FREQ>;
-      cpu6_intc: interrupt-controller {
-        #interrupt-cells = <1>;
-        interrupt-controller;
-        compatible = "riscv,cpu-intc";
-      };
-    };
-    cpu7: cpu@7 {
-      device_type = "cpu";
-      reg = <7>;
-      status = "okay";
-      compatible = "riscv";
-      riscv,isa = "rv64imafdc_zicbom_svpbmt_sstc_sscofpmf";
-      riscv,cbom-block-size =<64>;
-      mmu-type = "riscv,sv39";
-      clock-frequency = <CPUCLK_FREQ>;
-      cpu7_intc: interrupt-controller {
         #interrupt-cells = <1>;
         interrupt-controller;
         compatible = "riscv,cpu-intc";
@@ -207,29 +118,84 @@
     compatible = "sbi,console";
   };
 
-  hfclk: hfclk {
-    #clock-cells = <0>;
-    compatible = "fixed-clock";
-    clock-frequency = <PERIPHCLK_FREQ>;
-    clock-output-names = "hfclk";
+  clocks {
+    clk_in1: clk_in1 {
+        compatible = "fixed-clock";
+        #clock-cells = <0>;
+        clock-frequency = <0>;
+    };
+
+    clk_in2: clk_in2 {
+        compatible = "fixed-clock";
+        #clock-cells = <0>;
+        clock-frequency = <0>;
+    };
+
+    clk_in3: clk_in3 {
+        compatible = "fixed-clock";
+        #clock-cells = <0>;
+        clock-frequency = <0>;
+    };
+
+    clk_in4: clk_in4 {
+        compatible = "fixed-clock";
+        #clock-cells = <0>;
+        clock-frequency = <0>;
+    };
+
+    hsi: hsi {
+        compatible = "fixed-clock";
+        #clock-cells = <0>;
+        clock-frequency = <16000000>;
+    };
+
+    hse: hse {
+        compatible = "fixed-clock";
+        #clock-cells = <0>;
+        clock-frequency = <20000000>;
+    };
+    /* sys_pll set by N300 */
+    sys_pll: sys_pll {
+      compatible = "fixed-clock";
+      #clock-cells = <0>;
+      clock-frequency = <400000000>;
+    };
+    /* sys_pll_div2 set by N300 */
+    sys_pll_div2: sys_pll_div2 {
+      compatible = "fixed-clock";
+      #clock-cells = <0>;
+      clock-frequency = <200000000>;
+    };
+    /* sys_intf_clk set by N300 */
+    sys_intf_clk: sys_intf_clk {
+        compatible = "fixed-clock";
+        #clock-cells = <0>;
+        clock-frequency = <200000000>;
+    };
+    /* sys_clk set by N300 */
+    sys_clk: sys_clk {
+        compatible = "fixed-clock";
+        #clock-cells = <0>;
+        clock-frequency = <200000000>;
+    };
   };
 
-  xecclk0: xecclk0 {
-    #clock-cells = <0>;
-    compatible = "fixed-clock";
-    clock-frequency = <25000000>;
-  };
+  ccu: clock-controller@f9c880000 {
+    compatible = "nuclei,ccu";
+    reg = <0xf 0x9c880000 0x0 0x1000>,/* sys_misc */
+          <0xf 0x9cdb0000 0x0 0x1000>,/* xec_misc */
+          <0xf 0x9c890000 0x0 0x1000>;/* usb_misc */
+    #clock-cells = <1>;
+    #reset-cells = <1>;
+    clock-names = "hsi", "hse", "clk_in1", "clk_in2",
+                "clk_in3", "clk_in4";
+    clocks = <&hsi>, <&hse>, <&clk_in1>, <&clk_in2>,
+                <&clk_in3>, <&clk_in4>;
 
-  xecclk1: xecclk1 {
-    #clock-cells = <0>;
-    compatible = "fixed-clock";
-    clock-frequency = <125000000>;
-  };
-
-  i2c0clk: i2cclk {
-    #clock-cells = <0>;
-    compatible = "fixed-clock";
-    clock-frequency = <25000000>;
+    //assigned-clocks = <&ccu CLK_MUX_XEC_SYS>, <&ccu CLK_MUX_XEC_RMII>;
+    //assigned-clock-parents = <&ccu CLK_CORE1_PLL>, <&ccu CLK_CORE1_PLL>;
+    //core1-pll = <1 25 125 1>;   /* mux=1(xtal), N=25, M=125, OD=1 */
+    //xuc-pll   = <1 20 100 1>;   /* mux=1(xtal), N=20, M=100, OD=1 */
   };
 
   pmu {
@@ -485,13 +451,7 @@
     riscv,ndev = <127>;
     interrupts-extended =
           <&cpu0_intc 11 &cpu0_intc 9
-           &cpu1_intc 11 &cpu1_intc 9
-           &cpu2_intc 11 &cpu2_intc 9
-           &cpu3_intc 11 &cpu3_intc 9
-           &cpu4_intc 11 &cpu4_intc 9
-           &cpu5_intc 11 &cpu5_intc 9
-           &cpu6_intc 11 &cpu6_intc 9
-           &cpu7_intc 11 &cpu7_intc 9>;
+           &cpu1_intc 11 &cpu1_intc 9>;
     reg = <0xf 0x94000000 0x0 0x4000000>;
   };
 
@@ -501,20 +461,14 @@
     reg = <0xf 0x90031000 0x0 0x10000>;
     interrupts-extended =
           <&cpu0_intc 3 &cpu0_intc 7
-           &cpu1_intc 3 &cpu1_intc 7
-           &cpu2_intc 3 &cpu2_intc 7
-           &cpu3_intc 3 &cpu3_intc 7
-           &cpu4_intc 3 &cpu4_intc 7
-           &cpu5_intc 3 &cpu5_intc 7
-           &cpu6_intc 3 &cpu6_intc 7
-           &cpu7_intc 3 &cpu7_intc 7>;
-    clocks = <&hfclk>;
+           &cpu1_intc 3 &cpu1_intc 7>;
   };
 
   iomuxc:iomuxc@f9ca00000 {
     compatible = "nuclei,iomuxc";
     reg = <0xf 0x9ca00000 0x0 0x100000>;
-
+    clocks = <&ccu CLK_IOMUX>;
+    clock-names = "apb";
     pinctrl_uart0: uart0grp {
         nuclei,pins = <
             PAD_LS(19, 0, USART0_RX)
@@ -621,7 +575,10 @@
                 <&iomuxc 26 131 2>, <&iomuxc 28 165 4>;
     /* no used gpio from 4 to 23 */
     gpio-reserved-ranges = <4 20>;
-    clocks = <&hfclk>;
+    clocks = <&ccu CLK_LGPIO0>;
+    clock-names = "apb";
+    assigned-clocks = <&ccu CLK_LGPIO0>;
+    assigned-clock-rates = <50000000>;
     status = "okay";
   };
 
@@ -631,7 +588,9 @@
     reg = <0xf 0x9C900000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
     interrupts = <94>;
-    clocks = <&hfclk>;
+    clocks = <&ccu CLK_SYS_UDMA>;
+    clock-names = "apb";
+    resets = <&ccu RST_SYS_UDMA>;
     /* dma channel for mem2mem */
     dma-memcpy = <8>;
     /* dma channel for pa2mem */
@@ -646,7 +605,9 @@
     reg = <0xf 0x9c910000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
     interrupts = <110>;
-    clocks = <&hfclk>;
+    clocks = <&ccu CLK_ACC_UDMA0>;
+    clock-names = "apb";
+    resets = <&ccu RST_ACC_UDMA0>;
     dma-ctrl-id = <0>;
     /* dma channel for mem2mem */
     dma-memcpy = <2>;
@@ -662,7 +623,9 @@
     reg = <0xf 0x9c920000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
     interrupts = <112>;
-    clocks = <&hfclk>;
+    clocks = <&ccu CLK_ACC_UDMA1>;
+    clock-names = "apb";
+    resets = <&ccu RST_ACC_UDMA1>;
     dma-ctrl-id = <1>;
     /* dma channel for mem2mem */
     dma-memcpy = <2>;
@@ -677,10 +640,13 @@
     reg = <0xf 0x9c250000 0x0 0x1000>;
     pinctrl-names = "default";
     pinctrl-0 = <&pinctrl_uart0>;
+    clocks = <&ccu CLK_USART0>, <&ccu CLK_USART0_INTF>;
+    clock-names = "apb", "kern";
+    assigned-clocks = <&ccu CLK_USART0>, <&ccu CLK_USART0_INTF>;
+    assigned-clock-rates = <100000000>, <100000000>;
+    clock-frequency = <100000000>;
     interrupt-parent = <&plic0>;
     interrupts = <5>;
-    clocks = <&hfclk>;
-    clock-frequency = <PERIPHCLK_FREQ>;
     status = "okay";
   };
 
@@ -689,8 +655,8 @@
     reg = <0xf 0x9c251000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
     interrupts = <6>;
-    clocks = <&hfclk>;
-    clock-frequency = <PERIPHCLK_FREQ>;
+    clocks = <&ccu CLK_USART1>, <&ccu CLK_USART1_INTF>;
+    clock-names = "apb", "kern";
     status = "disabled";
   };
 
@@ -700,8 +666,12 @@
     pinctrl-names = "default";
     pinctrl-0 = <&pinctrl_i2c0>;
     status = "okay";
-    clocks = <&i2c0clk>;
+    clocks = <&ccu CLK_I2C0>, <&ccu CLK_I2C0_INTF>;
+    clock-names = "apb", "kern";
     clock-frequency = <400000>;
+    resets = <&ccu RST_I2C0>;
+    assigned-clocks = <&ccu CLK_I2C0>, <&ccu CLK_I2C0_INTF>;
+    assigned-clock-rates = <50000000>, <8000000>;
     dmas = <&acc_udma0 1 16>, <&acc_udma0 1 17>;
     dma-names = "tx", "rx";
     #address-cells = <1>;
@@ -728,7 +698,9 @@
 
     #address-cells = <1>;
     #size-cells = <0>;
-    clocks = <&hfclk>;
+    clocks = <&ccu CLK_QSPI_XIP0>, <&ccu CLK_QSPI_XIP0_INTF>;
+    clock-names = "apb", "kern";
+    resets = <&ccu RST_QSPI_XIP0>;
     status = "disabled";
 
     flash@0 {
@@ -741,11 +713,6 @@
     };
   };
 
-  sdio0_data_clk: sdio0_data_clk {
-    #clock-cells = <0>;
-    compatible = "fixed-clock";
-    clock-frequency = <200000000>;
-  };
 
   mmc@f99f04000 {
     compatible = "nuclei,mmc";
@@ -754,9 +721,10 @@
     pinctrl-0 = <&pinctrl_sdio0>;
     interrupt-parent = <&plic0>;
     interrupts = <95>;
-    clocks = <&sdio0_data_clk>;
-    clock-names = "sdio_data_clk";
-   // resets = <&rst NUCLEI_RESET_CTRL0(SDIO0)>;
+    clocks = <&ccu CLK_SDIO0>, <&ccu CLK_SDIO0_INTF>;
+    clock-names = "apb", "kern";
+
+    resets = <&ccu RST_SDIO0>;
     max-frequency = <50000000>;
     bus-width = <4>;
     no-sdio;
@@ -773,7 +741,11 @@
     pinctrl-0 = <&pinctrl_xec0>;
     interrupt-parent = <&plic0>;
     interrupts = <67>;
-    clocks = <&xecclk0>;
+    clocks = <&ccu CLK_XEC_GEN20_SYS>, <&ccu CLK_XEC_GEN20_PTP_REF>, <&ccu CLK_XEC_GEN20_RMII_REF>;
+    clock-names = "sys", "ptp_ref", "rmii_ref";
+    assigned-clocks = <&ccu CLK_XEC_GEN20_SYS>, <&ccu CLK_XEC_GEN20_PTP_REF>, <&ccu CLK_XEC_GEN20_RMII_REF>;
+    assigned-clock-rates = <25000000>, <125000000>, <50000000>;
+    resets = <&ccu RST_XEC_GEN20>;
     /*local-mac-address = [00 2b 20 21 03 24];*/
     phy-handle = <&rtl8201f>;
     phy-mode = "mii";
@@ -797,7 +769,10 @@
     reg = <0xf 0x9cdc0000 0x0 0x1000>;
     interrupt-parent = <&plic0>;
     interrupts = <68>;
-    clocks = <&xecclk1>;
+    clocks = <&ccu CLK_XEC_GEN20_SYS>, <&ccu CLK_XEC_GEN21_PTP_REF>, <&ccu CLK_XEC_GEN21_RMII_REF>;
+    clock-names = "sys", "ptp_ref", "rmii_ref";
+    assigned-clocks = <&ccu CLK_XEC_GEN20_SYS>, <&ccu CLK_XEC_GEN21_PTP_REF>, <&ccu CLK_XEC_GEN21_RMII_REF>;
+    assigned-clock-rates = <125000000>, <125000000>, <50000000>;
     /*local-mac-address = [00 2b 20 21 03 23];*/
     phy-handle = <&rtl8211f>;
     phy-mode = "gmii";
@@ -822,6 +797,8 @@
     interrupt-parent = <&plic0>;
     interrupts = <1>;
     #mbox-cells = <1>;
+    clocks = <&ccu CLK_IDU>;
+    clock-names = "apb";
     status = "disabled";
   };
 

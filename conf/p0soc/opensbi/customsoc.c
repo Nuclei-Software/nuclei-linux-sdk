@@ -22,9 +22,6 @@ static const struct fdt_match nuclei_customsoc_match[] = {
 };
 
 #define	NUCLEI_SYS_CACHE_BASE			0xf9c490000ULL
-#define	NUCLEI_XEC1_MISC_BASE			0xf9cdb0000ULL
-#define	NUCLEI_IOMUX_BASE				0xf9ca00000ULL
-#define	NUCLEI_SYS_MISC_BASE			0xf9c880000ULL
 #define	NUCLEI_AOND_MISC_BASE			0xf9c100000ULL
 
 static int nuclei_customsoc_final_init(bool cold_boot,
@@ -47,108 +44,6 @@ static int nuclei_customsoc_final_init(bool cold_boot,
 		val = readl((void *)(0xf9c100000 + 0xc80));
 		val |= 1 << 13;
 		writel(val, (void *)(0xf9c100000 + 0xc80));
-		/* init xec0 clk and reset xec0 ip */
-
-		/* config xec_gen20_clk_i to 500M/(19+1) = 25MHZ */
-		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x2f8));
-		val &= ~0xff;
-		val |= 19;
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x2f8));
-		/* config rmii clk_ref_i to 500/(9+1)=50MHZ */
-		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x300));
-		val &= ~0xff;
-		val |= 0x9;
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x300));
-		/* enable xec0 clk */
-		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x48));
-		val |= 1 << 2;
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x48));
-		/* reset xec0 ip */
-		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x28));
-		val &= ~(1 << 2);
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x28));
-		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x28));
-		val |= (1 << 2);
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x28));
-
-		/* init xec1 clk and reset xec1 ip */
-		/* config xec_gen21_clk_i to 500M/(3+1) = 125MHZ */
-		val = readl((void *)(NUCLEI_XEC1_MISC_BASE + 0x2fc));
-		val &= ~0xff;
-		val |= 3;
-		writel(val, (void *)(NUCLEI_XEC1_MISC_BASE + 0x2fc));
-		/* config rmii clk_ref_i to 500/(9+1)=50MHZ */
-		val = readl((void *)(NUCLEI_XEC1_MISC_BASE + 0x300));
-		val &= ~0xff;
-		val |= 0x9;
-		writel(val, (void *)(NUCLEI_XEC1_MISC_BASE + 0x300));
-		/* enable xec1 clk */
-		val = readl((void *)(NUCLEI_XEC1_MISC_BASE + 0x48));
-		val |= 1 << 3;
-		writel(val, (void *)(NUCLEI_XEC1_MISC_BASE + 0x48));
-		/* reset xec1 ip */
-		val = readl((void *)(NUCLEI_XEC1_MISC_BASE + 0x28));
-		val &= ~(1 << 3);
-		writel(val, (void *)(NUCLEI_XEC1_MISC_BASE + 0x28));
-		val = readl((void *)(NUCLEI_XEC1_MISC_BASE + 0x28));
-		val |= (1 << 3);
-		writel(val, (void *)(NUCLEI_XEC1_MISC_BASE + 0x28));
-
-		/* enable i2c0 clk */
-		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x40));
-		val |= 1 << 22;
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x40));
-
-		/* reset i2c0 */
-		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x20));
-		val &= ~(1 << 22);
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x20));
-		val |= (1 << 22);
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x20));
-
-		/* i2c0 bus clk 200/4=50M */
-		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x210));
-		val &= ~0xff;
-		val |= 3;
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x210));
-		/* i2c kernel clk 200/25=8M */
-		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x214));
-		val &= ~0xff;
-		val |= 24;
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x214));
-
-		/* enable acc_udma clk */
-		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x4c));
-		val |= (1 << 0) | (1 << 2);
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x4c));
-		/* reset acc_udma */
-		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x2c));
-		val &= ~((1 << 0) | (1 << 2));
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x2c));
-		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x2c));
-		val |= (1 << 0) | (1 << 2);
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x2c));
-
-		/* enable spi0 clk */
-		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x40));
-		val |= (1 << 28);
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x40));
-		/* reset spi0 */
-		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x20));
-		val &= ~(1 << 28);
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x20));
-		val |= (1 << 28);
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x20));
-		/* spi0 bus clk 200/2=100M */
-		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x238));
-		val &= ~0xff;
-		val |= 1;
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x238));
-		/* spi0 kernel clk 200/2=100M */
-		val = readl((void *)(NUCLEI_SYS_MISC_BASE + 0x23C));
-		val &= ~0xff;
-		val |= 1;
-		writel(val, (void *)(NUCLEI_SYS_MISC_BASE + 0x23C));
 	}
 
 	// Check mcfg_info.tee to see whether tee present
@@ -178,7 +73,6 @@ static int nuclei_customsoc_early_init(bool cold_boot,
 	clint_offset_quirk = 0x1000;
 
 	/* switch mtime clk to aond_sys_clk 1MHZ, 20MHZ/(19+1)=1MHZ */
-
 	writel(1, (void *)(NUCLEI_AOND_MISC_BASE + 0x104));
 	writel(19, (void *)(NUCLEI_AOND_MISC_BASE + 0x108));
 	writel(2, (void *)(NUCLEI_AOND_MISC_BASE + 0x110));
