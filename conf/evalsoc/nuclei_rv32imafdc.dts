@@ -215,6 +215,258 @@
     clock-frequency = <25000000>;
   };
 
+  pmu {
+    compatible = "riscv,pmu";
+    /* https://perf.wiki.kernel.org/index.php/Tutorial#Events */
+    /* eg. perf stat -B coremark */
+    /* eg. perf stat -e cycles -e instructions -e cache-misses -e branches -e branch-misses coremark */
+    /* eg. perf stat -e cycles -e instructions -e L1-icache-load-misses -e L1-dcache-load-misses -e iTLB-load-misses -e dTLB-load-misses coremark */
+    /* Note: in the dts comment, v2 means your Nuclei RISC-V CPU need to support HPM_VER = Version 2 */
+    riscv,event-to-mhpmevent =
+      /* Type #0 SBI_PMU_HW_CPU_CYCLES               -> Nuclei event sel=0 idx=1  Cycle count */
+      <0x00001 0x00000000 0x00000010>,
+      /* Type #0 SBI_PMU_HW_INSTRUCTIONS             -> Nuclei event sel=0 idx=2  Retired instruction count */
+      <0x00002 0x00000000 0x00000020>,
+      /* Type #0 SBI_PMU_HW_CACHE_REFERENCES         -> v2, Nuclei event sel=1 idx=8  L2-Cache access count */
+      <0x00003 0x00000000 0x00000081>,
+      /* Type #0 SBI_PMU_HW_CACHE_MISSES             -> v2, Nuclei event sel=1 idx=9  L2-Cache miss count */
+      <0x00004 0x00000000 0x00000091>,
+      /* Type #0 SBI_PMU_HW_BRANCH_INSTRUCTIONS      -> v2, Nuclei event sel=2 idx=2  Branch instruction commit count */
+      <0x00005 0x00000000 0x00000022>,
+      /* Type #0 SBI_PMU_HW_BRANCH_MISSES            -> v2, Nuclei event sel=2 idx=3  Branch predict fail count */
+      <0x00006 0x00000000 0x00000032>,
+      /* Type #0 SBI_PMU_HW_BUS_CYCLES               -> v2, Nuclei event sel=1 idx=10 Memory bus request count */
+      <0x00007 0x00000000 0x000000A1>,
+      /* Type #0 SBI_PMU_HW_STALLED_CYCLES_FRONTEND  -> v2, Nuclei event sel=1 idx=11 IFU stall cycle count */
+      <0x00008 0x00000000 0x000000B1>,
+      /* Type #0 SBI_PMU_HW_STALLED_CYCLES_BACKEND   -> v2, Nuclei event sel=1 idx=12 EXU stall cycle count */
+      <0x00009 0x00000000 0x000000C1>,
+      /* Type #0 SBI_PMU_HW_REF_CPU_CYCLES           -> v2, Nuclei event sel=1 idx=13 Timer count */
+      <0x0000A 0x00000000 0x000000D1>,
+      /* Type #1 SBI_PMU_HW_CACHE_L1D(0) READ(0) ACCESS(0)     -> v2, Nuclei event sel=3 idx=0 Dcache read count */
+      <0x10000 0x00000000 0x00000003>,
+      /* Type #1 SBI_PMU_HW_CACHE_L1D(0) READ(0) MISS(1)       -> v2, Nuclei event sel=3 idx=1 Dcache read miss count */
+      <0x10001 0x00000000 0x00000013>,
+      /* Type #1 SBI_PMU_HW_CACHE_L1D(0) WRITE(1) ACCESS(0)    -> v2, Nuclei event sel=3 idx=2 Dcache write count */
+      <0x10002 0x00000000 0x00000023>,
+      /* Type #1 SBI_PMU_HW_CACHE_L1D(0) WRITE(1) MISS(1)      -> v2, Nuclei event sel=3 idx=3 Dcache write miss count */
+      <0x10003 0x00000000 0x00000033>,
+      /* Type #1 SBI_PMU_HW_CACHE_L1D(0) PREFETCH(2) ACCESS(0) -> v2, Nuclei event sel=3 idx=4 Dcache prefetch count */
+      <0x10004 0x00000000 0x00000043>,
+      /* Type #1 SBI_PMU_HW_CACHE_L1D(0) PREFETCH(2) MISS(1)   -> v2, Nuclei event sel=3 idx=5 Dcache prefetch miss count */
+      <0x10005 0x00000000 0x00000053>,
+      /* Type #1 SBI_PMU_HW_CACHE_L1I(1) READ(0) ACCESS(0)     -> v2, Nuclei event sel=3 idx=6 Icache read count */
+      <0x10008 0x00000000 0x00000063>,
+      /* Type #1 SBI_PMU_HW_CACHE_L1I(1) READ(0) MISS(1)       -> v1, Nuclei event sel=1 idx=1 Icache read miss count */
+      <0x10009 0x00000000 0x00000011>,
+      /* Type #1 SBI_PMU_HW_CACHE_L1I(1) PREFETCH(2) ACCESS(0) -> v2, Nuclei event sel=3 idx=8 Icache prefetch count */
+      <0x1000C 0x00000000 0x00000083>,
+      /* Type #1 SBI_PMU_HW_CACHE_L1I(1) PREFETCH(2) MISS(1)   -> v2, Nuclei event sel=1 idx=6 Icache prefetch miss count */
+      <0x1000D 0x00000000 0x00000061>,
+      /* Type #1 SBI_PMU_HW_CACHE_LL(2) READ(0) ACCESS(0)      -> v2, Nuclei event sel=3 idx=10 L2 Cache read count */
+      <0x10010 0x00000000 0x000000A3>,
+      /* Type #1 SBI_PMU_HW_CACHE_LL(2) READ(0) MISS(1)        -> v2, Nuclei event sel=3 idx=11 L2 Cache read miss count */
+      <0x10011 0x00000000 0x000000B3>,
+      /* Type #1 SBI_PMU_HW_CACHE_LL(2) WRITE(1) ACCESS(0)     -> v2, Nuclei event sel=3 idx=12 L2 Cache write count */
+      <0x10012 0x00000000 0x000000C3>,
+      /* Type #1 SBI_PMU_HW_CACHE_LL(2) WRITE(1) MISS(1)       -> v2, Nuclei event sel=3 idx=13 L2 Cache write miss count */
+      <0x10013 0x00000000 0x000000D3>,
+      /* Type #1 SBI_PMU_HW_CACHE_LL(2) PREFETCH(2) ACCESS(0)  -> v2, Nuclei event sel=3 idx=14 L2 Cache prefetch count */
+      <0x10014 0x00000000 0x000000E3>,
+      /* Type #1 SBI_PMU_HW_CACHE_LL(2) PREFETCH(2) MISS(1)    -> v2, Nuclei event sel=3 idx=15 L2 Cache prefetch miss count */
+      <0x10015 0x00000000 0x000000F3>,
+      /* Type #1 SBI_PMU_HW_CACHE_DTLB(3) READ(0) ACCESS(0)     -> v2, Nuclei event sel=3 idx=16 DTLB read count */
+      <0x10018 0x00000000 0x00000103>,
+      /* Type #1 SBI_PMU_HW_CACHE_DTLB(3) READ(0) MISS(1)       -> v2, Nuclei event sel=3 idx=17 DTLB read miss count */
+      <0x10019 0x00000000 0x00000113>,
+      /* Type #1 SBI_PMU_HW_CACHE_DTLB(3) WRITE(1) ACCESS(0)    -> v2, Nuclei event sel=3 idx=18 DTLB write count */
+      <0x1001A 0x00000000 0x00000123>,
+      /* Type #1 SBI_PMU_HW_CACHE_DTLB(3) WRITE(1) MISS(1)      -> v2, Nuclei event sel=3 idx=19 DTLB write miss count */
+      <0x1001B 0x00000000 0x00000133>,
+      /* Type #1 SBI_PMU_HW_CACHE_ITLB(4) READ(0) ACCESS(0)     -> v2, Nuclei event sel=3 idx=20 ITLB read count */
+      <0x10020 0x00000000 0x00000143>,
+      /* Type #1 SBI_PMU_HW_CACHE_ITLB(4) READ(0) MISS(1)       -> v1, Nuclei event sel=1 idx=3 ITLB read miss count */
+      <0x10021 0x00000000 0x00000031>,
+      /* Type #1 SBI_PMU_HW_CACHE_BTB(5) READ(0) ACCESS(0)      -> v2, Nuclei event sel=3 idx=22 BTB read count */
+      <0x10028 0x00000000 0x00000163>,
+      /* Type #1 SBI_PMU_HW_CACHE_BTB(5) READ(0) MISS(1)        -> v2, Nuclei event sel=3 idx=23 BTB read miss count */
+      <0x10029 0x00000000 0x00000173>,
+      /* Type #1 SBI_PMU_HW_CACHE_BTB(5) WRITE(1) ACCESS(0)     -> v2, Nuclei event sel=3 idx=24 BTB write count */
+      <0x1002A 0x00000000 0x00000183>,
+      /* Type #1 SBI_PMU_HW_CACHE_BTB(5) WRITE(1) MISS(1)       -> v2, Nuclei event sel=3 idx=25 BTB write miss count */
+      <0x1002B 0x00000000 0x00000193>,
+      /* Type #1 SBI_PMU_HW_CACHE_NODE(6) READ(0) ACCESS(0)      -> v2, Nuclei event sel=3 idx=10 L2 Cache read count */
+      <0x10030 0x00000000 0x000000A3>,
+      /* Type #1 SBI_PMU_HW_CACHE_NODE(6) READ(0) MISS(1)        -> v2, Nuclei event sel=3 idx=11 L2 Cache read miss count */
+      <0x10031 0x00000000 0x000000B3>,
+      /* Type #1 SBI_PMU_HW_CACHE_NODE(6) WRITE(1) ACCESS(0)     -> v2, Nuclei event sel=3 idx=12 L2 Cache write count */
+      <0x10032 0x00000000 0x000000C3>,
+      /* Type #1 SBI_PMU_HW_CACHE_NODE(6) WRITE(1) MISS(1)       -> v2, Nuclei event sel=3 idx=13 L2 Cache write miss count */
+      <0x10033 0x00000000 0x000000D3>,
+      /* Type #1 SBI_PMU_HW_CACHE_NODE(6) PREFETCH(2) ACCESS(0)  -> v2, Nuclei event sel=3 idx=14 L2 Cache prefetch count */
+      <0x10034 0x00000000 0x000000E3>,
+      /* Type #1 SBI_PMU_HW_CACHE_NODE(6) PREFETCH(2) MISS(1)    -> v2, Nuclei event sel=3 idx=15 L2 Cache prefetch miss count */
+      <0x10035 0x00000000 0x000000F3>;
+    /* make hpm3-6 counter available for all hardware events */
+    riscv,event-to-mhpmcounters =
+      <0x00001 0x0000000A 0x00000078>,
+      <0x10000 0x00010035 0x00000078>;
+    /* Raw event: eg. perf stat -e cycles -e instructions -e r00000190 -e r00000010 coremark */
+    riscv,raw-event-to-mhpmcounters =
+      /*  Event Types 0 events - 0x1 Cycle count */
+      <0x00000000 0x00000010 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x2 Retired instruction count */
+      <0x00000000 0x00000020 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x3 Integer load instruction (includes LR) */
+      <0x00000000 0x00000030 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x4 Integer store instruction (includes SC) */
+      <0x00000000 0x00000040 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x5 Atomic memory operation (do not include LR and SC) */
+      <0x00000000 0x00000050 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x6 System instruction */
+      <0x00000000 0x00000060 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x7 Integer computational instruction(excluding multiplication/division/remainder) */
+      <0x00000000 0x00000070 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x8 Conditional branch */
+      <0x00000000 0x00000080 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x9 Taken conditional branch */
+      <0x00000000 0x00000090 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0xa JAL instruction */
+      <0x00000000 0x000000a0 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0xb JALR instruction */
+      <0x00000000 0x000000b0 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0xc Return instruction */
+      <0x00000000 0x000000c0 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0xd Control transfer instruction (CBR+JAL+JALR) */
+      <0x00000000 0x000000d0 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0xe fence instruction(Not include fence.i) */
+      <0x00000000 0x000000e0 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0xf Integer multiplication instruction */
+      <0x00000000 0x000000f0 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x10 Integer division/remainder instruction */
+      <0x00000000 0x00000100 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x11 Floating-point load instruction */
+      <0x00000000 0x00000110 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x12 Floating-point store instruction */
+      <0x00000000 0x00000120 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x13 Floating-point addition/subtraction */
+      <0x00000000 0x00000130 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x14 Floating-point multiplication */
+      <0x00000000 0x00000140 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x15 Floating-point fused multiply-add (FMADD, FMSUB,FNMSUB, FNMADD) */
+      <0x00000000 0x00000150 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x16 Floating-point division or square-root */
+      <0x00000000 0x00000160 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x17 Other floating-point instruction */
+      <0x00000000 0x00000170 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x18 Conditional branch(BXX) prediction fail */
+      <0x00000000 0x00000180 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x19 JALR prediction fail */
+      <0x00000000 0x00000190 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x1a POP prediction fail */
+      <0x00000000 0x000001a0 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x1b FENCEI instruction */
+      <0x00000000 0x000001b0 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x1c SFENCE instruction */
+      <0x00000000 0x000001c0 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x1d ECALL instruction */
+      <0x00000000 0x000001d0 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x1e EXCEPTION instruction */
+      <0x00000000 0x000001e0 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 0 events - 0x1f INTERRUPT instruction */
+      <0x00000000 0x000001f0 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 1 events - 0x1 Icache read miss count */
+      <0x00000000 0x00000011 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 1 events - 0x2 Dcache read/write miss count */
+      <0x00000000 0x00000021 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 1 events - 0x3 ITLB read miss count */
+      <0x00000000 0x00000031 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 1 events - 0x4 DTLB read/write miss count */
+      <0x00000000 0x00000041 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 1 events - 0x5 Main TLB miss count */
+      <0x00000000 0x00000051 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 1 events - 0x6 Icache prefetch miss count */
+      <0x00000000 0x00000061 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 1 events - 0x7 Reserved */
+      <0x00000000 0x00000071 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 1 events - 0x8 L2-Cache access count */
+      <0x00000000 0x00000081 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 1 events - 0x9 L2-Cache miss count */
+      <0x00000000 0x00000091 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 1 events - 0xa Memory bus request count */
+      <0x00000000 0x000000a1 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 1 events - 0xb IFU stall cycle count */
+      <0x00000000 0x000000b1 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 1 events - 0xc EXU stall cycle count */
+      <0x00000000 0x000000c1 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 1 events - 0xd Timer count */
+      <0x00000000 0x000000d1 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 2 events - 0x2 Branch instruction commit count */
+      <0x00000000 0x00000022 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 2 events - 0x3 Branch predict fail count */
+      <0x00000000 0x00000032 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 2 events - 0x4 VPU total instruction commit count */
+      <0x00000000 0x00000042 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 2 events - 0x5 VPU load instruction commit count */
+      <0x00000000 0x00000052 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 2 events - 0x6 VPU store instruction commit count */
+      <0x00000000 0x00000062 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 2 events - 0x7 VPU computational instruction commit count */
+      <0x00000000 0x00000072 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x0 Dcache read count */
+      <0x00000000 0x00000003 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x1 Dcache read miss count */
+      <0x00000000 0x00000013 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x2 Dcache write count */
+      <0x00000000 0x00000023 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x3 Dcache write miss count */
+      <0x00000000 0x00000033 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x4 Dcache prefetch count */
+      <0x00000000 0x00000043 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x5 Dcache prefetch miss count */
+      <0x00000000 0x00000053 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x6 Icache read count */
+      <0x00000000 0x00000063 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x7 Reserved */
+      <0x00000000 0x00000073 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x8 Icache prefetch count */
+      <0x00000000 0x00000083 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x9 Reserved */
+      <0x00000000 0x00000093 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0xa L2-Cache read count */
+      <0x00000000 0x000000a3 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0xb L2-Cache read miss count */
+      <0x00000000 0x000000b3 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0xc L2-Cache write count */
+      <0x00000000 0x000000c3 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0xd L2-Cache write miss count */
+      <0x00000000 0x000000d3 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0xe L2-Cache prefetch hit count */
+      <0x00000000 0x000000e3 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0xf L2-Cache prefetch miss count */
+      <0x00000000 0x000000f3 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x10 DTLB read count */
+      <0x00000000 0x00000103 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x11 DTLB read miss count */
+      <0x00000000 0x00000113 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x12 DTLB write count */
+      <0x00000000 0x00000123 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x13 DTLB write miss count */
+      <0x00000000 0x00000133 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x14 ITLB read count */
+      <0x00000000 0x00000143 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x15 Reserved */
+      <0x00000000 0x00000153 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x16 BTB read count */
+      <0x00000000 0x00000163 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x17 BTB read miss count */
+      <0x00000000 0x00000173 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x18 BTB write count */
+      <0x00000000 0x00000183 0xffffffff 0xffffffff 0x00000078>,
+      /*  Event Types 3 events - 0x19 BTB write miss count */
+      <0x00000000 0x00000193 0xffffffff 0xffffffff 0x00000078>;
+  };
+
   plic0: interrupt-controller@1c000000 {
     #interrupt-cells = <1>;
     compatible = "riscv,plic0";
