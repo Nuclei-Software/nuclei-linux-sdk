@@ -43,6 +43,7 @@ static void fdt_imsic_guest_index_fixup(void *fdt)
 {
 	int offset, len, i;
 	const uint32_t *prop;
+	int geilen;
 
 	if (!fdt)
 		return;
@@ -67,7 +68,8 @@ static void fdt_imsic_guest_index_fixup(void *fdt)
 	 * if GEILEN=3 then hw_smsi_align_bits=2,
 	 * if GEILEN=4 then hw_smsi_align_bits=3.
 	 */
-	hw_smsi_align_bits = sbi_fls(nuclei_evalsoc_get_geilen()) + 1;
+	geilen = nuclei_evalsoc_get_geilen();
+	hw_smsi_align_bits = geilen ? (sbi_fls(geilen) + 1) : 0;
 	if (guest_index_bits != hw_smsi_align_bits) {
 		fdt_setprop_u32(fdt, offset, "riscv,guest-index-bits", hw_smsi_align_bits);
 	}
