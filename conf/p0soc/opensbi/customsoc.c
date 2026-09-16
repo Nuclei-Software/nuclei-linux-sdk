@@ -36,13 +36,13 @@ static int nuclei_customsoc_final_init(bool cold_boot,
 		writel(0xffe00000, (void*)(NUCLEI_SYS_CACHE_BASE + 0x608));
 		writel(0x7E000005, (void*)(NUCLEI_SYS_CACHE_BASE + 0x408));
 		/* enable syscache as last cache */
-		val = readl((void*)(NUCLEI_SYS_CACHE_BASE + 0x10));
-		val |= 0x1;
-		writel(val, (void*)(NUCLEI_SYS_CACHE_BASE + 0x10));
+		// val = readl((void*)(NUCLEI_SYS_CACHE_BASE + 0x10));
+		// val |= 0x1;
+		// writel(val, (void*)(NUCLEI_SYS_CACHE_BASE + 0x10));
 
-		/* enable cluster2 req sysrst */
+		/* enable cluster1/2 req sysrst */
 		val = readl((void *)(0xf9c100000 + 0xc80));
-		val |= 1 << 13;
+		val |= (1 << 12) | (1 << 13);
 		writel(val, (void *)(0xf9c100000 + 0xc80));
 	}
 
