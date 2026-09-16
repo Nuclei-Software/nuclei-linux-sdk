@@ -623,7 +623,7 @@
     status = "okay";
   };
 
-  acc_udma1:acc_udma0@f9c920000 {
+  acc_udma1:acc_udma1@f9c920000 {
     compatible = "nuclei,dmac";
     #dma-cells = <2>;
     reg = <0xf 0x9c920000 0x0 0x1000>;
@@ -638,7 +638,7 @@
     /* dma channel for pa2mem */
     dma-channels = <12>;
     dma-requests = <94>;
-    status = "disabled";
+    status = "okay";
   };
 
   uart0: serial@f9c250000 {
@@ -698,16 +698,17 @@
     interrupt-parent = <&plic0>;
     interrupts = <24>;
     num-cs = <1>;
-
+    nuclei,fifo-depth = <12>;
     dmas = <&acc_udma0 1 20>, <&acc_udma0 1 21>;
     dma-names = "tx", "rx";
-
     #address-cells = <1>;
     #size-cells = <0>;
     clocks = <&ccu CLK_QSPI_XIP0>, <&ccu CLK_QSPI_XIP0_INTF>;
     clock-names = "apb", "kern";
+    assigned-clocks = <&ccu CLK_QSPI_XIP0>, <&ccu CLK_QSPI_XIP0_INTF>;
+    assigned-clock-rates = <100000000>, <50000000>;
     resets = <&ccu RST_QSPI_XIP0>;
-    status = "disabled";
+    status = "okay";
 
     flash@0 {
       compatible = "jedec,spi-nor";
